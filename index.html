@@ -32,8 +32,12 @@ button,input,select,textarea{font:inherit;color:inherit}
 .who{background:none;border:0;padding:0;cursor:pointer;text-align:right;font-size:13px;color:var(--pri-d);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw;display:block}
 .tagline{font-size:11.5px;color:var(--mut);font-weight:600;margin-top:3px;white-space:nowrap;letter-spacing:.2px}
 .hdr-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0}
-.slogan{font-size:13.5px;color:var(--mut);margin-top:6px;line-height:1.55}
-.slogan b{color:var(--pri-d)}
+.slogan{margin:10px auto 0;text-align:center}
+.slogan .th{display:block;font-size:30px;font-weight:700;line-height:1.15;color:var(--pri-d);letter-spacing:.5px}
+.slogan .en{display:inline-block;font-family:"Outfit",sans-serif;font-weight:800;font-style:italic;font-size:22px;letter-spacing:.3px;line-height:1.3;
+  background:linear-gradient(90deg,#0d5a3c 0%,#1f9a5c 45%,#8fd93a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;padding:0 4px}
+.slogan .bar{display:block;width:56px;height:4px;border-radius:4px;margin:8px auto;background:linear-gradient(90deg,#1f9a5c,#b6ef5a)}
+.slogan .desc{display:inline-block;font-size:14px;font-weight:600;color:#0d3d28;background:linear-gradient(90deg,#d6f2dd,#ecf9d4);border:1px solid #c8e8cf;border-radius:16px;padding:8px 18px;line-height:1.5}
 main{max-width:640px;margin:0 auto;padding:16px}
 h2{font-size:18px;margin:22px 0 10px}
 h3{font-size:15px;margin:0 0 8px}
@@ -761,7 +765,7 @@ const curWeek = () => W.find(w => w.start <= TODAY && TODAY <= w.end) || (W.leng
 
 function renderWelcome() {
   const p = P();
-  return installBanner() + `<div class="card hero" style="text-align:center"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:4px auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><div class="slogan"><b>${APP_TAGLINE}</b><br>${APP_DESC}</div><div class="small mut" style="margin-top:10px">กรอกข้อมูลพื้นฐาน แล้วแอปจะสร้างตารางซ้อมให้</div></div>
+  return installBanner() + `<div class="card hero" style="text-align:center"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:4px auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div>${sloganHtml()}<div class="small mut" style="margin-top:10px">กรอกข้อมูลพื้นฐาน แล้วแอปจะสร้างตารางซ้อมให้</div></div>
   <form class="card" id="welcomeForm">
     <label class="f">ชื่อเล่น<input name="name" value="${p.name === "นักวิ่งใหม่" ? "" : esc(p.name)}" placeholder="เช่น ต้น" required></label>
     <div class="grid2">
@@ -1007,6 +1011,7 @@ function copyText(t) {
   try { navigator.clipboard.writeText(t).then(done, fallback); } catch (e) { fallback(); }
 }
 
+const sloganHtml = () => `<div class="slogan"><span class="th">ก้าววิน</span><span class="en">Every Step Wins.</span><span class="bar"></span><span class="desc">${APP_DESC.replace(" ", "<br>")}</span></div>`;
 /* ---------- รูปโปรไฟล์ ---------- */
 function avatarHtml(p, size, radius) {
   const st = `width:${size}px;height:${size}px;border-radius:${radius || Math.round(size * 0.32)}px;flex:none`;
@@ -1102,7 +1107,7 @@ function renderProfile() {
       <div class="grow"><b>${PRIO[prioOf(p, r)].icon} ${esc(r.name)}</b> <span class="tiny mut">${PRIO[prioOf(p, r)].label}</span><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${fmtPace(r.target / r.km)}/กม.${r.date < TODAY ? " · ผ่านแล้ว" : ""}</div></div><span class="mut">›</span></div>`).join("")
     : `<div class="mut small">ยังไม่มีรายการแข่ง</div>`}</div>
 
-  <div class="card" style="text-align:center;padding:14px"><img src="${LOGO_WORDMARK}" alt="KAOWIN" style="height:30px"><div class="slogan"><b>${APP_TAGLINE}</b><br>${APP_DESC}</div></div>
+  <div class="card" style="text-align:center;padding:14px"><img src="${LOGO_WORDMARK}" alt="KAOWIN" style="height:30px">${sloganHtml()}</div>
   <h2>นักวิ่ง & ข้อมูล</h2>
   <div class="card">
     <div class="small mut" style="margin-bottom:10px">ข้อมูลทุกคนเก็บในเบราว์เซอร์เครื่องนี้ Export เพื่อสำรองหรือย้ายเครื่อง</div>
