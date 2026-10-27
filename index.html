@@ -230,12 +230,24 @@ const SHOE_CATALOG = {
   "Anta":        ["C202 GT", "C10 Pro", "PG7"]
 };
 
-const SHOE_ROLES = {
-  daily:    { label: "ซ้อมหลัก (Easy / Long)", color: "#3d9a5b", maxKm: 700 },
-  speed:    { label: "ซ้อมเร็ว (Interval / Tempo)", color: "#d4822a", maxKm: 500 },
-  race:     { label: "วันแข่ง / ซ้อมเพซแข่ง", color: "#c9497a", maxKm: 400 },
-  recovery: { label: "วิ่งฟื้นตัว", color: "#2f8a86", maxKm: 700 }
+// การใช้งานรองเท้า (เลือกได้หลายอย่างต่อคู่) — ใช้จับคู่รองเท้ากับนัดซ้อมอัตโนมัติ
+const SHOE_USES = {
+  easy:     { label: "Easy",          color: "#1f7a52", maxKm: 700 },
+  long:     { label: "Long Run",      color: "#2f8a86", maxKm: 700 },
+  recovery: { label: "Recovery",      color: "#6aa88a", maxKm: 700 },
+  tempo:    { label: "Tempo",         color: "#d4822a", maxKm: 500 },
+  interval: { label: "Interval",      color: "#e0602a", maxKm: 450 },
+  racepace: { label: "ซ้อมเพซแข่ง",   color: "#b0457a", maxKm: 400 },
+  race:     { label: "วันแข่ง",        color: "#c9497a", maxKm: 400 }
 };
+// นัดซ้อมแต่ละแบบ หารองเท้าตามลำดับนี้ (ถ้าไม่มีคู่ที่ติ๊กไว้ จะใช้ตัวถัดไป)
+const SHOE_FALLBACK = {
+  easy: ["easy", "recovery", "long"], recovery: ["recovery", "easy", "long"], long: ["long", "easy"],
+  tempo: ["tempo", "racepace", "interval", "easy"], interval: ["interval", "tempo", "racepace", "easy"],
+  racepace: ["racepace", "race", "tempo", "long"], race: ["race", "racepace", "tempo", "easy"]
+};
+const OLD_ROLE_USES = { daily: ["easy", "long"], speed: ["tempo", "interval"], race: ["race", "racepace"], recovery: ["recovery"] };
+const shoeUses = s => Array.isArray(s.uses) && s.uses.length ? s.uses : (OLD_ROLE_USES[s.role] || ["easy", "long"]);
 
 const GYM = {
   A:     "เวทขา A — Split Squat, Step-up, Calf Raise, Single-leg Balance",
@@ -378,7 +390,8 @@ const P = () => DB.profiles.find(p => p.id === DB.active) || DB.profiles[0];
 const shoeById = id => P().shoes.find(s => s.id === id);
 const shoeName = s => s ? `${s.brand} ${s.model}`.trim() : "";
 const shoeShort = s => s ? s.model || s.brand : "";
-const shoeColor = s => (SHOE_ROLES[s.role] || SHOE_ROLES.daily).color;
+const shoeColor = s => SHOE_USES[shoeUses(s)[0]].color;
+const usesLabel = s => shoeUses(s).map(u => SHOE_USES[u].label).join(" · ");
 const shoeUsed = (p, sh) => (+sh.startKm || 0) + p.logs.filter(l => l.shoe === sh.id).reduce((t, l) => t + (+l.km || 0), 0);
 const sortedRaces = p => p.races.filter(r => r.date && r.km && r.target).sort((a, b) => a.date.localeCompare(b.date));
 const nextRace = p => sortedRaces(p).find(r => r.date >= TODAY);
@@ -419,7 +432,7 @@ function generate(p) {
   const days = [...new Set((p.runDays || []).map(Number))].sort((a, b) => a - b);
   if (!days.length) return [];
   const longDay = days.includes(+p.longDay) ? +p.longDay : days[days.length - 1];
-  let vol = Math.max(8, +p.weeklyKm || 15), sinceDeload = 0; const rot = {}; const out = [];
+  let vol = Math.max(8, +p.weeklyKm || 15), sinceDeload = 0; const rot = {}; const out = []; SHOE_ROT = {};
 
   for (let ws = start, i = 0; ws <= end; ws = addDays(ws, 7), i++) {
     const we = addDays(ws, 6);
@@ -537,17 +550,25 @@ function qualitySession(km, phase, c, k) {
   if (!pk) return { type: "easy", km, detail: `Easy ${fmtKm(km)} กม. + ${w}`, pace: "easy" };
   return { type: "quality", km, detail: `รวม ${fmtKm(km)} กม. มี ${w}`, pace: pk, racePace: pk === "race" };
 }
+function sessionUse(s, phase) {
+  if (s.sideRace === "C") return s.pace === "long" ? "long" : "easy";
+  if (s.type === "race") return "race";
+  if (s.type === "long") return s.racePace ? "racepace" : "long";
+  if (s.type === "quality") return s.pace === "race" ? "racepace" : s.pace === "tempo" || s.pace === "steady" ? "tempo" : "interval";
+  return phase === "recovery" || s.pace === "recovery" ? "recovery" : "easy";
+}
+let SHOE_ROT = {};
 function pickShoe(p, s, phase) {
   if (!RUN_TYPES.includes(s.type)) return "";
-  const act = p.shoes.filter(x => !x.retired), by = r => act.find(x => x.role === r);
-  const daily = by("daily") || by("recovery") || by("speed") || act[0];
-  let pick;
-  if (s.sideRace === "C") pick = daily;
-  else if (s.type === "race" || s.racePace) pick = by("race") || by("speed") || daily;
-  else if (s.type === "quality") pick = by("speed") || daily;
-  else if (phase === "recovery" || s.pace === "recovery") pick = by("recovery") || daily;
-  else pick = daily;
-  return pick ? pick.id : "";
+  const act = p.shoes.filter(x => !x.retired); if (!act.length) return "";
+  const use = sessionUse(s, phase);
+  for (const u of SHOE_FALLBACK[use]) {
+    let c = act.filter(x => shoeUses(x).includes(u));
+    if (c.length > 1) { const fresh = c.filter(x => shoeUsed(p, x) < (+x.maxKm || 600)); if (fresh.length) c = fresh; }   // ข้ามคู่ที่เกินอายุ
+    // หลายคู่ใช้งานเดียวกัน → สลับใส่ทีละนัด
+    if (c.length) { const k = (SHOE_ROT[use] = (SHOE_ROT[use] || 0) + 1); return c[(k - 1) % c.length].id; }
+  }
+  return act[0].id;
 }
 
 /* ---------- ปรับแผนตามผลซ้อม ---------- */
@@ -1095,14 +1116,14 @@ function renderShoes() {
     return `<div class="card shoe ${sh.retired ? "retired" : ""}" data-act="shoeForm" data-id="${sh.id}">
       <div class="sw" style="background:${shoeColor(sh)}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16c0-3 1-7 2-9l4 3c2 1 4 1 6 2l4 1c1 .3 2 1.3 2 2.5V18H4a1 1 0 0 1-1-1z"/><path d="M3 18h18"/></svg></div>
       <div><div class="row"><b>${esc(shoeName(sh))}</b><span class="tiny mut">แก้ไข ›</span></div>
-        <span class="chip ${sh.retired ? "gray" : ""}" style="margin:4px 0 2px">${sh.retired ? "ปลดระวางแล้ว" : esc(SHOE_ROLES[sh.role]?.label || "")}</span>
+        <span class="chip ${sh.retired ? "gray" : ""}" style="margin:4px 0 2px">${sh.retired ? "ปลดระวางแล้ว" : esc(usesLabel(sh))}</span>
         <div class="row small" style="margin-top:8px"><span>ใช้ไป <b>${fmtKm(used)}</b> / ${sh.maxKm} กม.</span>${sh.retired ? "" : `<span class="mut">ตามแผนอีก ${fmtKm(plan)}</span>`}</div>
         <div class="bar ${cls}"><i style="width:${pct}%"></i></div></div></div>`;
   }).join("") : `<div class="card empty"><div class="mid">ยังไม่มีรองเท้า</div><p>เพิ่มรองเท้าที่มี แล้วแอปจะเลือกคู่ให้แต่ละนัดซ้อม</p></div>`;
-  const soon = upcoming.slice(0, 8).map(s => { const sh = shoeById(s.shoe), v = view(s); return `<tr><td>${TH_DAY[s.day]} ${thDate(s.date)}</td><td><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${fmtKm(v.km)} กม.</td><td>${sh ? `<span class="swc" style="background:${shoeColor(sh)}"></span>${esc(shoeShort(sh))}` : '<span class="mut">ยังไม่ได้เลือก</span>'}</td></tr>`; }).join("");
+  const soon = upcoming.slice(0, 8).map(s => { const sh = shoeById(s.shoe), v = view(s); return `<tr><td>${TH_DAY[s.day]} ${thDate(s.date)}</td><td><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${fmtKm(v.km)} กม.<div class="tiny mut">${SHOE_USES[sessionUse(s, W[s.wi] ? W[s.wi].phase : "")].label}</div></td><td>${sh ? `<span class="swc" style="background:${shoeColor(sh)}"></span>${esc(shoeShort(sh))}` : '<span class="mut">ยังไม่ได้เลือก</span>'}</td></tr>`; }).join("");
   return `<div class="row" style="margin:4px 0 10px"><h2 style="margin:0">รองเท้า</h2><button class="btn ghost sm" data-act="shoeForm">＋ เพิ่มรองเท้า</button></div>${cards}
     ${soon ? `<h2>นัดถัดไปใส่คู่ไหน</h2><div class="card"><table><tr><th>วัน</th><th>นัด</th><th>รองเท้า</th></tr>${soon}</table>
-    <div class="tiny mut" style="margin-top:8px">จับคู่อัตโนมัติ: Easy/Long → ซ้อมหลัก · Interval/Tempo → ซ้อมเร็ว · เพซแข่ง/วันแข่ง → รองเท้าแข่ง · เปลี่ยนรายนัดได้โดยแตะนัดแล้วกด “แก้นัดนี้”</div></div>` : ""}`;
+    <div class="tiny mut" style="margin-top:8px">แอปจับคู่ตามที่ติ๊ก “ใช้สำหรับ” ของแต่ละคู่ ถ้าหลายคู่ใช้งานเดียวกันจะสลับให้คู่ที่สึกน้อยกว่า · เปลี่ยนรายนัดได้โดยแตะนัดแล้วกด “แก้นัดนี้”</div></div>` : ""}`;
 }
 
 /* ---------- sheets ---------- */
@@ -1230,10 +1251,11 @@ function shoeForm(id) {
     <label class="f">ยี่ห้อ<select name="brand">${brands.map(b => `<option ${sh && sh.brand === b ? "selected" : ""}>${b}</option>`).join("")}<option value="__other" ${isOther ? "selected" : ""}>อื่น ๆ (พิมพ์เอง)</option></select></label>
     <label class="f otherBrand" ${isOther ? "" : "hidden"}>ชื่อยี่ห้อ<input name="brandOther" value="${isOther ? esc(sh.brand) : ""}"></label>
     <label class="f">รุ่น (เลือกจากรายการหรือพิมพ์เอง)<input name="model" list="modelList" value="${sh ? esc(sh.model) : ""}" placeholder="เช่น Novablast 5" required><datalist id="modelList"></datalist></label>
-    <label class="f">ใช้สำหรับ<select name="role">${Object.entries(SHOE_ROLES).map(([k, r]) => `<option value="${k}" ${sh && sh.role === k ? "selected" : ""}>${r.label}</option>`).join("")}</select></label>
+    <div class="flabel">ใช้สำหรับ (เลือกได้หลายอย่าง)</div>
+    <div class="chips">${Object.entries(SHOE_USES).map(([k, u]) => `<label><input type="checkbox" name="uses" value="${k}" ${(sh ? shoeUses(sh) : ["easy", "long"]).includes(k) ? "checked" : ""}><span>${u.label}</span></label>`).join("")}</div>
     <div class="grid2">
       <label class="f">ระยะที่ใช้มาแล้ว (กม.)<input name="startKm" inputmode="decimal" value="${sh ? sh.startKm : 0}"></label>
-      <label class="f">อายุการใช้งาน (กม.)<input name="maxKm" inputmode="numeric" value="${sh ? sh.maxKm : SHOE_ROLES.daily.maxKm}"></label>
+      <label class="f">อายุการใช้งาน (กม.)<input name="maxKm" inputmode="numeric" value="${sh ? sh.maxKm : SHOE_USES.easy.maxKm}"></label>
     </div>
     ${sh ? `<label class="inline"><input type="checkbox" name="retired" ${sh.retired ? "checked" : ""}> ปลดระวางแล้ว (ไม่จับคู่กับนัดซ้อม)</label>` : ""}
     <div class="btns"><button class="btn" type="submit">บันทึก</button>${sh ? `<button class="btn danger" type="button" data-act="delShoe" data-id="${sh.id}">ลบรองเท้าคู่นี้</button>` : ""}</div></form>`, body => {
@@ -1241,11 +1263,13 @@ function shoeForm(id) {
     const models = () => { body.querySelector("#modelList").innerHTML = (SHOE_CATALOG[F.brand.value] || []).map(m => `<option value="${esc(m)}">`).join(""); body.querySelector(".otherBrand").hidden = F.brand.value !== "__other"; };
     models();
     F.brand.addEventListener("change", () => { F.model.value = ""; models(); });
-    F.role.addEventListener("change", () => { if (!sh) F.maxKm.value = SHOE_ROLES[F.role.value].maxKm; });
+    const usesSel = () => [...form.querySelectorAll("input[name=uses]:checked")].map(x => x.value);
+    form.addEventListener("change", e => { if (e.target.name === "uses" && !sh) { const u = usesSel(); F.maxKm.value = u.length ? Math.min(...u.map(k => SHOE_USES[k].maxKm)) : 600; } });
     form.addEventListener("submit", e => {
       e.preventDefault();
       const brand = F.brand.value === "__other" ? F.brandOther.value.trim() : F.brand.value;
-      const data = { brand, model: F.model.value.trim(), role: F.role.value, startKm: parseFloat(F.startKm.value) || 0, maxKm: parseFloat(F.maxKm.value) || 600, retired: F.retired ? F.retired.checked : false };
+      const uses = usesSel(); if (!uses.length) return toast("เลือกการใช้งานอย่างน้อย 1 อย่าง");
+      const data = { brand, model: F.model.value.trim(), uses, startKm: parseFloat(F.startKm.value) || 0, maxKm: parseFloat(F.maxKm.value) || 600, retired: F.retired ? F.retired.checked : false };
       if (sh) Object.assign(sh, data); else p.shoes.push({ id: uid(), ...data });
       save(); closeSheet(); render(); toast("บันทึกรองเท้าแล้ว");
     });
