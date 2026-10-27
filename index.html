@@ -153,6 +153,16 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--p
 .ins i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:var(--pri);margin-top:1px}
 .ins.warn i{background:#e0a33a} .ins.bad i{background:var(--bad)} .ins.info i{background:#5b7fb8} .ins.gold i{background:var(--gold)}
 .celebrate{text-align:center;padding:6px 0 10px}
+.install{display:flex;gap:12px;align-items:center;background:linear-gradient(120deg,#0d5a3c,#1f7a52);color:#fff;border:0}
+.install img{width:46px;height:46px;border-radius:12px;flex:none;background:#fff}
+.install .x{background:none;border:0;color:#cfe9da;font-size:20px;padding:4px 6px;cursor:pointer;line-height:1}
+.install .btn{background:#b6ef5a;color:#0d3d28;padding:8px 14px}
+.steps{counter-reset:s;margin:4px 0 14px;padding:0;list-style:none}
+.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line);font-size:15px}
+.steps li:first-child{border-top:0}
+.steps li::before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+.kbd{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:8px;background:var(--soft2);border:1px solid var(--line);font-weight:600;white-space:nowrap}
+.kbd svg{width:16px;height:16px}
 .celebrate .mid{color:var(--pri-d)}
 @media (max-width:380px){.big{font-size:36px}.mid{font-size:22px}.tabs button{font-size:10px}.grid4{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -652,7 +662,7 @@ const curWeek = () => W.find(w => w.start <= TODAY && TODAY <= w.end) || (W.leng
 
 function renderHome() {
   const p = P(), races = sortedRaces(p), nr = nextRace(p);
-  if (!nr) return `<div class="card empty"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:0 auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><p>เพิ่มรายการแข่งพร้อมเป้าหมาย แอปจะสร้างตารางซ้อมให้อัตโนมัติ</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
+  if (!nr) return installBanner() + `<div class="card empty"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:0 auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><p>เพิ่มรายการแข่งพร้อมเป้าหมาย แอปจะสร้างตารางซ้อมให้อัตโนมัติ</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
   const pr = predict(p, nr), w = curWeek(), wi = w ? w.i : -1;
   const next = allSessions().find(s => s.date >= TODAY && s.type !== "rest" && status(s) !== "done");
   const blockWeeks = W.filter(x => x.race.id === nr.id), bi = w ? blockWeeks.indexOf(w) : -1;
@@ -672,7 +682,7 @@ function renderHome() {
   const others = races.filter(r => r.date >= TODAY && r.id !== nr.id);
   const weekKm = w ? w.sessions.filter(s => RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0) : 0;
   const weekGot = w ? sumKm(runLogs(p), w.start, w.end) : 0;
-  return `
+  return installBanner() + `
   <div class="card hero">
     <div class="row"><span class="chip pink">${esc(distLabel(nr.km))}</span><span class="tiny mut">${thDateY(nr.date)}</span></div>
     <div style="font-weight:600;margin-top:8px">${esc(nr.name)}</div>
@@ -922,6 +932,7 @@ function renderProfile() {
   <div class="card">
     <div class="small mut" style="margin-bottom:10px">ข้อมูลทุกคนเก็บในเบราว์เซอร์เครื่องนี้ Export เพื่อสำรองหรือย้ายเครื่อง</div>
     <div class="btns">
+      ${isStandalone() ? `<div class="note" style="margin:0">✓ ติดตั้งเป็นแอปแล้ว · ใช้งานออฟไลน์ได้</div>` : `<button class="btn" data-act="install">📲 ติดตั้งแอปลงหน้าจอโฮม</button>`}
       <button class="btn ghost" data-act="profiles">สลับ / เพิ่มนักวิ่ง</button>
       <div class="grid2"><button class="btn line" data-act="export">Export</button><button class="btn line" data-act="import">Import</button></div>
       <button class="btn danger" data-act="delProfile">ลบนักวิ่ง “${esc(p.name)}”</button>
@@ -1155,6 +1166,8 @@ document.addEventListener("click", e => {
   const act = el.dataset.act, id = el.dataset.id, p = P();
   if (act === "delLog") { e.stopPropagation(); if (confirm("ลบผลซ้อมนี้?")) { p.logs = p.logs.filter(l => String(l.id) !== id); save(); render(); } return; }
   if (act === "closeSheet") closeSheet();
+  if (act === "install") doInstall();
+  if (act === "installHide") { try { localStorage.setItem("kaowin.installHide", "1"); } catch (e) {} render(); toast("ติดตั้งได้ภายหลังที่แท็บ “ฉัน”"); }
   if (act === "openLog") openLog(el.dataset.key);
   if (act === "session") openSession(el.dataset.key);
   if (act === "analysis") showAnalysis(id);
@@ -1198,6 +1211,48 @@ $("#importFile").addEventListener("change", e => {
   file.text().then(t => { const d = JSON.parse(t); if (!Array.isArray(d.profiles)) throw 0; DB = migrate(d); save(); render(); toast("นำเข้าข้อมูลแล้ว"); })
     .catch(() => toast("ไฟล์ไม่ถูกต้อง")); e.target.value = "";
 });
+
+// ---------- ติดตั้งแอป (PWA) ----------
+let deferredPrompt = null;
+const UA = navigator.userAgent;
+const isIOS = /iphone|ipad|ipod/i.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isInApp = /Line\/|FBAN|FBAV|Instagram/i.test(UA);
+const isStandalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const canInstall = () => !isStandalone() && (!!deferredPrompt || isIOS || isInApp);
+function installDismissed() { try { return localStorage.getItem("kaowin.installHide") === "1"; } catch (e) { return false; } }
+function installBanner() {
+  if (!canInstall() || installDismissed()) return "";
+  return `<div class="card install"><img src="${LOGO_ICON}" alt=""><div style="flex:1;min-width:0"><b>ติดตั้ง ${APP_NAME} ลงมือถือ</b><div class="tiny" style="color:#cfe9da">เปิดจากหน้าจอโฮม เต็มจอ ใช้ได้แม้ไม่มีเน็ต</div></div><button class="btn sm" data-act="install">ติดตั้ง</button><button class="x" data-act="installHide" aria-label="ซ่อน">×</button></div>`;
+}
+const SHARE_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>`;
+function installGuide() {
+  let body;
+  if (isInApp) body = `<div class="note warn" style="margin-top:0">ตอนนี้เปิดอยู่ในแอป ${/Line\//i.test(UA) ? "LINE" : "โซเชียล"} ซึ่งติดตั้งไม่ได้</div>
+    <ol class="steps"><li><div>กดปุ่ม <span class="kbd">⋯</span> หรือ <span class="kbd">⋮</span> มุมขวาบน</div></li>
+    <li><div>เลือก <span class="kbd">${isIOS ? "เปิดใน Safari" : "เปิดในเบราว์เซอร์อื่น / Chrome"}</span></div></li>
+    <li><div>แล้วกดปุ่ม <span class="kbd">ติดตั้ง</span> ในแอปอีกครั้ง</div></li></ol>`;
+  else if (isIOS) body = `<ol class="steps">
+    <li><div>กดปุ่มแชร์ <span class="kbd">${SHARE_ICON}</span> ${/CriOS|FxiOS/.test(UA) ? "ที่แถบที่อยู่ด้านบน" : "ที่แถบด้านล่างของ Safari"}</div></li>
+    <li><div>เลื่อนลงแล้วเลือก <span class="kbd">＋ เพิ่มไปยังหน้าจอโฮม</span></div></li>
+    <li><div>กด <span class="kbd">เพิ่ม</span> มุมขวาบน — ไอคอน ${APP_NAME} จะอยู่บนหน้าจอโฮม</div></li></ol>
+    <div class="tiny mut">ถ้าไม่เจอเมนูนี้ ให้เปิดลิงก์ด้วย Safari ก่อน</div>`;
+  else body = `<ol class="steps"><li><div>กดเมนู <span class="kbd">⋮</span> มุมขวาบนของ Chrome</div></li><li><div>เลือก <span class="kbd">ติดตั้งแอป</span> หรือ <span class="kbd">เพิ่มลงในหน้าจอหลัก</span></div></li></ol>`;
+  openSheet(`ติดตั้ง ${APP_NAME}`, `<div style="text-align:center;margin-bottom:6px"><img src="${LOGO_ICON}" alt="" style="width:64px;height:64px"></div>${body}
+    <div class="note info">ข้อมูลผลซ้อมเก็บในเครื่อง แอปที่ติดตั้งกับเบราว์เซอร์${isIOS ? "ใน iPhone แยกที่เก็บกัน — ถ้าเคยบันทึกในเบราว์เซอร์ไว้ ให้ Export แล้ว Import ในแอปที่ติดตั้ง" : "ใช้ข้อมูลชุดเดียวกัน"}</div>
+    <div class="btns" style="margin-top:12px"><button class="btn" data-act="closeSheet">เข้าใจแล้ว</button></div>`);
+}
+async function doInstall() {
+  if (deferredPrompt && !isInApp) {
+    deferredPrompt.prompt();
+    const r = await deferredPrompt.userChoice.catch(() => ({}));
+    deferredPrompt = null; render();
+    if (r.outcome === "accepted") toast(`กำลังติดตั้ง ${APP_NAME}`);
+  } else installGuide();
+}
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; render(); });
+window.addEventListener("appinstalled", () => { deferredPrompt = null; render(); toast(`ติดตั้ง ${APP_NAME} แล้ว 🎉`); });
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1"))
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 
 // โลโก้ + favicon
 $("#wordmark").src = LOGO_WORDMARK;
