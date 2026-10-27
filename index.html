@@ -78,6 +78,12 @@ details.week{background:var(--card);border:1px solid var(--line);border-radius:1
 details.week>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 details.week>summary::-webkit-details-marker{display:none}
 details.week[open]>summary{border-bottom:1px solid var(--line);background:var(--soft2)}
+.chev{display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--soft2);color:var(--pri-d);text-align:center;line-height:22px;font-size:12px;transition:transform .2s;margin-left:6px;vertical-align:middle}
+details.week[open] .chev{transform:rotate(180deg)}
+.wprev{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.wprev span{font-size:11.5px;padding:1px 7px;border-radius:6px;background:var(--soft2);color:var(--mut);white-space:nowrap}
+.wprev span b{color:var(--ink);font-weight:600}
+details.week[open] .wprev{display:none}
 .wbody{padding:4px 14px 12px}
 .wk{font-weight:700}
 .group{margin:22px 0 10px;padding:12px 14px;border-radius:14px;background:#f9e9ef;color:#7a2448;display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -724,7 +730,7 @@ function showAnalysis(id) {
 }
 
 /* ---------- render ---------- */
-let tab = "home", meTab = "profile";
+let tab = "home", meTab = "profile", planAllOpen = false;
 function render() {
   compute();
   const p = P(), nr = mainRace(p);
@@ -818,15 +824,16 @@ function renderHome() {
 function renderPlan() {
   const p = P();
   if (!W.length) return `<div class="card empty"><div class="mid">ยังไม่มีตาราง</div><p>เพิ่มรายการแข่งและตั้งวันซ้อมในแท็บ “ฉัน”</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
-  const cw = curWeek(); let lastRace = null, html = `<div class="tiny mut">แตะนัดซ้อมเพื่อส่งผลหรือแก้ไข · ตารางสร้างใหม่อัตโนมัติเมื่อแก้รายการแข่งหรือวันซ้อม</div>`;
+  const cw = curWeek(); let lastRace = null, html = `<div class="row" style="align-items:flex-start"><div class="tiny mut">แตะการ์ดสัปดาห์เพื่อดูนัดซ้อมทั้งหมด · แตะนัดเพื่อส่งผลหรือแก้ไข</div><button class="btn ghost sm" data-act="toggleWeeks" style="flex:none">${planAllOpen ? "ย่อทั้งหมด" : "เปิดทั้งหมด"}</button></div>`;
   W.forEach(w => {
     if (w.race !== lastRace) { lastRace = w.race; html += `<div class="group"><div><b>→ ${esc(w.race.name)}</b><div class="tiny">${thDateY(w.race.date)} · เป้า ${fmtTime(w.race.target)}</div></div><span class="chip pink">${esc(distLabel(w.race.km))}</span></div>`; }
     const runs = w.sessions.filter(s => RUN_TYPES.includes(s.type));
     const km = runs.reduce((t, s) => t + (view(s).km || 0), 0), done = runs.filter(s => status(s) === "done").length;
     const adj = A[w.i].factor < 1 || A[w.i].easyQuality;
-    html += `<details class="week" ${cw && w.i === cw.i ? "open" : ""}>
-      <summary><div><span class="wk">สัปดาห์ ${w.n}</span> <span class="small mut">${thDate(w.start)}–${thDate(w.end)}</span><div style="margin-top:2px"><span class="chip ${w.phase === "race" ? "pink" : w.phase === "recovery" || w.phase === "taper" ? "gray" : ""}">${PHASE_TH[w.phase]}</span>${w.deload ? ' <span class="chip gray">ลดโหลด</span>' : ""}${cw && w.i === cw.i ? ' <span class="chip">ตอนนี้</span>' : ""}${adj ? ' <span class="chip warn">ปรับตามผล</span>' : ""}</div></div>
-      <div class="small mut" style="text-align:right">${fmtKm(km)} กม.<br>${w.end < TODAY || done ? done + "/" + runs.length : ""}</div></summary>
+    const prev = runs.map(s => { const v = view(s); return `<span>${TH_DAY[s.day]} <b>${v.type === "race" ? "🏁 แข่ง" : TYPE_LABEL[v.type]}</b> ${fmtKm(v.km)}</span>`; }).join("");
+    html += `<details class="week" ${planAllOpen || (cw && w.i === cw.i) ? "open" : ""}>
+      <summary><div><span class="wk">สัปดาห์ ${w.n}</span> <span class="small mut">${thDate(w.start)}–${thDate(w.end)}</span><div style="margin-top:2px"><span class="chip ${w.phase === "race" ? "pink" : w.phase === "recovery" || w.phase === "taper" ? "gray" : ""}">${PHASE_TH[w.phase]}</span>${w.deload ? ' <span class="chip gray">ลดโหลด</span>' : ""}${cw && w.i === cw.i ? ' <span class="chip">ตอนนี้</span>' : ""}${adj ? ' <span class="chip warn">ปรับตามผล</span>' : ""}</div><div class="wprev">${prev}</div></div>
+      <div class="small mut" style="text-align:right;white-space:nowrap">${fmtKm(km)} กม.<span class="chev">▾</span><br>${w.end < TODAY || done ? done + "/" + runs.length : ""}</div></summary>
       <div class="wbody">${noteHtml(A[w.i])}${w.sessions.map(s => sessRow(s)).join("")}</div></details>`;
   });
   const nr = mainRace(p);
@@ -1406,6 +1413,7 @@ document.addEventListener("click", e => {
   if (act === "delLog") { e.stopPropagation(); if (confirm("ลบผลซ้อมนี้?")) { p.logs = p.logs.filter(l => String(l.id) !== id); save(); render(); } return; }
   if (act === "closeSheet") closeSheet();
   if (act === "install") doInstall();
+  if (act === "toggleWeeks") { planAllOpen = !planAllOpen; const y = window.scrollY; render(); window.scrollTo(0, y); }
   if (act === "photo") pickPhoto();
   if (act === "photoDel") { delete p.photo; save(); render(); }
   if (act === "vo2Form") vo2Form();
