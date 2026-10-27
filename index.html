@@ -391,24 +391,48 @@ function racePaces(r) {
     tempo: [H - 4, H + 4], p10: [P10 - 3, P10 + 3], p5: [P5 - 4, P5 + 3], fast: [P5 - 10, P5 - 3], race: [R - 3, R + 3] } };
 }
 
+/* ---------- ความสำคัญของงานแข่ง ---------- */
+// A = งานหลัก (ตารางวางรอบงานนี้) · B = งานรอง/ซ้อมแข่ง (ลดโหลดสั้น ๆ) · C = วิ่งสนุก (ไม่ปรับตาราง)
+const PRIO = {
+  A: { icon: "🏆", label: "งานหลัก", desc: "ตารางวางรอบงานนี้ มีช่วงลดระยะและพักฟื้นเต็ม" },
+  B: { icon: "🎯", label: "งานรอง / ซ้อมแข่ง", desc: "ลดโหลด 2–3 วันก่อนแข่ง ใช้แทนวันซ้อมเร็ว แล้วกลับเข้าแผนงานหลัก" },
+  C: { icon: "🙂", label: "วิ่งสนุก", desc: "ไม่ปรับตาราง ใช้แทน Easy หรือ Long Run วันนั้น" }
+};
+function prioOf(p, r) {
+  if (r.prio) return r.prio;
+  // ไม่ได้ตั้ง: งานที่ระยะไกลที่สุด (ถ้าเท่ากันเอางานหลังสุด) เป็นงานหลัก นอกนั้นเป็นงานรอง
+  const rs = sortedRaces(p).filter(x => !x.prio); if (!rs.length) return "A";
+  const main = rs.reduce((a, b) => (b.km > a.km + 0.05 || (Math.abs(b.km - a.km) <= 0.05 && b.date >= a.date)) ? b : a);
+  return main.id === r.id ? "A" : "B";
+}
+const mainRace = p => sortedRaces(p).find(r => r.date >= TODAY && prioOf(p, r) === "A") || nextRace(p);
+
 /* ---------- สร้างตารางอัตโนมัติจากรายการแข่ง ---------- */
 function generate(p) {
   const races = sortedRaces(p); if (!races.length) return [];
+  let mains = races.filter(r => prioOf(p, r) === "A");
+  if (!mains.length) mains = [races[races.length - 1]];
+  const side = races.filter(r => !mains.includes(r));
   const start = mondayOf(p.planStart || TODAY), end = mondayOf(races[races.length - 1].date);
   if (start > end) return [];
   const lvl = { beginner: 0, intermediate: 1, advanced: 2 }[p.level] ?? 1;
   const days = [...new Set((p.runDays || []).map(Number))].sort((a, b) => a - b);
   if (!days.length) return [];
   const longDay = days.includes(+p.longDay) ? +p.longDay : days[days.length - 1];
-  let vol = Math.max(8, +p.weeklyKm || 15), build = 0; const rot = {}; const out = [];
+  let vol = Math.max(8, +p.weeklyKm || 15), sinceDeload = 0; const rot = {}; const out = [];
 
   for (let ws = start, i = 0; ws <= end; ws = addDays(ws, 7), i++) {
-    const race = races.find(r => r.date >= ws), c = cat(race.km);
-    const prev = [...races].reverse().find(r => r.date < ws);
+    const we = addDays(ws, 6);
+    // งานหลักถัดไป (ถ้าไม่มีแล้ว ใช้งานใดก็ได้ที่เหลือเป็นเป้าของช่วงนั้น)
+    const race = mains.find(r => r.date >= ws) || races.find(r => r.date >= ws), c = cat(race.km);
+    const prevMain = [...mains].reverse().find(r => r.date < ws);
+    const sideHere = side.filter(r => r.date >= ws && r.date <= we && r !== race);
+    const bHere = sideHere.find(r => prioOf(p, r) === "B");
+    const bPrev = side.find(r => prioOf(p, r) === "B" && r.date < ws && r.date >= addDays(ws, -4));   // แข่งงานรองปลายสัปดาห์ก่อน
     const wtr = Math.round(diffDays(ws, mondayOf(race.date)) / 7), peak = PEAK_KM[c][lvl];
     let phase;
     if (wtr === 0) phase = "race";
-    else if (prev && diffDays(prev.date, ws) < REC_DAYS[cat(prev.km)]) phase = "recovery";
+    else if (prevMain && diffDays(prevMain.date, ws) < REC_DAYS[cat(prevMain.km)]) phase = "recovery";
     else if (wtr < TAPER_WK[c]) phase = "taper";
     else if (wtr <= TAPER_WK[c] + 3) phase = "specific";
     else if (wtr <= TAPER_WK[c] + 7) phase = "build";
@@ -418,13 +442,23 @@ function generate(p) {
     if (phase === "race") target = vol * 0.4;
     else if (phase === "taper") target = vol * (wtr === 1 ? 0.6 : 0.75);
     else if (phase === "recovery") target = vol * 0.55;
-    else { build++; if (build % 4 === 0) { deload = true; target = vol * 0.8; } else { if (vol < peak) vol = Math.min(peak, vol * WEEKLY_GROWTH); target = vol; } }
+    else {
+      sinceDeload++;
+      // ลดโหลดทุก ~4 สัปดาห์ แต่ไม่ให้ตกช่วงใกล้งานหลัก (ช่วงลดระยะทำหน้าที่แทน) และไม่ซ้อนสัปดาห์ที่มีงานรอง
+      const canDeload = wtr > TAPER_WK[c] + 2 && !bHere && !bPrev;
+      if (sinceDeload >= 4 && canDeload) { deload = true; sinceDeload = 0; target = vol * 0.8; }
+      else { if (vol < peak) vol = Math.min(peak, vol * WEEKLY_GROWTH); target = vol; }
+    }
+    if (bHere && phase !== "race") target *= 0.85;
+    if (bPrev && phase !== "race" && phase !== "recovery") target *= cat(bPrev.km) === "half" || cat(bPrev.km) === "full" ? 0.8 : 0.9;
 
     const pc = racePaces(race);
-    const wk = { i, n: i + 1, start: ws, end: addDays(ws, 6), phase, race, deload, pc, sessions: [] };
+    const wk = { i, n: i + 1, start: ws, end: we, phase, race, deload, pc, side: sideHere, sessions: [] };
     let qN = { base: 1, build: days.length >= 5 ? 2 : 1, specific: days.length >= 5 ? 2 : 1, taper: 1, race: 0, recovery: 0 }[phase];
     if (deload) qN = Math.min(qN, 1);
     if (days.length <= 2) qN = Math.min(qN, 1);
+    if (bHere) qN = Math.max(0, qN - 1);                       // งานรองนับเป็นวันเร็วแล้ว
+    if (bPrev) qN = Math.max(0, qN - 1);
     const pool0 = days.filter(d => d !== longDay && Math.abs(d - longDay) > 1);
     const pool = pool0.length ? pool0 : days.filter(d => d !== longDay);
     const qDays = []; pool.forEach(d => { if (qDays.length < qN && qDays.every(x => Math.abs(x - d) >= 2)) qDays.push(d); });
@@ -440,7 +474,7 @@ function generate(p) {
       pre.forEach((date, k) => wk.sessions.push(k === 0
         ? { type: "easy", km: each, detail: `Easy ${fmtKm(each)} กม. + 4×100 ม. @เพซแข่ง`, pace: "easy", date }
         : { type: "easy", km: Math.min(each, 4), detail: `Easy ${fmtKm(Math.min(each, 4))} กม. ขาสด ๆ`, pace: "easy", date }));
-      wk.sessions.push({ type: "race", km: race.km, detail: `${race.name} · ${distLabel(race.km)}`, pace: "race", date: race.date });
+      wk.sessions.push({ type: "race", km: race.km, detail: `${PRIO[prioOf(p, race)].icon} ${race.name} · ${distLabel(race.km)}`, pace: "race", date: race.date, raceId: race.id });
     } else {
       days.forEach(d => {
         const date = addDays(ws, d);
@@ -449,10 +483,29 @@ function generate(p) {
         else wk.sessions.push({ type: "easy", km: r05(E), detail: phase === "recovery" ? `Recovery ${fmtKm(r05(E))} กม.` : `Easy ${fmtKm(r05(E))} กม.`, pace: phase === "recovery" ? "recovery" : "easy", date });
       });
     }
+    // ใส่งานรอง / วิ่งสนุกลงในสัปดาห์
+    sideHere.forEach(r => {
+      const pr = prioOf(p, r), rp = racePaces(r).ranges.race;
+      const idx = wk.sessions.findIndex(s => s.date === r.date && s.type !== "gym");
+      const replaced = idx >= 0 ? wk.sessions.splice(idx, 1)[0] : null;
+      wk.sessions.push({ type: "race", km: r.km, detail: `${PRIO[pr].icon} ${r.name} · ${distLabel(r.km)}${pr === "C" ? " (วิ่งสนุก ไม่ต้องเค้น)" : " (งานรอง)"}`,
+        pace: pr === "C" ? (replaced && replaced.type === "long" ? "long" : "easy") : "race", range: pr === "C" ? null : rp, date: r.date, raceId: r.id, sideRace: pr });
+      if (pr === "B") {
+        wk.sessions.forEach(s => {
+          if (s.type === "race" || s.type === "gym") return;
+          const dd = diffDays(s.date, r.date);
+          if (dd > 2 && s.type !== "long") { const cap = r05(Math.max(5, Math.min(8, r.km * 0.6))); if (s.km > cap) Object.assign(s, { km: cap, detail: s.type === "quality" ? s.detail.replace(/รวม [\d.]+ กม\./, `รวม ${fmtKm(cap)} กม.`) : `Easy ${fmtKm(cap)} กม.` }); }
+          if (dd > 0 && dd <= 2) Object.assign(s, { type: "easy", km: Math.min(s.km || 4, dd === 1 ? 3 : 5), detail: dd === 1 ? "Easy 3 กม. ขาสด ๆ ก่อนแข่ง" : "Easy สั้น + 4×100 ม.", pace: "easy", racePace: false });
+          if (dd < 0 && dd >= -2) { const k = r05(Math.min(s.km || 5, r.km > 15 ? 4 : 6)); Object.assign(s, { type: "easy", km: k, detail: `Recovery ${fmtKm(k)} กม. หลังแข่ง`, pace: "recovery", racePace: false }); }
+        });
+      }
+    });
     const gd = [...(p.gymDays || [])].map(Number).sort((a, b) => a - b);
     if (["base", "build", "specific", "taper"].includes(phase)) gd.forEach((d, k) => {
       if (phase === "taper" && k > 0) return;
-      wk.sessions.push({ type: "gym", detail: phase === "taper" || deload ? GYM.light : (k % 2 ? GYM.B : GYM.A), date: addDays(ws, d) });
+      const date = addDays(ws, d);
+      if (bHere && Math.abs(diffDays(date, bHere.date)) <= 2) return;     // ไม่เล่นเวทติดวันงานรอง
+      wk.sessions.push({ type: "gym", detail: phase === "taper" || deload ? GYM.light : (k % 2 ? GYM.B : GYM.A), date });
     });
     Object.entries(p.overrides || {}).forEach(([date, o]) => {
       if (date < ws || date > wk.end) return;
@@ -489,7 +542,8 @@ function pickShoe(p, s, phase) {
   const act = p.shoes.filter(x => !x.retired), by = r => act.find(x => x.role === r);
   const daily = by("daily") || by("recovery") || by("speed") || act[0];
   let pick;
-  if (s.type === "race" || s.racePace) pick = by("race") || by("speed") || daily;
+  if (s.sideRace === "C") pick = daily;
+  else if (s.type === "race" || s.racePace) pick = by("race") || by("speed") || daily;
   else if (s.type === "quality") pick = by("speed") || daily;
   else if (phase === "recovery" || s.pace === "recovery") pick = by("recovery") || daily;
   else pick = daily;
@@ -526,7 +580,7 @@ function analyze(i) {
   return res;
 }
 function view(s) {
-  const w = W[s.wi], a = A[s.wi] || { factor: 1 }, rg = w && w.pc.ranges[s.pace];
+  const w = W[s.wi], a = A[s.wi] || { factor: 1 }, rg = s.range || (w && w.pc.ranges[s.pace]);
   const v = { type: s.type, km: s.km, detail: s.detail, pace: rg ? rng(rg) : "", range: rg, adjusted: false };
   if (s.edited) return v;
   if (s.type === "quality" && a.easyQuality) { v.type = "easy"; v.detail = `Easy ${fmtKm(s.km)} กม. แทนวันเร็ว`; v.range = w.pc.ranges.easy; v.pace = rng(v.range); v.adjusted = true; }
@@ -567,7 +621,7 @@ function predict(p, race) {
 function analyzeLog(p, l) {
   const out = [], s = l.sessionKey ? allSessions().find(x => x.key === l.sessionKey) : null, v = s ? view(s) : null;
   const sec = toSec(l.time), pace = sec && +l.km ? sec / +l.km : 0;
-  const nr = nextRace(p), pc = nr ? racePaces(nr) : null;
+  const nr = mainRace(p), pc = nr ? racePaces(nr) : null;
   let pbNew = null;
 
   if (l.pain) out.push({ lvl: "bad", t: "มีอาการเจ็บ/ตึง: วันถัดไปให้พักหรือวิ่งเบามาก ถ้าเจ็บจุดเดิมเกิน 2–3 วัน ควรพบผู้เชี่ยวชาญ แผนสัปดาห์หน้าจะลดลงให้อัตโนมัติ" });
@@ -644,7 +698,7 @@ function showAnalysis(id) {
 let tab = "home", meTab = "profile";
 function render() {
   compute();
-  const p = P(), nr = nextRace(p);
+  const p = P(), nr = mainRace(p);
   document.title = APP_NAME;
   
   $("#who").textContent = p.onboarded ? `${p.name || "นักวิ่ง"} ▾` : "เริ่มต้นใช้งาน";
@@ -687,7 +741,7 @@ function renderWelcome() {
   <div class="tiny mut" style="text-align:center">ใส่ PB รองเท้า และรายละเอียดอื่นได้ภายหลังในแท็บ “ฉัน” · เคยใช้แล้ว? <button class="linkbtn" data-act="import">นำเข้าข้อมูล</button></div>`;
 }
 function renderHome() {
-  const p = P(), races = sortedRaces(p), nr = nextRace(p);
+  const p = P(), races = sortedRaces(p), nr = mainRace(p);
   if (!p.onboarded) return renderWelcome();
   if (!nr) return installBanner() + `<div class="card empty"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:0 auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><p>เพิ่มรายการแข่งพร้อมเป้าหมาย แอปจะสร้างตารางซ้อมให้อัตโนมัติ</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
   const pr = predict(p, nr), w = curWeek(), wi = w ? w.i : -1;
@@ -711,7 +765,7 @@ function renderHome() {
   const weekGot = w ? sumKm(runLogs(p), w.start, w.end) : 0;
   return installBanner() + `
   <div class="card hero">
-    <div class="row"><span class="chip pink">${esc(distLabel(nr.km))}</span><span class="tiny mut">${thDateY(nr.date)}</span></div>
+    <div class="row"><span><span class="chip pink">${esc(distLabel(nr.km))}</span> <span class="chip">${PRIO[prioOf(p, nr)].icon} ${PRIO[prioOf(p, nr)].label}</span></span><span class="tiny mut">${thDateY(nr.date)}</span></div>
     <div style="font-weight:600;margin-top:8px">${esc(nr.name)}</div>
     <div class="big">${fmtTime(nr.target)}</div>
     <div class="mut small">เพซเป้าหมาย ${fmtPace(nr.target / nr.km)}/กม.</div>
@@ -721,7 +775,7 @@ function renderHome() {
       <div class="stat"><b>${done}/${planned.length}</b><span class="tiny mut">นัดที่ทำได้</span></div>
     </div>
   </div>
-  ${(() => { const c = raceCheck(p, nr).filter(x => x.lvl === "bad" || x.lvl === "warn"); return c.length ? `<div class="card" style="padding:6px 16px 14px">${checkHtml(c).replace(/<button[^>]*data-suggest[^>]*>.*?<\/button>/g, "")}<button class="linkbtn" data-act="raceForm" data-id="${nr.id}">ปรับเป้า ›</button></div>` : ""; })()}
+  ${(() => { const c = raceCheck(p, { ...nr, prio: prioOf(p, nr) }).filter(x => x.lvl === "bad" || x.lvl === "warn"); return c.length ? `<div class="card" style="padding:6px 16px 14px">${checkHtml(c).replace(/<button[^>]*data-suggest[^>]*>.*?<\/button>/g, "")}<button class="linkbtn" data-act="raceForm" data-id="${nr.id}">ปรับเป้า ›</button></div>` : ""; })()}
   <div class="card">${predHtml}</div>
   ${w ? `<div class="card">
     <div class="row"><h3 style="margin:0">สัปดาห์นี้ · ${PHASE_TH[w.phase]}</h3><span class="chip">${fmtKm(weekGot)} / ${fmtKm(weekKm)} กม.</span></div>
@@ -729,7 +783,7 @@ function renderHome() {
     ${noteHtml(A[wi])}
     <div style="margin-top:8px">${w.sessions.map(s => sessRow(s, next && s.key === next.key)).join("")}</div>
   </div>` : ""}
-  ${others.length ? `<div class="card"><h3>รายการแข่งถัดไป</h3>${others.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}"><span class="chip pink">${esc(distLabel(r.km))}</span><div class="grow"><b>${esc(r.name)}</b><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${fmtPace(r.target / r.km)}/กม.</div></div></div>`).join("")}</div>` : ""}`;
+  ${others.length ? `<div class="card"><h3>รายการแข่งอื่น ๆ</h3>${others.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}"><span class="chip pink">${esc(distLabel(r.km))}</span><div class="grow"><b>${PRIO[prioOf(p, r)].icon} ${esc(r.name)}</b> <span class="tiny mut">${PRIO[prioOf(p, r)].label}</span><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${fmtPace(r.target / r.km)}/กม.</div></div></div>`).join("")}</div>` : ""}`;
 }
 
 function renderPlan() {
@@ -746,7 +800,7 @@ function renderPlan() {
       <div class="small mut" style="text-align:right">${fmtKm(km)} กม.<br>${w.end < TODAY || done ? done + "/" + runs.length : ""}</div></summary>
       <div class="wbody">${noteHtml(A[w.i])}${w.sessions.map(s => sessRow(s)).join("")}</div></details>`;
   });
-  const nr = nextRace(p);
+  const nr = mainRace(p);
   if (nr) {
     const pc = racePaces(nr);
     html += `<h2>เพซซ้อมสำหรับ ${esc(distLabel(nr.km))} (${fmtTime(nr.target)})</h2><div class="card"><table><tr><th>ประเภท</th><th class="num">นาที/กม.</th></tr>
@@ -953,7 +1007,7 @@ function renderProfile() {
   <div class="row" style="margin:22px 0 10px"><h2 style="margin:0">รายการแข่ง</h2><button class="btn ghost sm" data-act="raceForm">＋ เพิ่ม</button></div>
   <div class="card">${races.length ? races.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}">
       <span class="chip ${r.date < TODAY ? "gray" : "pink"}">${esc(distLabel(r.km))}</span>
-      <div class="grow"><b>${esc(r.name)}</b><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${fmtPace(r.target / r.km)}/กม.${r.date < TODAY ? " · ผ่านแล้ว" : ""}</div></div><span class="mut">›</span></div>`).join("")
+      <div class="grow"><b>${PRIO[prioOf(p, r)].icon} ${esc(r.name)}</b> <span class="tiny mut">${PRIO[prioOf(p, r)].label}</span><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${fmtPace(r.target / r.km)}/กม.${r.date < TODAY ? " · ผ่านแล้ว" : ""}</div></div><span class="mut">›</span></div>`).join("")
     : `<div class="mut small">ยังไม่มีรายการแข่ง</div>`}</div>
 
   <div class="card" style="text-align:center;padding:14px"><img src="${LOGO_WORDMARK}" alt="KAOWIN" style="height:30px"><div class="slogan"><b>${APP_TAGLINE}</b><br>${APP_DESC}</div></div>
@@ -1141,9 +1195,12 @@ function raceCheck(p, race) {
   const out = [], c = cat(race.km), wk = Math.floor(diffDays(TODAY, race.date) / 7);
   const [mn, rec] = MIN_WEEKS[c], dl = distLabel(race.km);
   if (race.date < TODAY) return out;
-  if (wk < mn) out.push({ lvl: "bad", t: `เหลือ ${wk} สัปดาห์ น้อยไปสำหรับ ${dl} (ควรมีอย่างน้อย ${mn}, แนะนำ ${rec} สัปดาห์) — ตารางจะข้ามช่วงสร้างฐาน ควรตั้งเป้าแบบวิ่งให้จบสบาย ๆ` });
-  else if (wk < rec) out.push({ lvl: "warn", t: `เหลือ ${wk} สัปดาห์ ค่อนข้างกระชับสำหรับ ${dl} (แนะนำ ${rec} สัปดาห์) — ช่วงสร้างฐานจะสั้นกว่าปกติ ซ้อมให้ครบทุกนัดสำคัญ` });
-  if ((+p.weeklyKm || 0) < MIN_BASE[c] && c !== "5") out.push({ lvl: "warn", t: `ตอนนี้วิ่ง ${fmtKm(+p.weeklyKm || 0)} กม./สัปดาห์ ควรมีฐานอย่างน้อย ${MIN_BASE[c]} กม. ก่อนซ้อม ${dl} — แอปจะค่อย ๆ เพิ่มระยะให้` });
+  const pr = race.prio || "A";
+  if (pr === "C") return [{ lvl: "ok", t: "วิ่งสนุก: ไม่ปรับตาราง ใช้แทน Easy/Long ของวันนั้น วิ่งตามความรู้สึก ไม่ต้องเค้นเพซ" }];
+  if (pr === "B") out.push({ lvl: "info", t: "งานรอง: ตารางงานหลักเดินต่อ ลดโหลด 2–3 วันก่อนแข่ง และฟื้นตัวสั้น ๆ หลังแข่ง ใช้ผลเช็กความฟิตได้ดี" });
+  if (pr === "A" && wk < mn) out.push({ lvl: "bad", t: `เหลือ ${wk} สัปดาห์ น้อยไปสำหรับ ${dl} (ควรมีอย่างน้อย ${mn}, แนะนำ ${rec} สัปดาห์) — ตารางจะข้ามช่วงสร้างฐาน ควรตั้งเป้าแบบวิ่งให้จบสบาย ๆ` });
+  else if (pr === "A" && wk < rec) out.push({ lvl: "warn", t: `เหลือ ${wk} สัปดาห์ ค่อนข้างกระชับสำหรับ ${dl} (แนะนำ ${rec} สัปดาห์) — ช่วงสร้างฐานจะสั้นกว่าปกติ ซ้อมให้ครบทุกนัดสำคัญ` });
+  if (pr === "A" && (+p.weeklyKm || 0) < MIN_BASE[c] && c !== "5") out.push({ lvl: "warn", t: `ตอนนี้วิ่ง ${fmtKm(+p.weeklyKm || 0)} กม./สัปดาห์ ควรมีฐานอย่างน้อย ${MIN_BASE[c]} กม. ก่อนซ้อม ${dl} — แอปจะค่อย ๆ เพิ่มระยะให้` });
   const fit = fitness(p);
   if (fit) {
     const pot = vdotTime(fit.v, race.km);
@@ -1167,12 +1224,16 @@ const checkHtml = list => list.map(x => `<div class="note ${x.lvl === "ok" ? "" 
 function raceForm(id) {
   const p = P(), r = id ? p.races.find(x => x.id === id) : null;
   const known = r && DISTS.some(d => Math.abs(d.km - r.km) < 0.05);
+  const defPrio = sortedRaces(p).some(x => x.date >= TODAY && prioOf(p, x) === "A") ? "B" : "A";   // ยังไม่มีงานหลัก → งานแรกเป็นงานหลัก
   openSheet(r ? "แก้ไขรายการแข่ง" : "เพิ่มรายการแข่ง", `<form id="rcForm">
     <label class="f">ชื่อรายการ<input name="name" value="${r ? esc(r.name) : ""}" placeholder="เช่น Bangkok Midnight Run" required></label>
     <label class="f">วันแข่ง<input type="date" name="date" value="${r ? r.date : ""}" required></label>
     <div class="flabel">ระยะ</div>
     <div class="seg">${DISTS.map(d => `<label><input type="radio" name="dist" value="${d.km}" ${r ? (Math.abs(d.km - r.km) < 0.05 ? "checked" : "") : (d.km === 10 ? "checked" : "")}><span>${d.label.replace("Half Marathon", "Half").replace("Marathon", "Full")}</span></label>`).join("")}<label><input type="radio" name="dist" value="other" ${r && !known ? "checked" : ""}><span>อื่น ๆ</span></label></div>
     <label class="f otherKm" ${r && !known ? "" : "hidden"}>ระยะ (กม.)<input name="km" inputmode="decimal" value="${r && !known ? r.km : ""}"></label>
+    <div class="flabel">ความสำคัญ</div>
+    <div class="seg">${Object.entries(PRIO).map(([k, v]) => `<label><input type="radio" name="prio" value="${k}" ${(r ? prioOf(p, r) : defPrio) === k ? "checked" : ""}><span>${v.icon} ${v.label.split(" /")[0]}</span></label>`).join("")}</div>
+    <div class="hint prioHint" style="margin-top:-6px"></div>
     <div class="flabel">ตั้งเป้าเป็น</div>
     <div class="seg"><label><input type="radio" name="mode" value="pace" ${!r || r.mode !== "time" ? "checked" : ""}><span>เพซ (นาที/กม.)</span></label><label><input type="radio" name="mode" value="time" ${r && r.mode === "time" ? "checked" : ""}><span>เวลาจบ</span></label></div>
     <label class="f"><span class="tlabel">เพซเป้าหมาย</span><input name="target" inputmode="decimal" autocomplete="off" value="${r ? (r.mode === "time" ? fmtTime(r.target) : fmtPace(r.target / r.km)) : ""}" placeholder="5:00" required></label>
@@ -1199,7 +1260,8 @@ function raceForm(id) {
       hint.style.color = bad ? "var(--bad)" : "";
       hint.textContent = !T || !d ? "" : bad ? `อ่านได้เป็น ${durTH(T)} (เพซ ${fmtPace(T / d)}/กม.) ดูไม่สมเหตุสมผล — ลองพิมพ์ เช่น ${pace ? "5:13" : d > 15 ? "1:50:00" : "50:00"}`
         : `= ${pace ? "เวลาจบ " + fmtTime(T) + " (" + durTH(T) + ")" : "เพซ " + fmtPace(T / d) + "/กม. (" + durTH(T) + ")"}` + (fit ? ` · ศักยภาพตอนนี้ ${fmtTime(vdotTime(fit.v, d))}` : "");
-      const ch = T && d && !bad && F.date.value ? checkHtml(raceCheck(p, { km: d, target: T, date: F.date.value })) : "", box = body.querySelector(".checks");
+      body.querySelector(".prioHint").textContent = PRIO[F.prio.value].desc;
+      const ch = T && d && !bad && F.date.value ? checkHtml(raceCheck(p, { km: d, target: T, date: F.date.value, prio: F.prio.value })) : "", box = body.querySelector(".checks");
       if (box.dataset.h !== ch) { box.innerHTML = ch; box.dataset.h = ch; }
     };
     body.querySelector(".checks").addEventListener("click", e => {
@@ -1224,7 +1286,9 @@ function raceForm(id) {
       const d = km(), T = targetT();
       if (!d) return toast("ใส่ระยะก่อนนะ"); if (!T) return toast("ใส่เป้าหมาย เช่น 5:00");
       if (!PACE_OK(T / d)) return toast("เป้าหมายดูไม่สมเหตุสมผล ตรวจรูปแบบเวลาอีกครั้ง");
-      const data = { name: F.name.value.trim(), date: F.date.value, km: d, target: Math.round(T), mode: F.mode.value };
+      const data = { name: F.name.value.trim(), date: F.date.value, km: d, target: Math.round(T), mode: F.mode.value, prio: F.prio.value };
+      // มีงานหลักได้หลายงาน แต่ถ้าตั้งงานนี้เป็นหลัก ให้งานอื่นที่ยังไม่ได้ตั้งค่าคงสถานะเดิมไว้
+      p.races.forEach(x => { if (!x.prio && x !== r) x.prio = prioOf(p, x); });
       if (r) Object.assign(r, data); else p.races.push({ id: uid(), ...data });
       save(); closeSheet(); render(); toast("สร้างตารางใหม่แล้ว");
     });
@@ -1233,7 +1297,7 @@ function raceForm(id) {
 
 function profilesSheet() {
   openSheet("นักวิ่ง", `<div class="card" style="padding:4px 16px">${DB.profiles.map(p => {
-      const nr = nextRace(p), f = fitness(p);
+      const nr = mainRace(p), f = fitness(p);
       return `<div class="item" data-act="switchProfile" data-id="${p.id}"><div style="width:34px;height:34px;border-radius:11px;background:var(--pri);color:#fff;display:grid;place-items:center;font-weight:700">${esc((p.name || "?").slice(0, 1).toUpperCase())}</div>
         <div class="grow"><b>${esc(p.name)}</b><div class="tiny mut">${nr ? `${distLabel(nr.km)} · ${thDate(nr.date)} · ${fmtPace(nr.target / nr.km)}/กม.` : "ยังไม่มีรายการแข่ง"}${f ? ` · VO2 ${f.v.toFixed(1)}` : ""}</div></div>${p.id === DB.active ? '<span class="chip">กำลังดู</span>' : ""}</div>`;
     }).join("")}</div>
