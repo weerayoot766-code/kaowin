@@ -1,0 +1,25 @@
+{
+  "name": "KAOWIN",
+  "short_name": "KAOWIN",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#eef7ef",
+  "theme_color": "#0d5a3c",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "id": "./",
+  "scope": "./",
+  "description": "วางแผนซ้อมวิ่ง ติดตามผล และชาเลนจ์กับเพื่อน",
+  "lang": "th",
+  "orientation": "portrait"
+}

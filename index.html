@@ -1,0 +1,1209 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#eef7ef">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KAOWIN">
+<title>KAOWIN</title>
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef7ef; --card:#ffffff; --soft:#dcefdf; --soft2:#f5fbf5;
+  --pri:#1f7a52; --pri-d:#0d5a3c; --ink:#17261c; --mut:#66796b; --line:#dfeae1;
+  --warn:#a86f0e; --warn-bg:#fdf3dd; --bad:#b9443a; --bad-bg:#fbe7e4; --ok-bg:#e1f3e5; --gold:#e8b931;
+  --c-easy:#1f7a52; --c-long:#2f8a86; --c-quality:#d4822a; --c-race:#c9497a; --c-gym:#7a62b8; --c-rest:#9aa79d;
+  --r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Thai",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.5;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:5;background:rgba(238,247,239,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:640px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand .logo{width:38px;height:38px;flex:none;display:block}
+.wordmark{font-family:"Outfit",sans-serif;font-weight:800;font-size:19px;letter-spacing:.5px;line-height:1;color:var(--pri-d)}
+.who{background:none;border:0;padding:0;cursor:pointer;text-align:left;font-size:12.5px;color:var(--mut);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw;margin-top:3px;display:block}
+main{max-width:640px;margin:0 auto;padding:16px}
+h2{font-size:18px;margin:22px 0 10px}
+h3{font-size:15px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.hero{background:linear-gradient(150deg,#d3eed9 0%,#f4fbf5 70%);border-color:#cfe7d4}
+.big{font-size:42px;font-weight:700;letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums}
+.mid{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.mut{color:var(--mut)} .small{font-size:13px} .tiny{font-size:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat b{display:block;font-size:19px;font-variant-numeric:tabular-nums;line-height:1.3}
+.box{background:var(--soft2);border-radius:12px;padding:10px;text-align:center}
+.box b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--soft);color:var(--pri-d);white-space:nowrap}
+.chip.warn{background:var(--warn-bg);color:var(--warn)} .chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.pink{background:#f9e1ea;color:#9c2f5a} .chip.gray{background:#eef1ee;color:var(--mut)} .chip.gold{background:#fbf0cc;color:#8a6a06}
+.note{border-radius:12px;padding:10px 12px;font-size:13.5px;margin-top:8px;background:var(--ok-bg);color:#1f5a33}
+.note.warn{background:var(--warn-bg);color:#6e4a08} .note.bad{background:var(--bad-bg);color:#7a2a22} .note.info{background:#eef3fb;color:#2a4a7a} .note.gold{background:#fbf0cc;color:#6b5205}
+.bar{height:8px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--pri);border-radius:99px}
+.bar.warn i{background:#e0a33a} .bar.bad i{background:var(--bad)}
+.empty{text-align:center;padding:28px 16px}
+.empty p{margin:6px 0 14px;color:var(--mut)}
+/* sessions */
+.sess{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.sess:first-child{border-top:0}
+.sess.next{background:var(--soft2);margin:0 -10px;padding:10px;border-radius:12px;border-top-color:transparent}
+.day{text-align:center;line-height:1.15}
+.day b{display:block;font-size:15px} .day span{font-size:11px;color:var(--mut)}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:6px;color:#fff;margin-right:6px;vertical-align:1px}
+.t-easy{background:var(--c-easy)} .t-long{background:var(--c-long)} .t-quality{background:var(--c-quality)} .t-race{background:var(--c-race)} .t-gym{background:var(--c-gym)} .t-rest{background:var(--c-rest)}
+.sdesc{font-weight:500} .smeta{font-size:12.5px;color:var(--mut)}
+.st{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);background:#fff;color:var(--mut);font-size:14px}
+.st.done{background:var(--pri);border-color:var(--pri);color:#fff}
+.st.missed{border-color:#e7b9b3;color:var(--bad);background:var(--bad-bg)}
+.st.today{border-color:var(--pri);color:var(--pri)}
+.st.rest{border:0;background:none}
+.adj{font-size:11px;font-weight:600;color:var(--warn);margin-left:4px}
+/* plan */
+details.week{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden}
+details.week>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+details.week>summary::-webkit-details-marker{display:none}
+details.week[open]>summary{border-bottom:1px solid var(--line);background:var(--soft2)}
+.wbody{padding:4px 14px 12px}
+.wk{font-weight:700}
+.group{margin:22px 0 10px;padding:12px 14px;border-radius:14px;background:#f9e9ef;color:#7a2448;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.group b{font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-top:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--mut);font-weight:600;border-top:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+/* lists */
+.item{padding:12px 0;border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;cursor:pointer}
+.item:first-child{border-top:0}
+.item .grow{flex:1;min-width:0}
+.del{background:none;border:0;color:var(--mut);font-size:13px;cursor:pointer;padding:4px}
+.linkbtn{background:none;border:0;color:var(--pri-d);font-weight:600;font-size:13.5px;cursor:pointer;padding:4px 0}
+/* charts */
+.bars{display:flex;align-items:flex-end;gap:5px;height:130px;margin-top:12px;padding-bottom:2px;border-bottom:1px solid var(--line)}
+.bcol{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.bplan{position:absolute;bottom:0;left:0;right:0;border:1.5px dashed #b9d8c0;border-bottom:0;border-radius:6px 6px 0 0}
+.bact{position:relative;width:100%;background:var(--pri);border-radius:6px 6px 0 0;min-height:2px}
+.bcol.cur .bact{background:#9ad94a}
+.blabels{display:flex;gap:5px;margin-top:4px}
+.blabels span{flex:1;text-align:center;font-size:10px;color:var(--mut)}
+.stack{display:flex;height:12px;border-radius:99px;overflow:hidden;margin:8px 0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mut)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px}
+.vo2{display:flex;align-items:flex-end;gap:14px}
+.vo2 .big{font-size:48px;color:var(--pri-d)}
+.rank{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--soft2);color:var(--mut);flex:none}
+.rank.r1{background:#fbe7a6;color:#7a5a00} .rank.r2{background:#e6eaee;color:#4a5560} .rank.r3{background:#f3d9c4;color:#7a4316}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:11px 16px;font-weight:600;cursor:pointer;background:var(--pri);color:#fff}
+.btn.ghost{background:var(--soft);color:var(--pri-d)} .btn.line{background:#fff;border:1px solid var(--line);color:var(--ink)} .btn.danger{background:#fff;border:1px solid #efc9c4;color:var(--bad)}
+.btn.sm{padding:7px 12px;font-size:13.5px;border-radius:10px}
+.btn.block{width:100%}
+.btns{display:grid;gap:10px;margin-top:6px}
+.fab{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:7;border-radius:999px;padding:13px 18px;box-shadow:0 8px 20px rgba(42,114,67,.28)}
+/* tabs */
+.tabs{position:fixed;bottom:0;left:0;right:0;z-index:6;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabs button{background:none;border:0;padding:8px 0 9px;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.tabs button.on{color:var(--pri-d);font-weight:700}
+.tabs svg{width:22px;height:22px}
+/* sheet + forms */
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(20,40,26,.35);display:flex;align-items:flex-end;justify-content:center}
+.sheet.hidden{display:none}
+.panel{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom))}
+.grab{width:40px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 12px}
+label.f{display:block;font-size:13px;color:var(--mut);font-weight:500;margin-bottom:12px}
+label.f input:not([type=checkbox]):not([type=radio]):not([type=range]),label.f select,label.f textarea{display:block;width:100%;margin-top:4px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--soft2);font-size:16px;color:var(--ink);min-height:46px}
+label.f textarea{min-height:64px;resize:vertical}
+.flabel{font-size:13px;color:var(--mut);font-weight:500;margin-bottom:6px}
+input[type=range]{width:100%;accent-color:var(--pri);margin-top:6px}
+.inline{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);margin-bottom:12px}
+.inline input{width:20px;height:20px;accent-color:var(--pri)}
+.hint{font-size:12.5px;color:var(--pri-d);margin:-6px 0 12px;font-weight:500}
+details.more{border:1px dashed var(--line);border-radius:12px;padding:8px 12px;margin-bottom:12px}
+details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--pri-d)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chips label{cursor:pointer}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:inline-block;min-width:40px;text-align:center;padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:14px;font-weight:600;color:var(--mut)}
+.chips input:checked+span{background:var(--pri);border-color:var(--pri);color:#fff}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--soft2);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg label,.seg button{cursor:pointer;background:none;border:0;padding:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;text-align:center;padding:7px 4px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--mut)}
+.seg input:checked+span,.seg button.on span{background:#fff;color:var(--pri-d);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tpl{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 14px;padding:0 16px 4px}
+.tpl button{flex:none;border:1px solid var(--line);background:var(--soft2);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--pri-d);cursor:pointer}
+.toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:99px;font-size:13px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.shoe{display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:start;cursor:pointer}
+.shoe .sw{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#fff}
+.shoe.retired{opacity:.55}
+.swc{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:0}
+.ins{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.ins:first-child{border-top:0}
+.ins i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:var(--pri);margin-top:1px}
+.ins.warn i{background:#e0a33a} .ins.bad i{background:var(--bad)} .ins.info i{background:#5b7fb8} .ins.gold i{background:var(--gold)}
+.celebrate{text-align:center;padding:6px 0 10px}
+.celebrate .mid{color:var(--pri-d)}
+@media (max-width:380px){.big{font-size:36px}.mid{font-size:22px}.tabs button{font-size:10px}.grid4{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="top-in">
+  <div class="brand">
+    <div style="min-width:0"><img id="wordmark" alt="KAOWIN" style="height:30px;display:block"><button class="who" data-act="profiles" id="who"></button></div>
+  </div>
+  <span class="chip" id="countdown"></span>
+</div></header>
+
+<main id="view"></main>
+
+<button class="btn fab" data-act="openLog" id="fab">＋ ส่งผลซ้อม</button>
+
+<nav class="tabs"><div class="tabs-in">
+  <button data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>ภาพรวม</button>
+  <button data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>ตาราง</button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg>สถิติ</button>
+  <button data-tab="challenge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>ชาเลนจ์</button>
+  <button data-tab="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>ฉัน</button>
+</div></nav>
+
+<div class="sheet hidden" id="sheet"><div class="panel">
+  <div class="grab"></div>
+  <div class="row" style="margin-bottom:12px"><h3 style="margin:0" id="sheetTitle"></h3><button class="del" data-act="closeSheet">ปิด</button></div>
+  <div id="sheetBody"></div>
+</div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="importFile" accept="application/json" hidden>
+
+<script>
+/* =====================================================================
+   ค่าที่แก้ได้ง่าย ๆ (ข้อมูลนักวิ่ง/รองเท้า/รายการแข่ง/PB กรอกในแอปได้เลย)
+   ===================================================================== */
+const APP_NAME = "KAOWIN";
+
+// โลโก้ (ฝังเป็นรูปในไฟล์) — เปลี่ยนได้โดยแทนที่ข้อความ base64
+const LOGO_WORDMARK = "data:image/png;base64,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";
+const LOGO_ICON = "data:image/png;base64,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";
+
+// รายการรองเท้าให้เลือก — เพิ่ม/ลบรุ่นได้ตามต้องการ (ในแอปพิมพ์รุ่นเองได้ด้วย)
+const SHOE_CATALOG = {
+  "Adidas":      ["Adizero Boston 12", "Adizero Boston 13", "Adizero Adios Pro 3", "Adizero Adios Pro 4", "Adizero Evo SL", "Adizero SL2", "Adizero Takumi Sen 10", "Supernova Rise"],
+  "Nike":        ["Pegasus 41", "Pegasus Plus", "Vomero 18", "Zoom Fly 6", "Vaporfly 3", "Alphafly 3", "Streakfly"],
+  "ASICS":       ["Novablast 5", "Superblast 2", "Gel-Nimbus 27", "Gel-Kayano 31", "Magic Speed 4", "Metaspeed Sky Paris", "Metaspeed Edge Paris"],
+  "Hoka":        ["Clifton 10", "Mach 6", "Bondi 9", "Skyward X", "Rocket X 2", "Cielo X1"],
+  "Saucony":     ["Ride 18", "Triumph 22", "Endorphin Speed 4", "Endorphin Pro 4", "Endorphin Elite"],
+  "New Balance": ["Fresh Foam X 1080v14", "FuelCell Rebel v4", "FuelCell SC Trainer v3", "FuelCell SC Elite v4"],
+  "Puma":        ["Velocity Nitro 3", "Deviate Nitro 3", "Deviate Nitro Elite 3", "Fast-R Nitro Elite 2"],
+  "Brooks":      ["Ghost 16", "Glycerin 22", "Hyperion Elite 4"],
+  "On":          ["Cloudsurfer", "Cloudmonster 2", "Cloudboom Strike"],
+  "Mizuno":      ["Neo Vista", "Wave Rebellion Pro 2"],
+  "Xtep":        ["160X 3.5 Pro", "160X 5.0", "160X 6.0 Pro", "260X"],
+  "Li-Ning":     ["Red Hare 7 Pro", "Chitu 7 Pro", "Feidian 4 Elite"],
+  "Anta":        ["C202 GT", "C10 Pro", "PG7"]
+};
+
+const SHOE_ROLES = {
+  daily:    { label: "ซ้อมหลัก (Easy / Long)", color: "#3d9a5b", maxKm: 700 },
+  speed:    { label: "ซ้อมเร็ว (Interval / Tempo)", color: "#d4822a", maxKm: 500 },
+  race:     { label: "วันแข่ง / ซ้อมเพซแข่ง", color: "#c9497a", maxKm: 400 },
+  recovery: { label: "วิ่งฟื้นตัว", color: "#2f8a86", maxKm: 700 }
+};
+
+const GYM = {
+  A:     "เวทขา A — Split Squat, Step-up, Calf Raise, Single-leg Balance",
+  B:     "เวทขา B — Squat, Romanian Deadlift, Hip Thrust, Side Plank",
+  light: "เวทเบา — Mobility + Calf Raise เบา ๆ"
+};
+
+// เทมเพลตชาเลนจ์
+const CHALLENGE_TEMPLATES = [
+  { name: "100 กม. ใน 30 วัน", type: "distance", target: 100, days: 30 },
+  { name: "วิ่ง 12 ครั้งในเดือนนี้", type: "runs", target: 12, month: true },
+  { name: "ระยะสะสมสูงสุดประจำเดือน", type: "distance", target: 0, month: true },
+  { name: "วิ่งทุกวัน 7 วัน", type: "days", target: 7, days: 7 },
+  { name: "Long Run ไกลสุด", type: "longest", target: 0, days: 30 }
+];
+
+// สูตรสร้างตาราง
+const PEAK_KM  = { "5": [25, 35, 45], "10": [30, 42, 55], "half": [35, 50, 65], "full": [45, 65, 85] };
+const LONG_CAP = { "5": 12, "10": 16, "half": 20, "full": 32 };
+const TAPER_WK = { "5": 1, "10": 1, "half": 2, "full": 3 };
+const REC_DAYS = { "5": 4, "10": 7, "half": 12, "full": 21 };
+const WEEKLY_GROWTH = 1.08;
+
+/* ===================================================================== */
+const LS_KEY = "runplan.v2";
+const TYPE_LABEL = { easy: "Easy", long: "Long", quality: "Quality", race: "Race", gym: "เวท", rest: "พัก" };
+const TYPE_COLOR = { easy: "#1f7a52", long: "#2f8a86", quality: "#d4822a", race: "#c9497a" };
+const RUN_TYPES = ["easy", "long", "quality", "race"];
+const PHASE_TH = { base: "สร้างฐาน", build: "เพิ่มความทนทาน", specific: "เฉพาะทาง", taper: "ลดระยะ", race: "สัปดาห์แข่ง", recovery: "ฟื้นตัว" };
+const PACE_KEYS = [["recovery", "Recovery"], ["easy", "Easy"], ["long", "Long Run"], ["steady", "Steady"], ["tempo", "Tempo / Threshold"], ["p10", "เพซ 10K"], ["p5", "เพซ 5K / Interval"], ["race", "เพซแข่ง"]];
+const LEVELS = { beginner: "มือใหม่", intermediate: "ปานกลาง", advanced: "ซ้อมจริงจัง" };
+const DISTS = [{ km: 5, label: "5K" }, { km: 10, label: "10K" }, { km: 21.0975, label: "Half Marathon" }, { km: 42.195, label: "Marathon" }];
+const CH_TYPES = { distance: { label: "ระยะสะสม", unit: "กม." }, runs: { label: "จำนวนครั้งที่วิ่ง", unit: "ครั้ง" }, days: { label: "จำนวนวันที่วิ่ง", unit: "วัน" }, longest: { label: "วิ่งไกลสุดในครั้งเดียว", unit: "กม." } };
+const TH_MON = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const TH_DAY = ["จ.","อ.","พ.","พฤ.","ศ.","ส.","อา."];
+const DAY_S = ["จ","อ","พ","พฤ","ศ","ส","อา"];
+const TH_DAY_FULL = ["จันทร์","อังคาร","พุธ","พฤหัส","ศุกร์","เสาร์","อาทิตย์"];
+
+const LIB = {
+  base: [["Strides 6×20 วิ", null], ["Fartlek 8×1 นาที เร็ว / 1 นาที เบา", "p5"]],
+  build: {
+    short: [["6×400 ม.", "p5"], ["5×1 กม.", "p10"], ["Tempo 20 นาที", "tempo"]],
+    half:  [["Tempo 20 นาที", "tempo"], ["5×1 กม.", "p10"], ["3×2 กม.", "race"]],
+    full:  [["Tempo 25 นาที", "tempo"], ["5×1 กม.", "p10"], ["3×3 กม.", "race"]]
+  },
+  specific: {
+    "5":  [["5×1 กม.", "race"], ["10×400 ม.", "fast"], ["3×1.6 กม.", "race"]],
+    "10": [["4×2 กม.", "race"], ["Tempo 25 นาที", "tempo"], ["3×3 กม.", "race"]],
+    half: [["3×3 กม.", "race"], ["Tempo 30 นาที", "race"], ["2×5 กม.", "race"]],
+    full: [["2×5 กม.", "race"], ["Tempo 40 นาที", "race"], ["3×5 กม.", "race"]]
+  },
+  taper: [["3×1 กม.", "race"], ["4×400 ม.", "p5"]]
+};
+
+/* ---------- helpers ---------- */
+const pad = n => String(n).padStart(2, "0");
+const parseDate = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const ds = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const addDays = (s, n) => { const d = parseDate(s); d.setDate(d.getDate() + n); return ds(d); };
+const diffDays = (a, b) => Math.round((parseDate(b) - parseDate(a)) / 864e5);
+const dow = s => (parseDate(s).getDay() + 6) % 7;
+const mondayOf = s => addDays(s, -dow(s));
+const thDate = s => { const d = parseDate(s); return d.getDate() + " " + TH_MON[d.getMonth()]; };
+const thDateY = s => { const d = parseDate(s); return thDate(s) + " " + String(d.getFullYear() + 543).slice(2); };
+const TODAY = ds(new Date());
+const uid = () => Math.random().toString(36).slice(2, 9);
+function toSec(t) { if (!t) return 0; const p = String(t).replace(/\s/g, "").split(":").map(Number); if (!p.length || p.some(isNaN)) return 0; return p.reduce((a, v) => a * 60 + v, 0); }
+function fmtTime(s) { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return h ? `${h}:${pad(m)}:${pad(x)}` : `${m}:${pad(x)}`; }
+function fmtDur(s) { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.round(s % 3600 / 60); return h ? `${h} ชม. ${m} น.` : `${m} นาที`; }
+const fmtPace = s => { s = Math.round(s); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
+const rng = a => a ? fmtPace(a[0]) + "–" + fmtPace(a[1]) : "";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmtKm = n => (Math.round(n * 10) / 10).toLocaleString("th-TH");
+const r05 = x => Math.max(0, Math.round(x * 2) / 2);
+const cat = km => km <= 5.5 ? "5" : km <= 10.5 ? "10" : km <= 22 ? "half" : "full";
+const distLabel = km => { const o = DISTS.find(o => Math.abs(o.km - km) < 0.05); return o ? o.label : fmtKm(km) + " กม."; };
+const sameDist = (a, b) => Math.abs(a - b) / b < 0.03;
+const $ = s => document.querySelector(s);
+const runLogs = p => p.logs.filter(l => RUN_TYPES.includes(l.type));
+const sumKm = (logs, from, to) => logs.filter(l => (!from || l.date >= from) && (!to || l.date <= to)).reduce((t, l) => t + (+l.km || 0), 0);
+
+/* ---------- VO2max (VDOT ของ Jack Daniels) ---------- */
+function vdot(km, sec) {
+  const t = sec / 60, v = km * 1000 / t; if (!(t > 3 && km > 0)) return 0;
+  const vo2 = -4.6 + 0.182258 * v + 0.000104 * v * v;
+  const pct = 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t);
+  return vo2 / pct;
+}
+function vdotTime(V, km) { let lo = km * 90, hi = km * 1200; for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; if (vdot(km, mid) > V) lo = mid; else hi = mid; } return (lo + hi) / 2; }
+const vdotBand = v => v >= 60 ? "ระดับแข่งขัน" : v >= 50 ? "ดีมาก" : v >= 42 ? "ดี" : v >= 35 ? "ปานกลาง" : "เริ่มต้น";
+
+/* ---------- storage ---------- */
+function newProfile(name) {
+  return { id: uid(), name: name || "นักวิ่งใหม่", sex: "", birthYear: "", weightKg: "", level: "intermediate", weeklyKm: 20,
+    pbs: [], planStart: mondayOf(TODAY), runDays: [2, 5, 6], longDay: 6, gymDays: [0, 3],
+    shoes: [], races: [], logs: [], overrides: {} };
+}
+const MY_PBS = () => [
+  { id: uid(), km: 4, time: toSec("17:56"), date: "", name: "" },
+  { id: uid(), km: 10, time: toSec("49:05"), date: "", name: "" },
+  { id: uid(), km: 21.0975, time: toSec("2:02:37"), date: "", name: "" }
+];
+function seed() {
+  const p = newProfile("ฉัน");
+  p.planStart = "2026-10-26"; p.pbs = MY_PBS();
+  p.shoes = [
+    { id: uid(), brand: "Adidas", model: "Adizero Boston 12",   role: "daily", startKm: 0, maxKm: 700 },
+    { id: uid(), brand: "Xtep",   model: "160X 3.5 Pro",        role: "speed", startKm: 0, maxKm: 450 },
+    { id: uid(), brand: "Adidas", model: "Adizero Adios Pro 4", role: "race",  startKm: 0, maxKm: 400 }
+  ];
+  p.races = [{ id: uid(), name: "Half Marathon", date: "2027-01-17", km: 21.0975, target: toSec("1:49:59") }];
+  try {
+    const old = JSON.parse(localStorage.getItem("runplan.v1"));
+    const map = { boston: p.shoes[0].id, xtep: p.shoes[1].id, adios: p.shoes[2].id };
+    if (old && Array.isArray(old.logs)) p.logs = old.logs.map(l => ({ ...l, shoe: map[l.shoe] || "", sessionKey: (l.type === "gym" ? "g-" : "r-") + l.date }));
+  } catch (e) {}
+  return { active: p.id, profiles: [p] };
+}
+function migrate(db) {
+  db.profiles.forEach(p => {
+    if (!Array.isArray(p.pbs)) {
+      p.pbs = [];
+      if (p.name === "ฉัน" && p.planStart === "2026-10-26") p.pbs = MY_PBS();
+      else if (p.recent && +p.recent.km && p.recent.time) p.pbs.push({ id: uid(), km: +p.recent.km, time: toSec(p.recent.time), date: p.recent.date || "", name: "" });
+    }
+    delete p.recent; p.logs = p.logs || []; p.overrides = p.overrides || {};
+  });
+  if (!Array.isArray(db.challenges)) {
+    const m = TODAY.slice(0, 8);
+    const next = parseDate(m + "01"); next.setMonth(next.getMonth() + 1); next.setDate(0);
+    db.challenges = [{ id: uid(), name: "ระยะสะสมเดือนนี้", type: "distance", target: 100, start: m + "01", end: ds(next), members: db.profiles.map(p => p.id), guests: [{ id: uid(), name: "เพื่อน (ตัวอย่าง)", value: 18 }] }];
+  }
+  return db;
+}
+let DB = migrate((() => { try { const d = JSON.parse(localStorage.getItem(LS_KEY)); if (d && Array.isArray(d.profiles) && d.profiles.length) return d; } catch (e) {} return seed(); })());
+function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch (e) {} }
+const P = () => DB.profiles.find(p => p.id === DB.active) || DB.profiles[0];
+const shoeById = id => P().shoes.find(s => s.id === id);
+const shoeName = s => s ? `${s.brand} ${s.model}`.trim() : "";
+const shoeShort = s => s ? s.model || s.brand : "";
+const shoeColor = s => (SHOE_ROLES[s.role] || SHOE_ROLES.daily).color;
+const shoeUsed = (p, sh) => (+sh.startKm || 0) + p.logs.filter(l => l.shoe === sh.id).reduce((t, l) => t + (+l.km || 0), 0);
+const sortedRaces = p => p.races.filter(r => r.date && r.km && r.target).sort((a, b) => a.date.localeCompare(b.date));
+const nextRace = p => sortedRaces(p).find(r => r.date >= TODAY);
+
+/* ---------- paces ---------- */
+function racePaces(r) {
+  const T = r.target, D = r.km, at = d => T * Math.pow(d / D, 1.06) / d;
+  const R = T / D, H = at(21.0975), P5 = at(5), P10 = at(10);
+  return { R, ranges: { recovery: [H + 75, H + 105], easy: [H + 45, H + 85], long: [H + 40, H + 80], steady: [H + 15, H + 30],
+    tempo: [H - 4, H + 4], p10: [P10 - 3, P10 + 3], p5: [P5 - 4, P5 + 3], fast: [P5 - 10, P5 - 3], race: [R - 3, R + 3] } };
+}
+
+/* ---------- สร้างตารางอัตโนมัติจากรายการแข่ง ---------- */
+function generate(p) {
+  const races = sortedRaces(p); if (!races.length) return [];
+  const start = mondayOf(p.planStart || TODAY), end = mondayOf(races[races.length - 1].date);
+  if (start > end) return [];
+  const lvl = { beginner: 0, intermediate: 1, advanced: 2 }[p.level] ?? 1;
+  const days = [...new Set((p.runDays || []).map(Number))].sort((a, b) => a - b);
+  if (!days.length) return [];
+  const longDay = days.includes(+p.longDay) ? +p.longDay : days[days.length - 1];
+  let vol = Math.max(8, +p.weeklyKm || 15), build = 0; const rot = {}; const out = [];
+
+  for (let ws = start, i = 0; ws <= end; ws = addDays(ws, 7), i++) {
+    const race = races.find(r => r.date >= ws), c = cat(race.km);
+    const prev = [...races].reverse().find(r => r.date < ws);
+    const wtr = Math.round(diffDays(ws, mondayOf(race.date)) / 7), peak = PEAK_KM[c][lvl];
+    let phase;
+    if (wtr === 0) phase = "race";
+    else if (prev && diffDays(prev.date, ws) < REC_DAYS[cat(prev.km)]) phase = "recovery";
+    else if (wtr < TAPER_WK[c]) phase = "taper";
+    else if (wtr <= TAPER_WK[c] + 3) phase = "specific";
+    else if (wtr <= TAPER_WK[c] + 7) phase = "build";
+    else phase = "base";
+
+    let target, deload = false;
+    if (phase === "race") target = vol * 0.4;
+    else if (phase === "taper") target = vol * (wtr === 1 ? 0.6 : 0.75);
+    else if (phase === "recovery") target = vol * 0.55;
+    else { build++; if (build % 4 === 0) { deload = true; target = vol * 0.8; } else { if (vol < peak) vol = Math.min(peak, vol * WEEKLY_GROWTH); target = vol; } }
+
+    const pc = racePaces(race);
+    const wk = { i, n: i + 1, start: ws, end: addDays(ws, 6), phase, race, deload, pc, sessions: [] };
+    let qN = { base: 1, build: days.length >= 5 ? 2 : 1, specific: days.length >= 5 ? 2 : 1, taper: 1, race: 0, recovery: 0 }[phase];
+    if (deload) qN = Math.min(qN, 1);
+    if (days.length <= 2) qN = Math.min(qN, 1);
+    const pool0 = days.filter(d => d !== longDay && Math.abs(d - longDay) > 1);
+    const pool = pool0.length ? pool0 : days.filter(d => d !== longDay);
+    const qDays = []; pool.forEach(d => { if (qDays.length < qN && qDays.every(x => Math.abs(x - d) >= 2)) qDays.push(d); });
+
+    const L = phase === "race" ? 0 : Math.min(LONG_CAP[c], phase === "recovery" ? 8 : 99, Math.max(5, target * ({ 2: .5, 3: .4, 4: .35, 5: .3, 6: .27, 7: .25 }[days.length] || .3)));
+    const Q = Math.max(5, target * 0.25);
+    const nEasy = days.length - (L ? 1 : 0) - qDays.length;
+    const E = nEasy > 0 ? Math.max(3, Math.min(L ? L * 0.7 : 99, (target - L - Q * qDays.length) / nEasy)) : 0;
+
+    if (phase === "race") {
+      const pre = days.map(d => addDays(ws, d)).filter(d => d < addDays(race.date, -1));
+      const each = r05(Math.max(3, target / Math.max(1, pre.length)));
+      pre.forEach((date, k) => wk.sessions.push(k === 0
+        ? { type: "easy", km: each, detail: `Easy ${fmtKm(each)} กม. + 4×100 ม. @เพซแข่ง`, pace: "easy", date }
+        : { type: "easy", km: Math.min(each, 4), detail: `Easy ${fmtKm(Math.min(each, 4))} กม. ขาสด ๆ`, pace: "easy", date }));
+      wk.sessions.push({ type: "race", km: race.km, detail: `${race.name} · ${distLabel(race.km)}`, pace: "race", date: race.date });
+    } else {
+      days.forEach(d => {
+        const date = addDays(ws, d);
+        if (d === longDay) wk.sessions.push({ ...longSession(L, phase, c, i), date });
+        else if (qDays.includes(d)) { const k = (rot[phase] = (rot[phase] || 0) + 1); wk.sessions.push({ ...qualitySession(Q, phase, c, k), date }); }
+        else wk.sessions.push({ type: "easy", km: r05(E), detail: phase === "recovery" ? `Recovery ${fmtKm(r05(E))} กม.` : `Easy ${fmtKm(r05(E))} กม.`, pace: phase === "recovery" ? "recovery" : "easy", date });
+      });
+    }
+    const gd = [...(p.gymDays || [])].map(Number).sort((a, b) => a - b);
+    if (["base", "build", "specific", "taper"].includes(phase)) gd.forEach((d, k) => {
+      if (phase === "taper" && k > 0) return;
+      wk.sessions.push({ type: "gym", detail: phase === "taper" || deload ? GYM.light : (k % 2 ? GYM.B : GYM.A), date: addDays(ws, d) });
+    });
+    Object.entries(p.overrides || {}).forEach(([date, o]) => {
+      if (date < ws || date > wk.end) return;
+      wk.sessions = wk.sessions.filter(s => !(s.date === date && s.type !== "gym"));
+      wk.sessions.push(o.type === "rest" ? { type: "rest", detail: "พัก (แก้แล้ว)", date, edited: true } : { ...o, date, edited: true });
+    });
+    wk.sessions.forEach(s => {
+      s.wi = i; s.day = dow(s.date); s.key = (s.type === "gym" ? "g-" : "r-") + s.date;
+      if (!s.shoe) s.shoe = pickShoe(p, s, phase);
+    });
+    wk.sessions.sort((a, b) => a.date.localeCompare(b.date) || (a.type === "gym" ? -1 : 1));
+    out.push(wk);
+  }
+  return out;
+}
+function longSession(km, phase, c, i) {
+  km = r05(km); let detail = `Long ${fmtKm(km)} กม. Easy`, racePace = false;
+  if (phase === "recovery") detail = `Easy ยาว ${fmtKm(km)} กม. ถ้าขาสด`;
+  else if (phase === "specific" && c === "half") { detail = `Long ${fmtKm(km)} กม. ช่วงท้าย 3–5 กม. @เพซแข่ง`; racePace = true; }
+  else if (phase === "specific" && c === "full") { detail = `Long ${fmtKm(km)} กม. มี 2×5 กม. @เพซแข่ง`; racePace = true; }
+  else if (phase === "build" && (c === "half" || c === "full") && i % 2) detail = `Long ${fmtKm(km)} กม. ช่วงท้าย 3 กม. Steady`;
+  if (km >= 12) detail += " + ซ้อมเติมน้ำ/เจล";
+  return { type: "long", km, detail, pace: "long", racePace };
+}
+function qualitySession(km, phase, c, k) {
+  km = r05(km);
+  const list = phase === "base" ? LIB.base : phase === "build" ? LIB.build[c === "5" || c === "10" ? "short" : c] : phase === "specific" ? LIB.specific[c] : LIB.taper;
+  const [w, pk] = list[(k - 1) % list.length];
+  if (!pk) return { type: "easy", km, detail: `Easy ${fmtKm(km)} กม. + ${w}`, pace: "easy" };
+  return { type: "quality", km, detail: `รวม ${fmtKm(km)} กม. มี ${w}`, pace: pk, racePace: pk === "race" };
+}
+function pickShoe(p, s, phase) {
+  if (!RUN_TYPES.includes(s.type)) return "";
+  const act = p.shoes.filter(x => !x.retired), by = r => act.find(x => x.role === r);
+  const daily = by("daily") || by("recovery") || by("speed") || act[0];
+  let pick;
+  if (s.type === "race" || s.racePace) pick = by("race") || by("speed") || daily;
+  else if (s.type === "quality") pick = by("speed") || daily;
+  else if (phase === "recovery" || s.pace === "recovery") pick = by("recovery") || daily;
+  else pick = daily;
+  return pick ? pick.id : "";
+}
+
+/* ---------- ปรับแผนตามผลซ้อม ---------- */
+let W = [], A = [];
+const logsFor = s => P().logs.filter(l => l.sessionKey === s.key);
+function status(s) {
+  if (s.type === "rest") return "rest";
+  if (logsFor(s).length) return "done";
+  if (s.date < TODAY) return "missed";
+  return s.date === TODAY ? "today" : "todo";
+}
+function analyze(i) {
+  const res = { factor: 1, notes: [], easyQuality: false, slowQuality: false };
+  const prev = W[i - 1]; if (!prev || prev.start > TODAY) return res;
+  const logs = P().logs.filter(l => l.date >= prev.start && l.date <= prev.end);
+  if (logs.some(l => l.pain)) { res.factor = 0.8; res.easyQuality = true; res.notes.push({ lvl: "bad", t: "สัปดาห์ก่อนมีอาการเจ็บ → ลดระยะ 20% และเปลี่ยนวันเร็วเป็น Easy ถ้ายังเจ็บให้พัก" }); }
+  const hard = logs.filter(l => (l.type === "easy" || l.type === "long") && +l.rpe >= 8).length;
+  if (hard >= 2) { res.factor = Math.min(res.factor, 0.9); res.notes.push({ lvl: "warn", t: `Easy/Long เหนื่อยเกินไป (RPE ≥ 8 จำนวน ${hard} ครั้ง) → ลดระยะ 10% และวิ่งช้าลง` }); }
+  if (prev.end < TODAY) {
+    const missed = prev.sessions.filter(s => RUN_TYPES.includes(s.type) && !logsFor(s).length).length;
+    if (missed >= 2) { res.factor = Math.min(res.factor, 0.9); res.notes.push({ lvl: "warn", t: `พลาดวิ่ง ${missed} ครั้งสัปดาห์ก่อน → ไม่ต้องชดเชย ลดระยะ 10% แล้วค่อยกลับเข้าแผน` }); }
+  }
+  logs.filter(l => l.type === "quality" && +l.segKm > 0 && l.segTime).forEach(l => {
+    const s = prev.sessions.find(x => x.key === l.sessionKey); const tg = s && prev.pc.ranges[s.pace]; if (!tg) return;
+    const pace = toSec(l.segTime) / +l.segKm;
+    if (pace > tg[1] + 8 && +l.rpe >= 8) { res.slowQuality = true; res.notes.push({ lvl: "warn", t: `ช่วงเร็วได้ ${fmtPace(pace)}/กม. ช้ากว่าเป้าและเหนื่อยมาก → สัปดาห์นี้ลดเพซช่วงเร็วลง 5 วิ` }); }
+    else if (pace <= tg[1] && +l.rpe <= 6) res.notes.push({ lvl: "ok", t: `ช่วงเร็ว ${fmtPace(pace)}/กม. ทำได้สบาย (RPE ${l.rpe}) → รักษาแผนเดิม` });
+  });
+  if (!res.notes.length && logs.length) res.notes.push({ lvl: "ok", t: "สัปดาห์ก่อนเป็นไปตามแผน → เดินหน้าต่อ" });
+  return res;
+}
+function view(s) {
+  const w = W[s.wi], a = A[s.wi] || { factor: 1 }, rg = w && w.pc.ranges[s.pace];
+  const v = { type: s.type, km: s.km, detail: s.detail, pace: rg ? rng(rg) : "", range: rg, adjusted: false };
+  if (s.edited) return v;
+  if (s.type === "quality" && a.easyQuality) { v.type = "easy"; v.detail = `Easy ${fmtKm(s.km)} กม. แทนวันเร็ว`; v.range = w.pc.ranges.easy; v.pace = rng(v.range); v.adjusted = true; }
+  else if (s.type === "quality" && a.slowQuality && rg) { v.range = [rg[0] + 5, rg[1] + 5]; v.pace = rng(v.range); v.adjusted = true; }
+  if (s.km && s.type !== "race" && a.factor < 1) { v.km = r05(s.km * a.factor); v.adjusted = true; }
+  return v;
+}
+function compute() { W = generate(P()); A = W.map((w, i) => analyze(i)); }
+const allSessions = () => W.flatMap(w => w.sessions);
+
+/* ---------- ความฟิต / คาดการณ์ ---------- */
+function efforts(p, sinceDays = 90) {
+  const since = addDays(TODAY, -sinceDays), out = [];
+  (p.pbs || []).forEach(b => { if (+b.km && +b.time) out.push({ km: +b.km, sec: +b.time, date: b.date, label: `PB ${distLabel(+b.km)} ${fmtTime(b.time)}`, pb: true }); });
+  p.logs.filter(l => l.date >= since).forEach(l => {
+    if (+l.segKm >= 2 && l.segTime) out.push({ km: +l.segKm, sec: toSec(l.segTime), date: l.date, label: `ช่วงเร็ว ${l.segKm} กม. ${l.segTime}`, logId: l.id });
+    if (+l.km >= 3 && l.time && (l.type === "race" || l.type === "quality")) out.push({ km: +l.km, sec: toSec(l.time), date: l.date, label: `${TYPE_LABEL[l.type]} ${fmtKm(+l.km)} กม. ${l.time}`, logId: l.id });
+  });
+  out.forEach(e => e.v = vdot(e.km, e.sec));
+  return out.filter(e => e.v > 15);
+}
+function fitness(p) {
+  const ef = efforts(p); if (!ef.length) return null;
+  const best = ef.reduce((a, b) => b.v > a.v ? b : a);
+  const pbs = ef.filter(e => e.pb), longest = pbs.length ? pbs.reduce((a, b) => b.km > a.km ? b : a) : null;
+  return { v: best.v, best, longest, efforts: ef };
+}
+function predict(p, race) {
+  const ef = efforts(p, 42); if (!ef.length) return null;
+  const score = e => Math.abs(Math.log(race.km / e.km)) + (e.pb && (!e.date || e.date < addDays(TODAY, -120)) ? 0.4 : 0);
+  const near = ef.reduce((a, b) => score(b) < score(a) ? b : a);
+  const best = ef.reduce((a, b) => b.v > a.v ? b : a);
+  return { near: { T: near.sec * Math.pow(race.km / near.km, 1.06), label: near.label, date: near.date },
+           pot: { T: vdotTime(best.v, race.km), v: best.v, label: best.label } };
+}
+
+/* ---------- วิเคราะห์ผลหลังส่ง ---------- */
+function analyzeLog(p, l) {
+  const out = [], s = l.sessionKey ? allSessions().find(x => x.key === l.sessionKey) : null, v = s ? view(s) : null;
+  const sec = toSec(l.time), pace = sec && +l.km ? sec / +l.km : 0;
+  const nr = nextRace(p), pc = nr ? racePaces(nr) : null;
+  let pbNew = null;
+
+  if (l.pain) out.push({ lvl: "bad", t: "มีอาการเจ็บ/ตึง: วันถัดไปให้พักหรือวิ่งเบามาก ถ้าเจ็บจุดเดิมเกิน 2–3 วัน ควรพบผู้เชี่ยวชาญ แผนสัปดาห์หน้าจะลดลงให้อัตโนมัติ" });
+  if (v && v.km && +l.km) {
+    const diff = (+l.km - v.km) / v.km;
+    if (Math.abs(diff) <= 0.1) out.push({ lvl: "ok", t: `ระยะตรงแผน (${fmtKm(+l.km)} / ${fmtKm(v.km)} กม.)` });
+    else if (diff > 0.1) out.push({ lvl: diff > 0.25 ? "warn" : "info", t: `วิ่งเกินแผน ${Math.round(diff * 100)}% — ${diff > 0.25 ? "ระวังสะสมความล้า ไม่ต้องเพิ่มเองบ่อย" : "พอรับได้"}` });
+    else out.push({ lvl: "info", t: `วิ่งได้ ${Math.round((+l.km / v.km) * 100)}% ของแผน — ไม่ต้องชดเชยวันอื่น` });
+  } else if (!s && RUN_TYPES.includes(l.type)) out.push({ lvl: "info", t: "วิ่งนอกตาราง: นับรวมระยะสะสมและสถิติ แต่ไม่ผูกกับนัดซ้อม" });
+
+  const rg = v && v.range ? v.range : pc ? pc.ranges[l.type === "long" ? "long" : "easy"] : null;
+  if ((l.type === "easy" || l.type === "long") && pace && rg) {
+    if (pace < rg[0] - 10) out.push({ lvl: "warn", t: `เพซ ${fmtPace(pace)}/กม. เร็วกว่าโซน ${l.type === "long" ? "Long" : "Easy"} (${rng(rg)}) — วันเบาควรเบาจริงเพื่อให้ฟื้นตัวทันวันหนัก` });
+    else out.push({ lvl: "ok", t: `เพซ ${fmtPace(pace)}/กม. อยู่ในโซนที่ควรเป็น` });
+    if (+l.rpe >= 7) out.push({ lvl: "warn", t: `RPE ${l.rpe} สูงสำหรับวันเบา — อาจพักไม่พอ ร้อน หรือขาดน้ำ ลองนอนเพิ่มและวิ่งช่วงอากาศเย็นกว่า` });
+  }
+  if (l.type === "quality") {
+    const sp = +l.segKm && l.segTime ? toSec(l.segTime) / +l.segKm : 0;
+    if (sp && v && v.range) {
+      if (sp < v.range[0] - 5) out.push({ lvl: "warn", t: `ช่วงเร็ว ${fmtPace(sp)}/กม. เร็วกว่าเป้า (${rng(v.range)}) — เร็วเกินช่วยไม่มาก แต่เพิ่มความล้า` });
+      else if (sp <= v.range[1] + 3) out.push({ lvl: "ok", t: `ช่วงเร็ว ${fmtPace(sp)}/กม. ตรงเป้า ${rng(v.range)} 👍` });
+      else out.push({ lvl: +l.rpe >= 8 ? "warn" : "info", t: `ช่วงเร็ว ${fmtPace(sp)}/กม. ช้ากว่าเป้า${+l.rpe >= 8 ? " และเหนื่อยมาก — สัปดาห์หน้าจะปรับเพซให้" : " — ถ้ายังไม่เหนื่อยมาก ครั้งหน้าลองดันอีกนิด"}` });
+    } else out.push({ lvl: "info", t: "ใส่ “ช่วงเร็วต่อเนื่อง” ครั้งหน้า เพื่อให้วิเคราะห์เพซและคำนวณ VO2max ได้" });
+    if (+l.rpe <= 5) out.push({ lvl: "info", t: `RPE ${l.rpe} สำหรับวันเร็วถือว่าสบาย — ความฟิตอาจดีกว่าเป้า` });
+  }
+  if (l.type === "race" && pace && nr) out.push({ lvl: "info", t: `เพซเฉลี่ย ${fmtPace(pace)}/กม. เทียบเพซเป้า ${nr.name} ${fmtPace(nr.target / nr.km)}/กม.` });
+
+  const ef = [];
+  if (+l.segKm >= 2 && l.segTime) ef.push(vdot(+l.segKm, toSec(l.segTime)));
+  if ((l.type === "race" || l.type === "quality") && +l.km >= 3 && sec) ef.push(vdot(+l.km, sec));
+  if (ef.length) {
+    const vNow = Math.max(...ef), prevFit = fitness({ ...p, logs: p.logs.filter(x => x.id !== l.id) });
+    const d = prevFit ? vNow - prevFit.v : 0;
+    out.push({ lvl: d > 0.3 ? "gold" : "info", t: `VO2max จากรอบนี้ ≈ ${vNow.toFixed(1)}${prevFit ? (d > 0.3 ? ` สูงกว่าค่าเดิม ${prevFit.v.toFixed(1)} 🎉` : ` (ค่าดีที่สุดตอนนี้ ${prevFit.v.toFixed(1)})`) : ""}` });
+  }
+  if (l.type === "race" && +l.km && sec) {
+    const std = DISTS.find(d => sameDist(+l.km, d.km)), km = std ? std.km : +l.km;
+    const old = (p.pbs || []).find(b => sameDist(+b.km, km));
+    if (!old || sec < +old.time) {
+      pbNew = { km, sec, old: old ? +old.time : 0 };
+      if (old) { old.time = sec; old.date = l.date; } else p.pbs.push({ id: uid(), km, time: sec, date: l.date, name: "" });
+      save();
+    }
+  }
+  const w = W.find(x => x.start <= l.date && l.date <= x.end);
+  if (w) {
+    const plan = w.sessions.filter(x => RUN_TYPES.includes(x.type)).reduce((t, x) => t + (view(x).km || 0), 0);
+    const got = sumKm(runLogs(p), w.start, w.end);
+    out.push({ lvl: "info", t: `สัปดาห์นี้สะสม ${fmtKm(got)} / ${fmtKm(plan)} กม. (${plan ? Math.round(got / plan * 100) : 0}%)` });
+  }
+  const sh = p.shoes.find(x => x.id === l.shoe);
+  if (sh) { const u = shoeUsed(p, sh), pct = u / (+sh.maxKm || 600); if (pct > 0.85) out.push({ lvl: pct > 1 ? "bad" : "warn", t: `${shoeShort(sh)} ใช้ไป ${fmtKm(u)} กม. (${Math.round(pct * 100)}%) — เริ่มมองหาคู่ใหม่` }); }
+  const next = allSessions().find(x => x.date > l.date && RUN_TYPES.includes(x.type) && status(x) !== "done");
+  return { insights: out, pbNew, next, pace };
+}
+function showAnalysis(id) {
+  const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
+  const r = analyzeLog(p, l), sec = toSec(l.time);
+  const ico = { ok: "✓", warn: "!", bad: "!", info: "i", gold: "★" };
+  openSheet(`ผลซ้อม ${TH_DAY[dow(l.date)]} ${thDate(l.date)}`, `
+    ${r.pbNew ? `<div class="celebrate"><div style="font-size:34px">🏆</div><div class="mid">PB ใหม่ ${esc(distLabel(r.pbNew.km))}!</div><div class="small mut">${fmtTime(r.pbNew.sec)}${r.pbNew.old ? ` · เร็วขึ้น ${fmtTime(r.pbNew.old - r.pbNew.sec)}` : ""}</div></div>` : ""}
+    <div class="grid4" style="margin-bottom:12px">
+      <div class="box"><b>${fmtKm(+l.km || 0)}</b><span class="tiny mut">กม.</span></div>
+      <div class="box"><b>${sec ? fmtTime(sec) : "—"}</b><span class="tiny mut">เวลา</span></div>
+      <div class="box"><b>${r.pace ? fmtPace(r.pace) : "—"}</b><span class="tiny mut">นาที/กม.</span></div>
+      <div class="box"><b>${l.rpe}</b><span class="tiny mut">RPE</span></div>
+    </div>
+    <div class="card" style="padding:4px 14px">${r.insights.map(x => `<div class="ins ${x.lvl}"><i>${ico[x.lvl]}</i><div>${esc(x.t)}</div></div>`).join("")}</div>
+    ${r.next ? `<div class="flabel">นัดถัดไป</div><div class="card" style="padding:6px 14px">${sessRow(r.next)}</div>` : ""}
+    <div class="btns"><button class="btn" data-act="closeSheet">เยี่ยม!</button></div>`);
+}
+
+/* ---------- render ---------- */
+let tab = "home", meTab = "profile";
+function render() {
+  compute();
+  const p = P(), nr = nextRace(p);
+  document.title = APP_NAME;
+  
+  $("#who").textContent = `${p.name || "นักวิ่ง"} ▾`;
+  const left = nr ? diffDays(TODAY, nr.date) : null;
+  $("#countdown").textContent = left == null ? "—" : left > 0 ? `${distLabel(nr.km)} · อีก ${left} วัน` : "วันแข่ง!";
+  $("#fab").style.display = tab === "challenge" || tab === "me" ? "none" : "";
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  $("#view").innerHTML = ({ home: renderHome, plan: renderPlan, stats: renderStats, challenge: renderChallenges, me: renderMe })[tab]();
+}
+
+function sessRow(s, isNext) {
+  const v = view(s), st = status(s), shoe = shoeById(s.shoe);
+  const icon = { done: "✓", missed: "!", today: "●", todo: "", rest: "" }[st];
+  const meta = s.type === "gym" ? "" : [v.km ? fmtKm(v.km) + " กม." : "", v.pace ? v.pace + "/กม." : "", shoe ? shoeShort(shoe) : ""].filter(Boolean).join(" · ");
+  return `<div class="sess ${isNext ? "next" : ""}" data-act="session" data-key="${s.key}">
+    <div class="day"><b>${TH_DAY[s.day]}</b><span>${thDate(s.date)}</span></div>
+    <div><div class="sdesc"><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${esc(v.detail)}${v.adjusted ? '<span class="adj">ปรับตามผล</span>' : ""}${s.edited ? '<span class="adj">แก้เอง</span>' : ""}</div>
+      ${meta ? `<div class="smeta">${esc(meta)}</div>` : ""}</div>
+    <span class="st ${st}">${icon}</span>
+  </div>`;
+}
+const noteHtml = a => a.notes.map(x => `<div class="note ${x.lvl === "ok" ? "" : x.lvl}">${esc(x.t)}</div>`).join("");
+const curWeek = () => W.find(w => w.start <= TODAY && TODAY <= w.end) || (W.length && TODAY < W[0].start ? W[0] : null);
+
+function renderHome() {
+  const p = P(), races = sortedRaces(p), nr = nextRace(p);
+  if (!nr) return `<div class="card empty"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:0 auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><p>เพิ่มรายการแข่งพร้อมเป้าหมาย แอปจะสร้างตารางซ้อมให้อัตโนมัติ</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
+  const pr = predict(p, nr), w = curWeek(), wi = w ? w.i : -1;
+  const next = allSessions().find(s => s.date >= TODAY && s.type !== "rest" && status(s) !== "done");
+  const blockWeeks = W.filter(x => x.race.id === nr.id), bi = w ? blockWeeks.indexOf(w) : -1;
+  const planned = allSessions().filter(s => RUN_TYPES.includes(s.type) && s.date <= TODAY);
+  const done = planned.filter(s => status(s) === "done").length;
+  const fit = fitness(p);
+
+  let predHtml;
+  if (pr) {
+    const gap = pr.near.T - nr.target, cls = gap <= 0 ? "" : gap < nr.target * 0.03 ? "warn" : "bad";
+    const pg = pr.pot.T - nr.target;
+    predHtml = `<div class="row"><div><div class="mut small">คาดการณ์ ${esc(distLabel(nr.km))} จากผลใกล้เคียง</div><div class="mid">${fmtTime(pr.near.T)}</div></div><span class="chip ${cls}">${gap <= 0 ? "เร็วกว่าเป้า " + fmtTime(-gap) : "ช้ากว่าเป้า " + fmtTime(gap)}</span></div>
+      <div class="tiny mut" style="margin-top:4px">จาก ${esc(pr.near.label)}</div>
+      <div class="note ${pg <= 0 ? "" : "info"}" style="margin-top:10px">ศักยภาพจาก VO2max ${pr.pot.v.toFixed(1)}: <b>${fmtTime(pr.pot.T)}</b> ${pg <= 0 ? "— ความเร็วพอสำหรับเป้าแล้ว ที่เหลือคือความทนทาน" : "— ยังต้องเพิ่มความเร็วอีก " + fmtTime(pg)}</div>`;
+  } else predHtml = `<div class="mut small">คาดการณ์เวลาจบ</div><div class="mid mut">—</div><div class="tiny mut" style="margin-top:4px">ใส่ PB ในแท็บ “ฉัน” หรือส่งผลซ้อมที่มีช่วงเร็ว ≥ 2 กม.</div>`;
+
+  const others = races.filter(r => r.date >= TODAY && r.id !== nr.id);
+  const weekKm = w ? w.sessions.filter(s => RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0) : 0;
+  const weekGot = w ? sumKm(runLogs(p), w.start, w.end) : 0;
+  return `
+  <div class="card hero">
+    <div class="row"><span class="chip pink">${esc(distLabel(nr.km))}</span><span class="tiny mut">${thDateY(nr.date)}</span></div>
+    <div style="font-weight:600;margin-top:8px">${esc(nr.name)}</div>
+    <div class="big">${fmtTime(nr.target)}</div>
+    <div class="mut small">เพซเป้าหมาย ${fmtPace(nr.target / nr.km)}/กม.</div>
+    <div class="grid3">
+      <div class="stat"><b>${bi >= 0 ? (bi + 1) + "/" + blockWeeks.length : "—"}</b><span class="tiny mut">สัปดาห์</span></div>
+      <div class="stat"><b>${fit ? fit.v.toFixed(1) : "—"}</b><span class="tiny mut">VO2max</span></div>
+      <div class="stat"><b>${done}/${planned.length}</b><span class="tiny mut">นัดที่ทำได้</span></div>
+    </div>
+  </div>
+  <div class="card">${predHtml}</div>
+  ${w ? `<div class="card">
+    <div class="row"><h3 style="margin:0">สัปดาห์นี้ · ${PHASE_TH[w.phase]}</h3><span class="chip">${fmtKm(weekGot)} / ${fmtKm(weekKm)} กม.</span></div>
+    <div class="bar"><i style="width:${weekKm ? Math.min(100, weekGot / weekKm * 100) : 0}%"></i></div>
+    ${noteHtml(A[wi])}
+    <div style="margin-top:8px">${w.sessions.map(s => sessRow(s, next && s.key === next.key)).join("")}</div>
+  </div>` : ""}
+  ${others.length ? `<div class="card"><h3>รายการแข่งถัดไป</h3>${others.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}"><span class="chip pink">${esc(distLabel(r.km))}</span><div class="grow"><b>${esc(r.name)}</b><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${fmtPace(r.target / r.km)}/กม.</div></div></div>`).join("")}</div>` : ""}`;
+}
+
+function renderPlan() {
+  const p = P();
+  if (!W.length) return `<div class="card empty"><div class="mid">ยังไม่มีตาราง</div><p>เพิ่มรายการแข่งและตั้งวันซ้อมในแท็บ “ฉัน”</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
+  const cw = curWeek(); let lastRace = null, html = `<div class="tiny mut">แตะนัดซ้อมเพื่อส่งผลหรือแก้ไข · ตารางสร้างใหม่อัตโนมัติเมื่อแก้รายการแข่งหรือวันซ้อม</div>`;
+  W.forEach(w => {
+    if (w.race !== lastRace) { lastRace = w.race; html += `<div class="group"><div><b>→ ${esc(w.race.name)}</b><div class="tiny">${thDateY(w.race.date)} · เป้า ${fmtTime(w.race.target)}</div></div><span class="chip pink">${esc(distLabel(w.race.km))}</span></div>`; }
+    const runs = w.sessions.filter(s => RUN_TYPES.includes(s.type));
+    const km = runs.reduce((t, s) => t + (view(s).km || 0), 0), done = runs.filter(s => status(s) === "done").length;
+    const adj = A[w.i].factor < 1 || A[w.i].easyQuality;
+    html += `<details class="week" ${cw && w.i === cw.i ? "open" : ""}>
+      <summary><div><span class="wk">สัปดาห์ ${w.n}</span> <span class="small mut">${thDate(w.start)}–${thDate(w.end)}</span><div style="margin-top:2px"><span class="chip ${w.phase === "race" ? "pink" : w.phase === "recovery" || w.phase === "taper" ? "gray" : ""}">${PHASE_TH[w.phase]}</span>${w.deload ? ' <span class="chip gray">ลดโหลด</span>' : ""}${cw && w.i === cw.i ? ' <span class="chip">ตอนนี้</span>' : ""}${adj ? ' <span class="chip warn">ปรับตามผล</span>' : ""}</div></div>
+      <div class="small mut" style="text-align:right">${fmtKm(km)} กม.<br>${w.end < TODAY || done ? done + "/" + runs.length : ""}</div></summary>
+      <div class="wbody">${noteHtml(A[w.i])}${w.sessions.map(s => sessRow(s)).join("")}</div></details>`;
+  });
+  const nr = nextRace(p);
+  if (nr) {
+    const pc = racePaces(nr);
+    html += `<h2>เพซซ้อมสำหรับ ${esc(distLabel(nr.km))} (${fmtTime(nr.target)})</h2><div class="card"><table><tr><th>ประเภท</th><th class="num">นาที/กม.</th></tr>
+      ${PACE_KEYS.map(([k, l]) => `<tr><td>${k === "race" ? "<b>" + l + "</b>" : l}</td><td class="num">${k === "race" ? "<b>" + rng(pc.ranges[k]) + "</b>" : rng(pc.ranges[k])}</td></tr>`).join("")}
+      </table><div class="tiny mut" style="margin-top:8px">คำนวณจากเป้าหมาย ช่วงร้อนชื้นให้ Easy และ Long ช้ากว่านี้ได้</div></div>`;
+  }
+  return html;
+}
+
+function renderStats() {
+  const p = P(), runs = runLogs(p), fit = fitness(p);
+  let vo2 = `<div class="mut small">ยังคำนวณไม่ได้ — ใส่ PB ในแท็บ “ฉัน” หรือส่งผลซ้อมที่มีช่วงเร็ว ≥ 2 กม.</div>`;
+  if (fit) {
+    const pts = fit.efforts.filter(e => e.date).sort((a, b) => a.date.localeCompare(b.date));
+    let spark = "";
+    if (pts.length >= 2) {
+      const vs = pts.map(e => e.v), mn = Math.min(...vs) - 1, mx = Math.max(...vs) + 1;
+      const xy = pts.map((e, i) => [i / (pts.length - 1) * 280 + 10, 60 - (e.v - mn) / (mx - mn) * 50]);
+      spark = `<svg viewBox="0 0 300 70" style="width:100%;height:70px;margin-top:8px"><polyline fill="none" stroke="#3d9a5b" stroke-width="2.5" stroke-linejoin="round" points="${xy.map(a => a.join(",")).join(" ")}"/>${xy.map(a => `<circle cx="${a[0]}" cy="${a[1]}" r="3.5" fill="#fff" stroke="#3d9a5b" stroke-width="2"/>`).join("")}</svg><div class="tiny mut">แนวโน้มจากผลที่มีวันที่</div>`;
+    }
+    const gap = fit.longest && fit.longest.km >= 15 ? fit.v - fit.longest.v : 0;
+    vo2 = `<div class="vo2"><div class="big">${fit.v.toFixed(1)}</div><div style="padding-bottom:6px"><span class="chip">${vdotBand(fit.v)}</span><div class="tiny mut" style="margin-top:4px">มล./กก./นาที (ประมาณจาก ${esc(fit.best.label)})</div></div></div>
+      ${spark}
+      ${gap > 3 ? `<div class="note warn">ความเร็วนำความทนทาน: ${esc(fit.longest.label)} เทียบได้ VO2max แค่ ${fit.longest.v.toFixed(1)} ต่ำกว่าค่าดีสุด ${gap.toFixed(1)} — เน้น Long Run, ซ้อมเติมพลังงาน และเพซแข่งช่วงท้าย</div>` : ""}
+      <table style="margin-top:10px"><tr><th>เวลาที่ทำได้ตามศักยภาพ</th><th class="num">เวลา</th><th class="num">เพซ</th></tr>
+      ${DISTS.map(d => { const t = vdotTime(fit.v, d.km); return `<tr><td>${d.label}</td><td class="num">${fmtTime(t)}</td><td class="num">${fmtPace(t / d.km)}</td></tr>`; }).join("")}</table>
+      <div class="tiny mut" style="margin-top:6px">ค่าประมาณจากผลวิ่ง (สูตร VDOT) ไม่ใช่ผลวัดในแล็บ ระยะไกลต้องมีความทนทานรองรับด้วย</div>`;
+  }
+  const pbs = [...(p.pbs || [])].sort((a, b) => a.km - b.km);
+  const pbHtml = pbs.length ? pbs.map(b => `<div class="item" data-act="pbForm" data-id="${b.id}"><span class="chip gold">${esc(distLabel(+b.km))}</span><div class="grow"><b>${fmtTime(b.time)}</b> <span class="small mut">· ${fmtPace(b.time / b.km)}/กม.</span><div class="tiny mut">${b.date ? thDateY(b.date) : "ไม่ระบุวันที่"}${b.name ? " · " + esc(b.name) : ""}</div></div><span class="small mut">VO2 ${vdot(+b.km, +b.time).toFixed(1)}</span></div>`).join("") : `<div class="mut small">ยังไม่มี PB</div>`;
+  const wkStart = mondayOf(TODAY), mStart = TODAY.slice(0, 8) + "01", yStart = TODAY.slice(0, 5) + "01-01";
+  const weeks = []; for (let k = 11; k >= 0; k--) {
+    const ws = addDays(wkStart, -7 * k), we = addDays(ws, 6);
+    const plan = allSessions().filter(s => s.date >= ws && s.date <= we && RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0);
+    weeks.push({ ws, act: sumKm(runs, ws, we), plan, cur: k === 0 });
+  }
+  const mx = Math.max(10, ...weeks.map(w => Math.max(w.act, w.plan)));
+  const bars = `<div class="bars">${weeks.map(w => `<div class="bcol ${w.cur ? "cur" : ""}" title="${thDate(w.ws)}: ${fmtKm(w.act)} กม.">${w.plan ? `<div class="bplan" style="height:${w.plan / mx * 100}%"></div>` : ""}<div class="bact" style="height:${w.act / mx * 100}%"></div></div>`).join("")}</div>
+    <div class="blabels">${weeks.map((w, i) => `<span>${i % 2 === 1 || w.cur ? parseDate(w.ws).getDate() + "/" + (parseDate(w.ws).getMonth() + 1) : ""}</span>`).join("")}</div>
+    <div class="legend" style="margin-top:6px"><span><i style="background:var(--pri)"></i>วิ่งจริง</span><span><i style="border:1.5px dashed #9cc9a8;background:none"></i>ตามแผน</span></div>`;
+  const months = []; for (let k = 5; k >= 0; k--) { const d = parseDate(mStart); d.setMonth(d.getMonth() - k); const s = ds(d); const e = new Date(d); e.setMonth(e.getMonth() + 1); e.setDate(0); months.push({ s, km: sumKm(runs, s, ds(e)) }); }
+  const r30 = runs.filter(l => l.date >= addDays(TODAY, -29) && l.date <= TODAY);
+  const tSec = r30.reduce((t, l) => t + toSec(l.time), 0), kmT = r30.filter(l => toSec(l.time)).reduce((t, l) => t + (+l.km || 0), 0);
+  const byType = RUN_TYPES.map(t => ({ t, km: sumKm(r30.filter(l => l.type === t)) })), tot = byType.reduce((a, b) => a + b.km, 0);
+  let streak = 0; for (let i = W.length - 1; i >= 0; i--) { const w = W[i]; if (w.end >= TODAY) continue; const pl = w.sessions.filter(s => RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0); if (pl && sumKm(runs, w.start, w.end) >= pl * 0.8) streak++; else break; }
+  const ld = runs.length ? runs.reduce((a, b) => (+b.km > +a.km ? b : a)) : null;
+
+  const logs = [...p.logs].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const hist = logs.length ? logs.map(l => {
+    const shoe = shoeById(l.shoe), sec = toSec(l.time), pace = sec && +l.km ? fmtPace(sec / l.km) + "/กม." : "";
+    return `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow"><div><span class="tag t-${l.type}">${TYPE_LABEL[l.type]}</span><b>${thDate(l.date)}</b> <span class="small mut">${TH_DAY_FULL[dow(l.date)]}</span>${l.pain ? ' <span class="chip bad">เจ็บ</span>' : ""}</div>
+      <div class="small">${[+l.km ? fmtKm(+l.km) + " กม." : "", esc(l.time), pace, "RPE " + l.rpe].filter(Boolean).join(" · ")}</div>
+      <div class="tiny mut">${esc(shoeShort(shoe))}${l.note ? " · " + esc(l.note) : ""}</div></div>
+      <button class="del" data-act="delLog" data-id="${l.id}">ลบ</button></div>`;
+  }).join("") : `<div class="mut small">ยังไม่มีผลซ้อม</div>`;
+
+  return `
+  <h2 style="margin-top:4px">VO2max โดยประมาณ</h2><div class="card">${vo2}</div>
+  <div class="row" style="margin:22px 0 10px"><h2 style="margin:0">สถิติ PB</h2><button class="btn ghost sm" data-act="pbForm">＋ เพิ่ม PB</button></div><div class="card">${pbHtml}</div>
+  <h2>ระยะสะสม</h2>
+  <div class="card">
+    <div class="grid4"><div class="box"><b>${fmtKm(sumKm(runs, wkStart, TODAY))}</b><span class="tiny mut">สัปดาห์นี้</span></div><div class="box"><b>${fmtKm(sumKm(runs, mStart, TODAY))}</b><span class="tiny mut">เดือนนี้</span></div><div class="box"><b>${fmtKm(sumKm(runs, yStart, TODAY))}</b><span class="tiny mut">ปีนี้</span></div><div class="box"><b>${fmtKm(sumKm(runs))}</b><span class="tiny mut">ทั้งหมด</span></div></div>
+    <div class="small mut" style="margin-top:14px">12 สัปดาห์ล่าสุด (กม.)</div>${bars}
+    <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:6px;justify-content:flex-start">${months.map(m => `<span class="chip gray">${TH_MON[parseDate(m.s).getMonth()]} ${fmtKm(m.km)}</span>`).join("")}</div>
+  </div>
+  <h2>30 วันล่าสุด</h2>
+  <div class="card">
+    <div class="grid4"><div class="box"><b>${r30.length}</b><span class="tiny mut">ครั้ง</span></div><div class="box"><b style="font-size:15px">${tSec ? fmtDur(tSec) : "—"}</b><span class="tiny mut">เวลาวิ่ง</span></div><div class="box"><b>${kmT ? fmtPace(tSec / kmT) : "—"}</b><span class="tiny mut">เพซเฉลี่ย</span></div><div class="box"><b>${r30.length ? (r30.reduce((t, l) => t + +l.rpe, 0) / r30.length).toFixed(1) : "—"}</b><span class="tiny mut">RPE เฉลี่ย</span></div></div>
+    ${tot ? `<div class="small mut" style="margin-top:12px">สัดส่วนระยะตามประเภท</div><div class="stack">${byType.filter(b => b.km).map(b => `<i style="width:${b.km / tot * 100}%;background:${TYPE_COLOR[b.t]}"></i>`).join("")}</div>
+    <div class="legend">${byType.filter(b => b.km).map(b => `<span><i style="background:${TYPE_COLOR[b.t]}"></i>${TYPE_LABEL[b.t]} ${Math.round(b.km / tot * 100)}%</span>`).join("")}</div>
+    ${(byType[0].km + byType[1].km) / tot < 0.6 ? `<div class="note warn">วันเบา (Easy + Long) น้อยกว่า 60% ของระยะ — ควรวิ่งเบาเป็นหลักเพื่อลดความเสี่ยงบาดเจ็บ</div>` : ""}` : ""}
+    <div class="row small" style="margin-top:12px"><span>ทำตามแผน ≥ 80% ติดกัน</span><b>${streak} สัปดาห์</b></div>
+    ${ld ? `<div class="row small" style="margin-top:4px"><span>วิ่งไกลสุด</span><b>${fmtKm(+ld.km)} กม. · ${thDate(ld.date)}</b></div>` : ""}
+  </div>
+  <h2>ประวัติผลซ้อม</h2><div class="card">${hist}</div>`;
+}
+
+/* ---------- ชาเลนจ์ ---------- */
+function chValue(ch, p) {
+  const L = runLogs(p).filter(l => l.date >= ch.start && l.date <= ch.end);
+  if (ch.type === "runs") return L.length;
+  if (ch.type === "days") return new Set(L.map(l => l.date)).size;
+  if (ch.type === "longest") return L.reduce((m, l) => Math.max(m, +l.km || 0), 0);
+  return sumKm(L);
+}
+function chBoard(ch) {
+  const rows = (ch.members || []).map(id => DB.profiles.find(p => p.id === id)).filter(Boolean).map(p => ({ name: p.name, value: chValue(ch, p), me: p.id === DB.active }))
+    .concat((ch.guests || []).map(g => ({ name: g.name, value: +g.value || 0, guest: true })));
+  return rows.sort((a, b) => b.value - a.value);
+}
+const chFmt = (ch, v) => ch.type === "runs" || ch.type === "days" ? String(v) : fmtKm(v);
+const chState = ch => TODAY < ch.start ? "upcoming" : TODAY > ch.end ? "ended" : "active";
+const chOrder = { active: 0, upcoming: 1, ended: 2 };
+function renderChallenges() {
+  const list = [...(DB.challenges || [])].sort((a, b) => chOrder[chState(a)] - chOrder[chState(b)] || a.end.localeCompare(b.end));
+  const cards = list.map(ch => {
+    const st = chState(ch), board = chBoard(ch), top = Math.max(ch.target || 0, board[0] ? board[0].value : 0, 1), u = CH_TYPES[ch.type].unit;
+    const stTxt = st === "active" ? `เหลือ ${diffDays(TODAY, ch.end) + 1} วัน` : st === "upcoming" ? `เริ่ม ${thDate(ch.start)}` : "จบแล้ว";
+    return `<div class="card" data-act="chDetail" data-id="${ch.id}" style="cursor:pointer">
+      <div class="row"><b>${esc(ch.name)}</b><span class="chip ${st === "active" ? "" : st === "upcoming" ? "warn" : "gray"}">${stTxt}</span></div>
+      <div class="tiny mut">${CH_TYPES[ch.type].label}${ch.target ? ` · เป้า ${chFmt(ch, ch.target)} ${u}` : " · ใครได้มากสุดชนะ"} · ${thDate(ch.start)}–${thDate(ch.end)}</div>
+      <div style="margin-top:8px">${board.slice(0, 5).map((r, i) => `<div class="item" style="cursor:inherit;padding:8px 0"><span class="rank r${i + 1}">${i + 1}</span><div class="grow"><div class="row small"><span><b>${esc(r.name)}</b>${r.me ? ' <span class="chip">คุณ</span>' : ""}${r.guest ? ' <span class="tiny mut">(กรอกเอง)</span>' : ""}</span><b>${chFmt(ch, r.value)} ${u}</b></div><div class="bar"><i style="width:${Math.min(100, r.value / top * 100)}%;${ch.target && r.value >= ch.target ? "background:var(--gold)" : ""}"></i></div></div></div>`).join("") || `<div class="mut small">ยังไม่มีสมาชิก</div>`}</div>
+    </div>`;
+  }).join("");
+  return `<div class="row" style="margin:4px 0 10px"><h2 style="margin:0">ชาเลนจ์กลุ่ม</h2><button class="btn ghost sm" data-act="chForm">＋ สร้าง</button></div>
+    ${cards || `<div class="card empty"><div style="font-size:36px">🏆</div><div class="mid">ยังไม่มีชาเลนจ์</div><p>ชวนเพื่อนแข่งระยะสะสม จำนวนครั้ง หรือวิ่งไกลสุด</p><button class="btn" data-act="chForm">สร้างชาเลนจ์</button></div>`}
+    <div class="tiny mut" style="text-align:center;margin-top:4px">สมาชิกคือนักวิ่งที่อยู่ในแอปเครื่องนี้ (นับจากผลซ้อมอัตโนมัติ) และเพื่อนที่กรอกยอดเอง · แตะการ์ดเพื่อแก้ไขหรือคัดลอกอันดับส่ง LINE</div>`;
+}
+function chShareText(ch) {
+  const b = chBoard(ch), u = CH_TYPES[ch.type].unit, st = chState(ch);
+  return `🏃 ${APP_NAME} ชาเลนจ์: ${ch.name}\n${thDate(ch.start)}–${thDate(ch.end)}${st === "active" ? ` · เหลือ ${diffDays(TODAY, ch.end) + 1} วัน` : st === "ended" ? " · จบแล้ว" : ""}${ch.target ? `\nเป้า ${chFmt(ch, ch.target)} ${u}` : ""}\n\n` +
+    b.map((r, i) => `${["🥇", "🥈", "🥉"][i] || (i + 1) + "."} ${r.name} — ${chFmt(ch, r.value)} ${u}${ch.target && r.value >= ch.target ? " ✅" : ""}`).join("\n");
+}
+function chDetail(id) {
+  const ch = DB.challenges.find(c => c.id === id); if (!ch) return;
+  const u = CH_TYPES[ch.type].unit;
+  openSheet(ch.name, `
+    <div class="tiny mut" style="margin-bottom:10px">${CH_TYPES[ch.type].label} · ${thDateY(ch.start)}–${thDateY(ch.end)}${ch.target ? ` · เป้า ${chFmt(ch, ch.target)} ${u}` : ""}</div>
+    <div class="card" style="padding:4px 14px">${chBoard(ch).map((r, i) => `<div class="item" style="cursor:default"><span class="rank r${i + 1}">${i + 1}</span><div class="grow"><b>${esc(r.name)}</b>${r.guest ? ' <span class="tiny mut">(กรอกเอง)</span>' : ""}</div><b>${chFmt(ch, r.value)} ${u}</b></div>`).join("") || '<div class="mut small" style="padding:10px 0">ยังไม่มีสมาชิก</div>'}</div>
+    ${(ch.guests || []).length ? `<form id="gForm"><div class="flabel">อัปเดตยอดเพื่อนที่กรอกเอง (${u})</div>${ch.guests.map(g => `<label class="f">${esc(g.name)}<input name="g_${g.id}" inputmode="decimal" value="${g.value}"></label>`).join("")}<button class="btn ghost block" type="submit">บันทึกยอด</button></form>` : ""}
+    <div class="btns" style="margin-top:12px">
+      <button class="btn" data-act="chCopy" data-id="${ch.id}">คัดลอกอันดับ (ส่ง LINE)</button>
+      <button class="btn line" data-act="chForm" data-id="${ch.id}">แก้ไขชาเลนจ์</button>
+    </div>`, body => {
+    const f = body.querySelector("#gForm");
+    if (f) f.addEventListener("submit", e => { e.preventDefault(); ch.guests.forEach(g => { g.value = parseFloat(f.elements["g_" + g.id].value) || 0; }); save(); render(); chDetail(id); toast("อัปเดตยอดแล้ว"); });
+  });
+}
+function chForm(id) {
+  const ch = id ? DB.challenges.find(c => c.id === id) : null;
+  openSheet(ch ? "แก้ไขชาเลนจ์" : "สร้างชาเลนจ์", `
+    ${ch ? "" : `<div class="tpl">${CHALLENGE_TEMPLATES.map((t, i) => `<button type="button" data-tpl="${i}">${esc(t.name)}</button>`).join("")}</div>`}
+    <form id="chF">
+      <label class="f">ชื่อชาเลนจ์<input name="name" value="${ch ? esc(ch.name) : ""}" placeholder="เช่น ก๊วนวิ่งเช้า 100 กม." required></label>
+      <label class="f">วัดผลจาก<select name="type">${Object.entries(CH_TYPES).map(([k, t]) => `<option value="${k}" ${ch && ch.type === k ? "selected" : ""}>${t.label} (${t.unit})</option>`).join("")}</select></label>
+      <label class="f">เป้าหมาย (0 = ใครได้มากสุดชนะ)<input name="target" inputmode="decimal" value="${ch ? ch.target : 0}"></label>
+      <div class="grid2"><label class="f">เริ่ม<input type="date" name="start" value="${ch ? ch.start : TODAY}" required></label><label class="f">สิ้นสุด<input type="date" name="end" value="${ch ? ch.end : addDays(TODAY, 29)}" required></label></div>
+      <div class="flabel">สมาชิกในเครื่องนี้</div>
+      <div class="chips">${DB.profiles.map(p => `<label><input type="checkbox" name="members" value="${p.id}" ${!ch || (ch.members || []).includes(p.id) ? "checked" : ""}><span>${esc(p.name)}</span></label>`).join("")}</div>
+      <label class="f">เพื่อนนอกเครื่อง (คั่นด้วย , ) — กรอกยอดเองภายหลัง<input name="guests" value="${ch ? esc((ch.guests || []).map(g => g.name).join(", ")) : ""}" placeholder="ต้น, แนน, บอส"></label>
+      <div class="btns"><button class="btn" type="submit">บันทึก</button>${ch ? `<button class="btn danger" type="button" data-act="chDel" data-id="${ch.id}">ลบชาเลนจ์</button>` : ""}</div>
+    </form>`, body => {
+    const f = body.querySelector("#chF"), F = f.elements;
+    body.querySelectorAll("[data-tpl]").forEach(b => b.addEventListener("click", () => {
+      const t = CHALLENGE_TEMPLATES[+b.dataset.tpl]; F.name.value = t.name; F.type.value = t.type; F.target.value = t.target;
+      if (t.month) { const s = TODAY.slice(0, 8) + "01", e = parseDate(s); e.setMonth(e.getMonth() + 1); e.setDate(0); F.start.value = s; F.end.value = ds(e); }
+      else { F.start.value = TODAY; F.end.value = addDays(TODAY, t.days - 1); }
+    }));
+    f.addEventListener("submit", e => {
+      e.preventDefault();
+      if (F.end.value < F.start.value) return toast("วันสิ้นสุดต้องหลังวันเริ่ม");
+      const names = F.guests.value.split(",").map(x => x.trim()).filter(Boolean);
+      const oldG = ch ? ch.guests || [] : [];
+      const data = { name: F.name.value.trim(), type: F.type.value, target: parseFloat(F.target.value) || 0, start: F.start.value, end: F.end.value,
+        members: [...f.querySelectorAll("input[name=members]:checked")].map(x => x.value),
+        guests: names.map(n => oldG.find(g => g.name === n) || { id: uid(), name: n, value: 0 }) };
+      if (ch) Object.assign(ch, data); else DB.challenges.push({ id: uid(), ...data });
+      save(); closeSheet(); render(); toast("บันทึกชาเลนจ์แล้ว");
+    });
+  });
+}
+function copyText(t) {
+  const done = () => toast("คัดลอกแล้ว วางใน LINE ได้เลย");
+  const fallback = () => { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); done(); } catch (e) { toast("คัดลอกไม่ได้"); } ta.remove(); };
+  try { navigator.clipboard.writeText(t).then(done, fallback); } catch (e) { fallback(); }
+}
+
+/* ---------- ฉัน: โปรไฟล์ + รองเท้า ---------- */
+function dayChips(name, sel) { return `<div class="chips">${DAY_S.map((d, i) => `<label><input type="checkbox" name="${name}" value="${i}" ${sel.includes(i) ? "checked" : ""}><span>${d}</span></label>`).join("")}</div>`; }
+function renderMe() {
+  const seg = `<div class="seg" style="margin-top:4px"><button data-act="meTab" data-v="profile" class="${meTab === "profile" ? "on" : ""}"><span>โปรไฟล์ & PB</span></button><button data-act="meTab" data-v="shoes" class="${meTab === "shoes" ? "on" : ""}"><span>รองเท้า</span></button></div>`;
+  return seg + (meTab === "shoes" ? renderShoes() : renderProfile());
+}
+function renderProfile() {
+  const p = P(), races = sortedRaces(p), pbs = [...(p.pbs || [])].sort((a, b) => a.km - b.km), fit = fitness(p);
+  return `
+  <div class="card hero" style="display:flex;gap:14px;align-items:center">
+    <div style="width:56px;height:56px;border-radius:18px;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:24px;font-weight:700;flex:none">${esc((p.name || "?").slice(0, 1).toUpperCase())}</div>
+    <div style="flex:1"><div style="font-size:18px;font-weight:700">${esc(p.name)}</div><div class="small mut">${LEVELS[p.level] || ""} · ${fmtKm(sumKm(runLogs(p)))} กม. สะสม</div></div>
+    <div style="text-align:right"><div class="mid">${fit ? fit.v.toFixed(1) : "—"}</div><div class="tiny mut">VO2max</div></div>
+  </div>
+
+  <div class="row" style="margin:22px 0 10px"><h2 style="margin:0">สถิติเดิม (PB)</h2><button class="btn ghost sm" data-act="pbForm">＋ เพิ่ม</button></div>
+  <div class="card">${pbs.length ? pbs.map(b => `<div class="item" data-act="pbForm" data-id="${b.id}"><span class="chip gold">${esc(distLabel(+b.km))}</span><div class="grow"><b>${fmtTime(b.time)}</b> <span class="small mut">· เพซ ${fmtPace(b.time / b.km)}</span><div class="tiny mut">${b.date ? thDateY(b.date) : "ไม่ระบุวันที่"}${b.name ? " · " + esc(b.name) : ""}</div></div><span class="mut">›</span></div>`).join("") : `<div class="mut small">ยังไม่มี PB — ใส่ผลแข่งหรือไทม์ไทรอัลที่ดีที่สุด เพื่อคำนวณ VO2max และคาดการณ์เวลา</div>`}
+    <div class="tiny mut" style="margin-top:6px">ส่งผลประเภท Race ที่เร็วกว่าเดิม แอปจะอัปเดต PB ให้อัตโนมัติ</div></div>
+
+  <h2>ข้อมูลพื้นฐาน</h2>
+  <form class="card" id="meForm">
+    <label class="f">ชื่อ<input name="name" value="${esc(p.name)}" required></label>
+    <div class="grid2">
+      <label class="f">เพศ<select name="sex"><option value="">—</option><option value="m" ${p.sex === "m" ? "selected" : ""}>ชาย</option><option value="f" ${p.sex === "f" ? "selected" : ""}>หญิง</option></select></label>
+      <label class="f">ปีเกิด (ค.ศ.)<input name="birthYear" inputmode="numeric" value="${esc(p.birthYear)}" placeholder="1990"></label>
+      <label class="f">น้ำหนัก (กก.)<input name="weightKg" inputmode="decimal" value="${esc(p.weightKg)}"></label>
+      <label class="f">ระดับ<select name="level">${Object.entries(LEVELS).map(([k, v]) => `<option value="${k}" ${p.level === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+    </div>
+    <label class="f">ตอนนี้วิ่งประมาณกี่ กม./สัปดาห์<input name="weeklyKm" inputmode="decimal" value="${esc(p.weeklyKm)}"></label>
+    <div class="flabel">วันที่วิ่ง</div>${dayChips("runDays", (p.runDays || []).map(Number))}
+    <label class="f">วัน Long Run<select name="longDay">${TH_DAY_FULL.map((d, i) => `<option value="${i}" ${+p.longDay === i ? "selected" : ""}>${d}</option>`).join("")}</select></label>
+    <div class="flabel">วันเล่นเวท (ไม่เล่นให้เว้นว่าง)</div>${dayChips("gymDays", (p.gymDays || []).map(Number))}
+    <label class="f">เริ่มแผนสัปดาห์ของวันที่<input type="date" name="planStart" value="${esc(p.planStart)}"></label>
+    <button class="btn block" type="submit">บันทึกและสร้างตารางใหม่</button>
+  </form>
+
+  <div class="row" style="margin:22px 0 10px"><h2 style="margin:0">รายการแข่ง</h2><button class="btn ghost sm" data-act="raceForm">＋ เพิ่ม</button></div>
+  <div class="card">${races.length ? races.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}">
+      <span class="chip ${r.date < TODAY ? "gray" : "pink"}">${esc(distLabel(r.km))}</span>
+      <div class="grow"><b>${esc(r.name)}</b><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${fmtPace(r.target / r.km)}/กม.${r.date < TODAY ? " · ผ่านแล้ว" : ""}</div></div><span class="mut">›</span></div>`).join("")
+    : `<div class="mut small">ยังไม่มีรายการแข่ง</div>`}</div>
+
+  <h2>นักวิ่ง & ข้อมูล</h2>
+  <div class="card">
+    <div class="small mut" style="margin-bottom:10px">ข้อมูลทุกคนเก็บในเบราว์เซอร์เครื่องนี้ Export เพื่อสำรองหรือย้ายเครื่อง</div>
+    <div class="btns">
+      <button class="btn ghost" data-act="profiles">สลับ / เพิ่มนักวิ่ง</button>
+      <div class="grid2"><button class="btn line" data-act="export">Export</button><button class="btn line" data-act="import">Import</button></div>
+      <button class="btn danger" data-act="delProfile">ลบนักวิ่ง “${esc(p.name)}”</button>
+    </div>
+  </div>`;
+}
+function renderShoes() {
+  const p = P(), upcoming = allSessions().filter(s => s.date >= TODAY && RUN_TYPES.includes(s.type) && status(s) !== "done");
+  const cards = p.shoes.length ? [...p.shoes].sort((a, b) => !!a.retired - !!b.retired).map(sh => {
+    const used = shoeUsed(p, sh), plan = upcoming.filter(s => s.shoe === sh.id).reduce((t, s) => t + (view(s).km || 0), 0);
+    const pct = Math.min(100, used / (+sh.maxKm || 600) * 100), cls = pct > 90 ? "bad" : pct > 75 ? "warn" : "";
+    return `<div class="card shoe ${sh.retired ? "retired" : ""}" data-act="shoeForm" data-id="${sh.id}">
+      <div class="sw" style="background:${shoeColor(sh)}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16c0-3 1-7 2-9l4 3c2 1 4 1 6 2l4 1c1 .3 2 1.3 2 2.5V18H4a1 1 0 0 1-1-1z"/><path d="M3 18h18"/></svg></div>
+      <div><div class="row"><b>${esc(shoeName(sh))}</b><span class="tiny mut">แก้ไข ›</span></div>
+        <span class="chip ${sh.retired ? "gray" : ""}" style="margin:4px 0 2px">${sh.retired ? "ปลดระวางแล้ว" : esc(SHOE_ROLES[sh.role]?.label || "")}</span>
+        <div class="row small" style="margin-top:8px"><span>ใช้ไป <b>${fmtKm(used)}</b> / ${sh.maxKm} กม.</span>${sh.retired ? "" : `<span class="mut">ตามแผนอีก ${fmtKm(plan)}</span>`}</div>
+        <div class="bar ${cls}"><i style="width:${pct}%"></i></div></div></div>`;
+  }).join("") : `<div class="card empty"><div class="mid">ยังไม่มีรองเท้า</div><p>เพิ่มรองเท้าที่มี แล้วแอปจะเลือกคู่ให้แต่ละนัดซ้อม</p></div>`;
+  const soon = upcoming.slice(0, 8).map(s => { const sh = shoeById(s.shoe), v = view(s); return `<tr><td>${TH_DAY[s.day]} ${thDate(s.date)}</td><td><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${fmtKm(v.km)} กม.</td><td>${sh ? `<span class="swc" style="background:${shoeColor(sh)}"></span>${esc(shoeShort(sh))}` : '<span class="mut">ยังไม่ได้เลือก</span>'}</td></tr>`; }).join("");
+  return `<div class="row" style="margin:4px 0 10px"><h2 style="margin:0">รองเท้า</h2><button class="btn ghost sm" data-act="shoeForm">＋ เพิ่มรองเท้า</button></div>${cards}
+    ${soon ? `<h2>นัดถัดไปใส่คู่ไหน</h2><div class="card"><table><tr><th>วัน</th><th>นัด</th><th>รองเท้า</th></tr>${soon}</table>
+    <div class="tiny mut" style="margin-top:8px">จับคู่อัตโนมัติ: Easy/Long → ซ้อมหลัก · Interval/Tempo → ซ้อมเร็ว · เพซแข่ง/วันแข่ง → รองเท้าแข่ง · เปลี่ยนรายนัดได้โดยแตะนัดแล้วกด “แก้นัดนี้”</div></div>` : ""}`;
+}
+
+/* ---------- sheets ---------- */
+function openSheet(title, html, mount) { $("#sheetTitle").textContent = title; $("#sheetBody").innerHTML = html; $("#sheet").classList.remove("hidden"); $(".panel").scrollTop = 0; if (mount) mount($("#sheetBody")); }
+const closeSheet = () => $("#sheet").classList.add("hidden");
+
+function openSession(key) {
+  const s = allSessions().find(x => x.key === key); if (!s) return;
+  const v = view(s), sh = shoeById(s.shoe), logs = logsFor(s);
+  openSheet(`${TH_DAY_FULL[s.day]} ${thDateY(s.date)}`, `
+    <div class="sdesc" style="font-size:16px"><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${esc(v.detail)}</div>
+    <table style="margin:10px 0 14px">
+      ${v.km ? `<tr><td class="mut">ระยะ</td><td class="num">${fmtKm(v.km)} กม.</td></tr>` : ""}
+      ${v.pace ? `<tr><td class="mut">เพซ</td><td class="num">${v.pace} /กม.</td></tr>` : ""}
+      ${RUN_TYPES.includes(s.type) ? `<tr><td class="mut">รองเท้า</td><td class="num">${sh ? esc(shoeName(sh)) : "ยังไม่ได้เลือก"}</td></tr>` : ""}
+    </table>
+    ${logs.length ? `<div class="flabel">ผลที่ส่งแล้ว</div><div class="card" style="padding:4px 14px">${logs.map(l => `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow small">${fmtKm(+l.km)} กม. ${esc(l.time)} · RPE ${l.rpe}</div><span class="linkbtn">ดูวิเคราะห์ ›</span></div>`).join("")}</div>` : ""}
+    <div class="btns">
+      ${s.type !== "rest" ? `<button class="btn" data-act="openLog" data-key="${s.key}">ส่งผลซ้อม</button>` : ""}
+      ${s.type !== "gym" ? `<button class="btn ghost" data-act="editSession" data-key="${s.key}">แก้นัดนี้</button>` : ""}
+      ${s.edited ? `<button class="btn line" data-act="resetSession" data-date="${s.date}">คืนค่าตามแผนเดิม</button>` : ""}
+    </div>`);
+}
+
+function editSession(key) {
+  const s = allSessions().find(x => x.key === key); if (!s) return;
+  const p = P(), shoes = p.shoes.filter(x => !x.retired || x.id === s.shoe);
+  openSheet("แก้นัดซ้อม · " + thDate(s.date), `<form id="edForm">
+    <div class="grid2">
+      <label class="f">ประเภท<select name="type">${["easy", "long", "quality", "rest"].map(t => `<option value="${t}" ${s.type === t ? "selected" : ""}>${TYPE_LABEL[t]}</option>`).join("")}</select></label>
+      <label class="f">ระยะ (กม.)<input name="km" inputmode="decimal" value="${s.km || ""}"></label>
+    </div>
+    <label class="f">รายละเอียด<input name="detail" value="${esc(s.detail)}"></label>
+    <div class="grid2">
+      <label class="f">เพซ<select name="pace">${PACE_KEYS.map(([k, l]) => `<option value="${k}" ${s.pace === k ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      <label class="f">รองเท้า<select name="shoe"><option value="">—</option>${shoes.map(x => `<option value="${x.id}" ${s.shoe === x.id ? "selected" : ""}>${esc(shoeShort(x))}</option>`).join("")}</select></label>
+    </div>
+    <button class="btn block" type="submit">บันทึก</button></form>`, body => {
+    body.querySelector("#edForm").addEventListener("submit", e => {
+      e.preventDefault(); const F = e.target.elements;
+      p.overrides[s.date] = F.type.value === "rest" ? { type: "rest" } : { type: F.type.value, km: r05(parseFloat(F.km.value) || 0), detail: F.detail.value.trim() || TYPE_LABEL[F.type.value], pace: F.pace.value, shoe: F.shoe.value };
+      save(); closeSheet(); render(); toast("แก้นัดแล้ว");
+    });
+  });
+}
+
+function openLog(key) {
+  const p = P();
+  const shoeOpts = `<option value="">—</option>` + p.shoes.filter(x => !x.retired).map(x => `<option value="${x.id}">${esc(shoeShort(x))}</option>`).join("");
+  openSheet("ส่งผลซ้อม", `<form id="logForm" autocomplete="off">
+    <label class="f">วันที่<input type="date" name="date" required></label>
+    <label class="f">ตรงกับนัดซ้อมไหน<select name="sessionKey"></select></label>
+    <div class="grid2">
+      <label class="f">ประเภท<select name="type">${["easy", "long", "quality", "race", "gym"].map(t => `<option value="${t}">${TYPE_LABEL[t]}</option>`).join("")}</select></label>
+      <label class="f">รองเท้า<select name="shoe">${shoeOpts}</select></label>
+      <label class="f">ระยะรวม (กม.)<input name="km" inputmode="decimal" placeholder="8"></label>
+      <label class="f">เวลารวม<input name="time" inputmode="numeric" placeholder="48:30"></label>
+    </div>
+    <details class="more"><summary>ช่วงเร็วต่อเนื่อง (ใช้วิเคราะห์และคำนวณ VO2max)</summary>
+      <p class="tiny mut" style="margin:6px 0 10px">ใส่ท่อนที่วิ่งต่อเนื่อง ≥ 2 กม. เช่น Tempo 4 กม. หรือ 1 ท่อนของ 3×2 กม.</p>
+      <div class="grid2"><label class="f">ระยะ (กม.)<input name="segKm" inputmode="decimal" placeholder="2"></label><label class="f">เวลา<input name="segTime" inputmode="numeric" placeholder="10:30"></label></div>
+    </details>
+    <label class="f">ความเหนื่อย (RPE 1–10): <b class="rpeOut">5</b><input type="range" min="1" max="10" name="rpe" value="5"></label>
+    <label class="inline"><input type="checkbox" name="pain" style="accent-color:var(--bad)"> มีอาการเจ็บ / ตึงผิดปกติ</label>
+    <label class="f">โน้ต (ตะคริว เจล น้ำ อากาศ ฯลฯ)<textarea name="note"></textarea></label>
+    <button class="btn block" type="submit">บันทึกและวิเคราะห์</button></form>`, body => {
+    const form = body.querySelector("#logForm"), F = form.elements;
+    const fill = (date, prefer) => {
+      const w = W.find(x => x.start <= date && date <= x.end), opts = w ? w.sessions.filter(s => s.type !== "rest") : [];
+      F.sessionKey.innerHTML = `<option value="">นอกตาราง / วิ่งเพิ่ม</option>` + opts.map(s => `<option value="${s.key}">${TH_DAY[s.day]} ${thDate(s.date)} · ${TYPE_LABEL[view(s).type]} ${esc(view(s).detail)}</option>`).join("");
+      const m = prefer ? opts.find(s => s.key === prefer) : opts.find(s => s.date === date && s.type !== "gym" && !logsFor(s).length) || opts.find(s => s.date === date);
+      F.sessionKey.value = m ? m.key : ""; apply();
+    };
+    const apply = () => { const s = allSessions().find(x => x.key === F.sessionKey.value); if (!s) return; const v = view(s); F.type.value = v.type; F.shoe.value = s.shoe || ""; F.km.value = v.km || ""; };
+    const s0 = key && allSessions().find(x => x.key === key);
+    F.date.value = s0 ? s0.date : TODAY; fill(F.date.value, key);
+    F.date.addEventListener("change", () => fill(F.date.value));
+    F.sessionKey.addEventListener("change", apply);
+    F.rpe.addEventListener("input", () => body.querySelector(".rpeOut").textContent = F.rpe.value);
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const km = parseFloat(F.km.value) || 0;
+      if (RUN_TYPES.includes(F.type.value) && !km) return toast("ใส่ระยะก่อนนะ");
+      if (F.time.value && !toSec(F.time.value)) return toast("รูปแบบเวลา เช่น 48:30 หรือ 1:52:10");
+      const l = { id: Date.now(), date: F.date.value, sessionKey: F.sessionKey.value || null, type: F.type.value, km, time: F.time.value.trim(),
+        segKm: parseFloat(F.segKm.value) || 0, segTime: F.segTime.value.trim(), rpe: +F.rpe.value, pain: F.pain.checked, shoe: F.shoe.value, note: F.note.value.trim() };
+      p.logs.push(l); save(); render();
+      if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else showAnalysis(l.id);
+    });
+  });
+}
+
+function pbForm(id) {
+  const p = P(), b = id ? p.pbs.find(x => x.id === id) : null;
+  const known = b && DISTS.some(d => Math.abs(d.km - b.km) < 0.05);
+  openSheet(b ? "แก้ไข PB" : "เพิ่ม PB", `<form id="pbF">
+    <div class="flabel">ระยะ</div>
+    <div class="seg">${DISTS.map(d => `<label><input type="radio" name="dist" value="${d.km}" ${b ? (Math.abs(d.km - b.km) < 0.05 ? "checked" : "") : (d.km === 10 ? "checked" : "")}><span>${d.label.replace("Half Marathon", "Half").replace("Marathon", "Full")}</span></label>`).join("")}<label><input type="radio" name="dist" value="other" ${b && !known ? "checked" : ""}><span>อื่น ๆ</span></label></div>
+    <label class="f otherKm" ${b && !known ? "" : "hidden"}>ระยะ (กม.)<input name="km" inputmode="decimal" value="${b && !known ? b.km : ""}" placeholder="4"></label>
+    <label class="f">เวลา<input name="time" inputmode="numeric" value="${b ? fmtTime(b.time) : ""}" placeholder="49:05 หรือ 2:02:37" required></label>
+    <div class="hint"></div>
+    <div class="grid2"><label class="f">วันที่ (ถ้าจำได้)<input type="date" name="date" value="${b ? b.date || "" : ""}"></label><label class="f">รายการ<input name="name" value="${b ? esc(b.name || "") : ""}" placeholder="ไม่บังคับ"></label></div>
+    <div class="btns"><button class="btn" type="submit">บันทึก</button>${b ? `<button class="btn danger" type="button" data-act="pbDel" data-id="${b.id}">ลบ PB นี้</button>` : ""}</div></form>`, body => {
+    const f = body.querySelector("#pbF"), F = f.elements;
+    const km = () => F.dist.value === "other" ? parseFloat(F.km.value) || 0 : +F.dist.value;
+    const upd = () => { body.querySelector(".otherKm").hidden = F.dist.value !== "other"; const t = toSec(F.time.value), d = km(); body.querySelector(".hint").textContent = t && d ? `เพซ ${fmtPace(t / d)}/กม. · VO2max ≈ ${vdot(d, t).toFixed(1)}` : ""; };
+    f.addEventListener("input", upd); f.addEventListener("change", upd); upd();
+    f.addEventListener("submit", e => {
+      e.preventDefault(); const d = km(), t = toSec(F.time.value);
+      if (!d || !t) return toast("ใส่ระยะและเวลาให้ครบ");
+      const data = { km: d, time: t, date: F.date.value, name: F.name.value.trim() };
+      if (b) Object.assign(b, data); else p.pbs.push({ id: uid(), ...data });
+      save(); closeSheet(); render(); toast("บันทึก PB แล้ว");
+    });
+  });
+}
+
+function shoeForm(id) {
+  const p = P(), sh = id ? p.shoes.find(x => x.id === id) : null;
+  const brands = Object.keys(SHOE_CATALOG), isOther = sh && !brands.includes(sh.brand);
+  openSheet(sh ? "แก้ไขรองเท้า" : "เพิ่มรองเท้า", `<form id="shForm">
+    <label class="f">ยี่ห้อ<select name="brand">${brands.map(b => `<option ${sh && sh.brand === b ? "selected" : ""}>${b}</option>`).join("")}<option value="__other" ${isOther ? "selected" : ""}>อื่น ๆ (พิมพ์เอง)</option></select></label>
+    <label class="f otherBrand" ${isOther ? "" : "hidden"}>ชื่อยี่ห้อ<input name="brandOther" value="${isOther ? esc(sh.brand) : ""}"></label>
+    <label class="f">รุ่น (เลือกจากรายการหรือพิมพ์เอง)<input name="model" list="modelList" value="${sh ? esc(sh.model) : ""}" placeholder="เช่น Novablast 5" required><datalist id="modelList"></datalist></label>
+    <label class="f">ใช้สำหรับ<select name="role">${Object.entries(SHOE_ROLES).map(([k, r]) => `<option value="${k}" ${sh && sh.role === k ? "selected" : ""}>${r.label}</option>`).join("")}</select></label>
+    <div class="grid2">
+      <label class="f">ระยะที่ใช้มาแล้ว (กม.)<input name="startKm" inputmode="decimal" value="${sh ? sh.startKm : 0}"></label>
+      <label class="f">อายุการใช้งาน (กม.)<input name="maxKm" inputmode="numeric" value="${sh ? sh.maxKm : SHOE_ROLES.daily.maxKm}"></label>
+    </div>
+    ${sh ? `<label class="inline"><input type="checkbox" name="retired" ${sh.retired ? "checked" : ""}> ปลดระวางแล้ว (ไม่จับคู่กับนัดซ้อม)</label>` : ""}
+    <div class="btns"><button class="btn" type="submit">บันทึก</button>${sh ? `<button class="btn danger" type="button" data-act="delShoe" data-id="${sh.id}">ลบรองเท้าคู่นี้</button>` : ""}</div></form>`, body => {
+    const form = body.querySelector("#shForm"), F = form.elements;
+    const models = () => { body.querySelector("#modelList").innerHTML = (SHOE_CATALOG[F.brand.value] || []).map(m => `<option value="${esc(m)}">`).join(""); body.querySelector(".otherBrand").hidden = F.brand.value !== "__other"; };
+    models();
+    F.brand.addEventListener("change", () => { F.model.value = ""; models(); });
+    F.role.addEventListener("change", () => { if (!sh) F.maxKm.value = SHOE_ROLES[F.role.value].maxKm; });
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const brand = F.brand.value === "__other" ? F.brandOther.value.trim() : F.brand.value;
+      const data = { brand, model: F.model.value.trim(), role: F.role.value, startKm: parseFloat(F.startKm.value) || 0, maxKm: parseFloat(F.maxKm.value) || 600, retired: F.retired ? F.retired.checked : false };
+      if (sh) Object.assign(sh, data); else p.shoes.push({ id: uid(), ...data });
+      save(); closeSheet(); render(); toast("บันทึกรองเท้าแล้ว");
+    });
+  });
+}
+
+function raceForm(id) {
+  const p = P(), r = id ? p.races.find(x => x.id === id) : null;
+  const known = r && DISTS.some(d => Math.abs(d.km - r.km) < 0.05);
+  openSheet(r ? "แก้ไขรายการแข่ง" : "เพิ่มรายการแข่ง", `<form id="rcForm">
+    <label class="f">ชื่อรายการ<input name="name" value="${r ? esc(r.name) : ""}" placeholder="เช่น Bangkok Midnight Run" required></label>
+    <label class="f">วันแข่ง<input type="date" name="date" value="${r ? r.date : ""}" required></label>
+    <div class="flabel">ระยะ</div>
+    <div class="seg">${DISTS.map(d => `<label><input type="radio" name="dist" value="${d.km}" ${r ? (Math.abs(d.km - r.km) < 0.05 ? "checked" : "") : (d.km === 10 ? "checked" : "")}><span>${d.label.replace("Half Marathon", "Half").replace("Marathon", "Full")}</span></label>`).join("")}<label><input type="radio" name="dist" value="other" ${r && !known ? "checked" : ""}><span>อื่น ๆ</span></label></div>
+    <label class="f otherKm" ${r && !known ? "" : "hidden"}>ระยะ (กม.)<input name="km" inputmode="decimal" value="${r && !known ? r.km : ""}"></label>
+    <div class="flabel">ตั้งเป้าเป็น</div>
+    <div class="seg"><label><input type="radio" name="mode" value="pace" checked><span>เพซ (นาที/กม.)</span></label><label><input type="radio" name="mode" value="time"><span>เวลาจบ</span></label></div>
+    <label class="f"><span class="tlabel">เพซเป้าหมาย</span><input name="target" inputmode="numeric" value="${r ? fmtPace(r.target / r.km) : ""}" placeholder="5:00" required></label>
+    <div class="hint"></div>
+    <div class="btns"><button class="btn" type="submit">บันทึกและสร้างตาราง</button>${r ? `<button class="btn danger" type="button" data-act="delRace" data-id="${r.id}">ลบรายการนี้</button>` : ""}</div></form>`, body => {
+    const form = body.querySelector("#rcForm"), F = form.elements;
+    const km = () => F.dist.value === "other" ? parseFloat(F.km.value) || 0 : +F.dist.value;
+    const upd = () => {
+      body.querySelector(".otherKm").hidden = F.dist.value !== "other";
+      const pace = F.mode.value === "pace";
+      body.querySelector(".tlabel").textContent = pace ? "เพซเป้าหมาย" : "เวลาจบเป้าหมาย";
+      F.target.placeholder = pace ? "5:00" : "50:00";
+      const t = toSec(F.target.value), d = km(), fit = fitness(p);
+      const T = t && d ? (pace ? t * d : t) : 0;
+      body.querySelector(".hint").textContent = T ? (pace ? `= เวลาจบ ${fmtTime(T)}` : `= เพซ ${fmtPace(T / d)}/กม.`) + (fit ? ` · ศักยภาพตอนนี้ ${fmtTime(vdotTime(fit.v, d))}` : "") : "";
+    };
+    let lastMode = "pace";
+    form.addEventListener("input", upd);
+    form.addEventListener("change", e => {
+      if (e.target.name === "mode" && F.mode.value !== lastMode) { const t = toSec(F.target.value), d = km(); if (t && d) F.target.value = F.mode.value === "time" ? fmtTime(t * d) : fmtPace(t / d); lastMode = F.mode.value; }
+      upd();
+    });
+    upd();
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const d = km(), t = toSec(F.target.value);
+      if (!d) return toast("ใส่ระยะก่อนนะ"); if (!t) return toast("ใส่เป้าหมาย เช่น 5:00");
+      const data = { name: F.name.value.trim(), date: F.date.value, km: d, target: F.mode.value === "pace" ? Math.round(t * d) : t };
+      if (r) Object.assign(r, data); else p.races.push({ id: uid(), ...data });
+      save(); closeSheet(); render(); toast("สร้างตารางใหม่แล้ว");
+    });
+  });
+}
+
+function profilesSheet() {
+  openSheet("นักวิ่ง", `<div class="card" style="padding:4px 16px">${DB.profiles.map(p => {
+      const nr = nextRace(p), f = fitness(p);
+      return `<div class="item" data-act="switchProfile" data-id="${p.id}"><div style="width:34px;height:34px;border-radius:11px;background:var(--pri);color:#fff;display:grid;place-items:center;font-weight:700">${esc((p.name || "?").slice(0, 1).toUpperCase())}</div>
+        <div class="grow"><b>${esc(p.name)}</b><div class="tiny mut">${nr ? `${distLabel(nr.km)} · ${thDate(nr.date)} · ${fmtPace(nr.target / nr.km)}/กม.` : "ยังไม่มีรายการแข่ง"}${f ? ` · VO2 ${f.v.toFixed(1)}` : ""}</div></div>${p.id === DB.active ? '<span class="chip">กำลังดู</span>' : ""}</div>`;
+    }).join("")}</div>
+    <form id="npForm" class="row" style="gap:8px"><label class="f" style="flex:1;margin:0"><input name="name" placeholder="ชื่อนักวิ่งใหม่" required></label><button class="btn" type="submit">เพิ่ม</button></form>`, body => {
+    body.querySelector("#npForm").addEventListener("submit", e => {
+      e.preventDefault(); const np = newProfile(e.target.elements.name.value.trim());
+      DB.profiles.push(np); DB.active = np.id; save(); closeSheet(); tab = "me"; meTab = "profile"; render(); toast("เพิ่มนักวิ่งแล้ว กรอกข้อมูลต่อได้เลย");
+    });
+  });
+}
+
+/* ---------- events ---------- */
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2000); }
+document.addEventListener("click", e => {
+  const tb = e.target.closest("[data-tab]"); if (tb) { tab = tb.dataset.tab; render(); window.scrollTo(0, 0); return; }
+  const el = e.target.closest("[data-act]"); if (!el) return;
+  const act = el.dataset.act, id = el.dataset.id, p = P();
+  if (act === "delLog") { e.stopPropagation(); if (confirm("ลบผลซ้อมนี้?")) { p.logs = p.logs.filter(l => String(l.id) !== id); save(); render(); } return; }
+  if (act === "closeSheet") closeSheet();
+  if (act === "openLog") openLog(el.dataset.key);
+  if (act === "session") openSession(el.dataset.key);
+  if (act === "analysis") showAnalysis(id);
+  if (act === "editSession") editSession(el.dataset.key);
+  if (act === "resetSession") { delete p.overrides[el.dataset.date]; save(); closeSheet(); render(); }
+  if (act === "meTab") { meTab = el.dataset.v; render(); }
+  if (act === "shoeForm") shoeForm(id);
+  if (act === "raceForm") raceForm(id);
+  if (act === "pbForm") pbForm(id);
+  if (act === "chForm") chForm(id);
+  if (act === "chDetail") chDetail(id);
+  if (act === "chCopy") copyText(chShareText(DB.challenges.find(c => c.id === id)));
+  if (act === "chDel" && confirm("ลบชาเลนจ์นี้?")) { DB.challenges = DB.challenges.filter(c => c.id !== id); save(); closeSheet(); render(); }
+  if (act === "profiles") profilesSheet();
+  if (act === "switchProfile") { DB.active = id; save(); closeSheet(); render(); }
+  if (act === "pbDel" && confirm("ลบ PB นี้?")) { p.pbs = p.pbs.filter(b => b.id !== id); save(); closeSheet(); render(); }
+  if (act === "delShoe" && confirm("ลบรองเท้าคู่นี้?")) { p.shoes = p.shoes.filter(s => s.id !== id); save(); closeSheet(); render(); }
+  if (act === "delRace" && confirm("ลบรายการแข่งนี้?")) { p.races = p.races.filter(r => r.id !== id); save(); closeSheet(); render(); }
+  if (act === "delProfile" && confirm(`ลบ “${p.name}” และผลซ้อมทั้งหมดของคนนี้?`)) {
+    DB.profiles = DB.profiles.filter(x => x.id !== p.id);
+    DB.challenges.forEach(c => c.members = (c.members || []).filter(m => m !== p.id));
+    if (!DB.profiles.length) DB.profiles.push(newProfile("นักวิ่งใหม่"));
+    DB.active = DB.profiles[0].id; save(); render();
+  }
+  if (act === "export") { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(DB, null, 2)], { type: "application/json" })); a.download = `kaowin-${TODAY}.json`; a.click(); }
+  if (act === "import") $("#importFile").click();
+});
+document.addEventListener("submit", e => {
+  if (e.target.id !== "meForm") return;
+  e.preventDefault(); const F = e.target.elements, p = P();
+  const runDays = [...e.target.querySelectorAll("input[name=runDays]:checked")].map(x => +x.value);
+  if (runDays.length < 2) return toast("เลือกวันวิ่งอย่างน้อย 2 วัน");
+  let longDay = +F.longDay.value; if (!runDays.includes(longDay)) longDay = runDays[runDays.length - 1];
+  Object.assign(p, { name: F.name.value.trim() || "นักวิ่ง", sex: F.sex.value, birthYear: F.birthYear.value.trim(), weightKg: F.weightKg.value.trim(), level: F.level.value,
+    weeklyKm: parseFloat(F.weeklyKm.value) || 0, runDays, longDay, gymDays: [...e.target.querySelectorAll("input[name=gymDays]:checked")].map(x => +x.value), planStart: F.planStart.value || mondayOf(TODAY) });
+  save(); render(); toast("บันทึกแล้ว · สร้างตารางใหม่");
+});
+$("#sheet").addEventListener("click", e => { if (e.target.id === "sheet") closeSheet(); });
+$("#importFile").addEventListener("change", e => {
+  const file = e.target.files[0]; if (!file) return;
+  file.text().then(t => { const d = JSON.parse(t); if (!Array.isArray(d.profiles)) throw 0; DB = migrate(d); save(); render(); toast("นำเข้าข้อมูลแล้ว"); })
+    .catch(() => toast("ไฟล์ไม่ถูกต้อง")); e.target.value = "";
+});
+
+// โลโก้ + favicon
+$("#wordmark").src = LOGO_WORDMARK;
+(() => { const l = document.createElement("link"); l.rel = "icon"; l.type = "image/png"; l.href = LOGO_ICON; document.head.appendChild(l); })();
+
+render();
+</script>
+</body>
+</html>
