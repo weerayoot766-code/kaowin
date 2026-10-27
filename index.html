@@ -307,6 +307,31 @@ function fmtTime(s) { s = Math.round(s); const h = Math.floor(s / 3600), m = Mat
 function fmtDur(s) { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.round(s % 3600 / 60); return h ? `${h} ชม. ${m} น.` : `${m} นาที`; }
 const fmtPace = s => { s = Math.round(s); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
 const rng = a => a ? fmtPace(a[0]) + "–" + fmtPace(a[1]) : "";
+// อ่านเวลาที่ผู้ใช้พิมพ์แบบยืดหยุ่น: "1:50" (ชม.:นาที หรือ นาที:วินาที เลือกตามเพซที่สมเหตุสมผล), "1.50", "1 50", "110" (นาที), "1:49:59"
+const PACE_OK = s => s >= 150 && s <= 1200;                      // 2:30–20:00 นาที/กม.
+function normDur(str) { return String(str || "").trim().replace(/[.,;\s]+|ชม\.?|ชั่วโมง|h/gi, ":").replace(/[^0-9:]/g, "").replace(/:+/g, ":").replace(/^:|:$/g, ""); }
+function parseDuration(str, km) {
+  const s = normDur(str); if (!s) return 0;
+  const p = s.split(":").map(Number); if (p.some(isNaN)) return 0;
+  if (p.length >= 3) return p[0] * 3600 + p[1] * 60 + p[2];
+  if (p.length === 2) {
+    const ms = p[0] * 60 + p[1], hm = p[0] * 3600 + p[1] * 60;
+    if (!km) return ms;
+    if (PACE_OK(ms / km)) return ms;
+    if (PACE_OK(hm / km)) return hm;
+    return ms;
+  }
+  const n = p[0];                                                 // ตัวเลขล้วน = นาที
+  return n * 60;
+}
+function parsePace(str) {
+  const s = normDur(str); if (!s) return 0;
+  const p = s.split(":").map(Number); if (p.some(isNaN)) return 0;
+  if (p.length === 2) return p[0] * 60 + p[1];
+  if (p.length === 1) { const n = p[0]; if (n >= 100) return Math.floor(n / 100) * 60 + n % 100; return n * 60; }   // "513" = 5:13, "5" = 5:00
+  return 0;
+}
+const durTH = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return [h ? h + " ชม." : "", m ? m + " นาที" : "", x ? x + " วิ" : ""].filter(Boolean).join(" ") || "0 วิ"; };
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmtKm = n => (Math.round(n * 10) / 10).toLocaleString("th-TH");
 const r05 = x => Math.max(0, Math.round(x * 2) / 2);
@@ -1016,11 +1041,11 @@ function openLog(key) {
       <label class="f">ประเภท<select name="type">${["easy", "long", "quality", "race", "gym"].map(t => `<option value="${t}">${TYPE_LABEL[t]}</option>`).join("")}</select></label>
       <label class="f">รองเท้า<select name="shoe">${shoeOpts}</select></label>
       <label class="f">ระยะรวม (กม.)<input name="km" inputmode="decimal" placeholder="8"></label>
-      <label class="f">เวลารวม<input name="time" inputmode="numeric" placeholder="48:30"></label>
+      <label class="f">เวลารวม<input name="time" inputmode="decimal" placeholder="48:30"></label>
     </div>
     <details class="more"><summary>ช่วงเร็วต่อเนื่อง (ใช้วิเคราะห์และคำนวณ VO2max)</summary>
       <p class="tiny mut" style="margin:6px 0 10px">ใส่ท่อนที่วิ่งต่อเนื่อง ≥ 2 กม. เช่น Tempo 4 กม. หรือ 1 ท่อนของ 3×2 กม.</p>
-      <div class="grid2"><label class="f">ระยะ (กม.)<input name="segKm" inputmode="decimal" placeholder="2"></label><label class="f">เวลา<input name="segTime" inputmode="numeric" placeholder="10:30"></label></div>
+      <div class="grid2"><label class="f">ระยะ (กม.)<input name="segKm" inputmode="decimal" placeholder="2"></label><label class="f">เวลา<input name="segTime" inputmode="decimal" placeholder="10:30"></label></div>
     </details>
     <label class="f">ความเหนื่อย (RPE 1–10): <b class="rpeOut">5</b><input type="range" min="1" max="10" name="rpe" value="5"></label>
     <label class="inline"><input type="checkbox" name="pain" style="accent-color:var(--bad)"> มีอาการเจ็บ / ตึงผิดปกติ</label>
@@ -1043,9 +1068,11 @@ function openLog(key) {
       e.preventDefault();
       const km = parseFloat(F.km.value) || 0;
       if (RUN_TYPES.includes(F.type.value) && !km) return toast("ใส่ระยะก่อนนะ");
-      if (F.time.value && !toSec(F.time.value)) return toast("รูปแบบเวลา เช่น 48:30 หรือ 1:52:10");
-      const l = { id: Date.now(), date: F.date.value, sessionKey: F.sessionKey.value || null, type: F.type.value, km, time: F.time.value.trim(),
-        segKm: parseFloat(F.segKm.value) || 0, segTime: F.segTime.value.trim(), rpe: +F.rpe.value, pain: F.pain.checked, shoe: F.shoe.value, note: F.note.value.trim() };
+      const tSec = F.time.value.trim() ? parseDuration(F.time.value, km) : 0, segKm = parseFloat(F.segKm.value) || 0, sSec = F.segTime.value.trim() ? parseDuration(F.segTime.value, segKm) : 0;
+      if (F.time.value.trim() && (!tSec || (km && !PACE_OK(tSec / km)))) return toast("เวลารวมดูแปลก ๆ พิมพ์ เช่น 48:30 หรือ 1:52:10");
+      if (F.segTime.value.trim() && (!sSec || (segKm && !PACE_OK(sSec / segKm)))) return toast("เวลาช่วงเร็วดูแปลก ๆ พิมพ์ เช่น 10:30");
+      const l = { id: Date.now(), date: F.date.value, sessionKey: F.sessionKey.value || null, type: F.type.value, km, time: tSec ? fmtTime(tSec) : "",
+        segKm, segTime: sSec ? fmtTime(sSec) : "", rpe: +F.rpe.value, pain: F.pain.checked, shoe: F.shoe.value, note: F.note.value.trim() };
       p.logs.push(l); save(); render();
       if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else showAnalysis(l.id);
     });
@@ -1059,17 +1086,18 @@ function pbForm(id) {
     <div class="flabel">ระยะ</div>
     <div class="seg">${DISTS.map(d => `<label><input type="radio" name="dist" value="${d.km}" ${b ? (Math.abs(d.km - b.km) < 0.05 ? "checked" : "") : (d.km === 10 ? "checked" : "")}><span>${d.label.replace("Half Marathon", "Half").replace("Marathon", "Full")}</span></label>`).join("")}<label><input type="radio" name="dist" value="other" ${b && !known ? "checked" : ""}><span>อื่น ๆ</span></label></div>
     <label class="f otherKm" ${b && !known ? "" : "hidden"}>ระยะ (กม.)<input name="km" inputmode="decimal" value="${b && !known ? b.km : ""}" placeholder="4"></label>
-    <label class="f">เวลา<input name="time" inputmode="numeric" value="${b ? fmtTime(b.time) : ""}" placeholder="49:05 หรือ 2:02:37" required></label>
+    <label class="f">เวลา<input name="time" inputmode="decimal" value="${b ? fmtTime(b.time) : ""}" placeholder="49:05 หรือ 2:02:37" required></label>
     <div class="hint"></div>
     <div class="grid2"><label class="f">วันที่ (ถ้าจำได้)<input type="date" name="date" value="${b ? b.date || "" : ""}"></label><label class="f">รายการ<input name="name" value="${b ? esc(b.name || "") : ""}" placeholder="ไม่บังคับ"></label></div>
     <div class="btns"><button class="btn" type="submit">บันทึก</button>${b ? `<button class="btn danger" type="button" data-act="pbDel" data-id="${b.id}">ลบ PB นี้</button>` : ""}</div></form>`, body => {
     const f = body.querySelector("#pbF"), F = f.elements;
     const km = () => F.dist.value === "other" ? parseFloat(F.km.value) || 0 : +F.dist.value;
-    const upd = () => { body.querySelector(".otherKm").hidden = F.dist.value !== "other"; const t = toSec(F.time.value), d = km(); body.querySelector(".hint").textContent = t && d ? `เพซ ${fmtPace(t / d)}/กม. · VO2max ≈ ${vdot(d, t).toFixed(1)}` : ""; };
+    const upd = () => { body.querySelector(".otherKm").hidden = F.dist.value !== "other"; const d = km(), t = parseDuration(F.time.value, d), hint = body.querySelector(".hint"); const bad = t && d && !PACE_OK(t / d); hint.style.color = bad ? "var(--bad)" : ""; hint.textContent = !t || !d ? "" : bad ? `อ่านได้เป็น ${durTH(t)} ดูไม่สมเหตุสมผล — พิมพ์ เช่น 49:05 หรือ 2:02:37` : `= ${durTH(t)} · เพซ ${fmtPace(t / d)}/กม. · VO2max ≈ ${vdot(d, t).toFixed(1)}`; };
     f.addEventListener("input", upd); f.addEventListener("change", upd); upd();
     f.addEventListener("submit", e => {
-      e.preventDefault(); const d = km(), t = toSec(F.time.value);
+      e.preventDefault(); const d = km(), t = parseDuration(F.time.value, d);
       if (!d || !t) return toast("ใส่ระยะและเวลาให้ครบ");
+      if (!PACE_OK(t / d)) return toast("เวลาดูไม่สมเหตุสมผล ตรวจรูปแบบอีกครั้ง");
       const data = { km: d, time: t, date: F.date.value, name: F.name.value.trim() };
       if (b) Object.assign(b, data); else p.pbs.push({ id: uid(), ...data });
       save(); closeSheet(); render(); toast("บันทึก PB แล้ว");
@@ -1146,41 +1174,57 @@ function raceForm(id) {
     <div class="seg">${DISTS.map(d => `<label><input type="radio" name="dist" value="${d.km}" ${r ? (Math.abs(d.km - r.km) < 0.05 ? "checked" : "") : (d.km === 10 ? "checked" : "")}><span>${d.label.replace("Half Marathon", "Half").replace("Marathon", "Full")}</span></label>`).join("")}<label><input type="radio" name="dist" value="other" ${r && !known ? "checked" : ""}><span>อื่น ๆ</span></label></div>
     <label class="f otherKm" ${r && !known ? "" : "hidden"}>ระยะ (กม.)<input name="km" inputmode="decimal" value="${r && !known ? r.km : ""}"></label>
     <div class="flabel">ตั้งเป้าเป็น</div>
-    <div class="seg"><label><input type="radio" name="mode" value="pace" checked><span>เพซ (นาที/กม.)</span></label><label><input type="radio" name="mode" value="time"><span>เวลาจบ</span></label></div>
-    <label class="f"><span class="tlabel">เพซเป้าหมาย</span><input name="target" inputmode="numeric" value="${r ? fmtPace(r.target / r.km) : ""}" placeholder="5:00" required></label>
+    <div class="seg"><label><input type="radio" name="mode" value="pace" ${!r || r.mode !== "time" ? "checked" : ""}><span>เพซ (นาที/กม.)</span></label><label><input type="radio" name="mode" value="time" ${r && r.mode === "time" ? "checked" : ""}><span>เวลาจบ</span></label></div>
+    <label class="f"><span class="tlabel">เพซเป้าหมาย</span><input name="target" inputmode="decimal" autocomplete="off" value="${r ? (r.mode === "time" ? fmtTime(r.target) : fmtPace(r.target / r.km)) : ""}" placeholder="5:00" required></label>
     <div class="hint"></div>
     <div class="checks" style="margin:-4px 0 14px"></div>
     <div class="btns"><button class="btn" type="submit">บันทึกและสร้างตาราง</button>${r ? `<button class="btn danger" type="button" data-act="delRace" data-id="${r.id}">ลบรายการนี้</button>` : ""}</div></form>`, body => {
     const form = body.querySelector("#rcForm"), F = form.elements;
     const km = () => F.dist.value === "other" ? parseFloat(F.km.value) || 0 : +F.dist.value;
+    // exact = เวลาจบจริงที่ตั้งไว้ (กันค่าเพี้ยนจากการปัดเศษตอนสลับโหมด/แก้ไข)
+    let exact = r ? r.target : 0, exactShown = r ? F.target.value : null;
+    const targetT = () => {
+      const d = km(); if (!d) return 0;
+      if (exact && F.target.value === exactShown) return exact;
+      return F.mode.value === "pace" ? Math.round(parsePace(F.target.value) * d) : parseDuration(F.target.value, d);
+    };
     const upd = () => {
       body.querySelector(".otherKm").hidden = F.dist.value !== "other";
       const pace = F.mode.value === "pace";
-      body.querySelector(".tlabel").textContent = pace ? "เพซเป้าหมาย" : "เวลาจบเป้าหมาย";
-      F.target.placeholder = pace ? "5:00" : "50:00";
-      const t = toSec(F.target.value), d = km(), fit = fitness(p);
-      const T = t && d ? (pace ? t * d : t) : 0;
-      body.querySelector(".hint").textContent = T ? (pace ? `= เวลาจบ ${fmtTime(T)}` : `= เพซ ${fmtPace(T / d)}/กม.`) + (fit ? ` · ศักยภาพตอนนี้ ${fmtTime(vdotTime(fit.v, d))}` : "") : "";
-      const ch = T && d && F.date.value ? checkHtml(raceCheck(p, { km: d, target: T, date: F.date.value })) : "", box = body.querySelector(".checks");
+      body.querySelector(".tlabel").textContent = pace ? "เพซเป้าหมาย (นาที:วินาที ต่อ กม.)" : "เวลาจบเป้าหมาย (ชม.:นาที:วินาที)";
+      const d = km(), fit = fitness(p);
+      F.target.placeholder = pace ? "5:00" : d > 15 ? "1:50:00" : "50:00";
+      const T = targetT(), hint = body.querySelector(".hint");
+      const bad = T && d && !PACE_OK(T / d);
+      hint.style.color = bad ? "var(--bad)" : "";
+      hint.textContent = !T || !d ? "" : bad ? `อ่านได้เป็น ${durTH(T)} (เพซ ${fmtPace(T / d)}/กม.) ดูไม่สมเหตุสมผล — ลองพิมพ์ เช่น ${pace ? "5:13" : d > 15 ? "1:50:00" : "50:00"}`
+        : `= ${pace ? "เวลาจบ " + fmtTime(T) + " (" + durTH(T) + ")" : "เพซ " + fmtPace(T / d) + "/กม. (" + durTH(T) + ")"}` + (fit ? ` · ศักยภาพตอนนี้ ${fmtTime(vdotTime(fit.v, d))}` : "");
+      const ch = T && d && !bad && F.date.value ? checkHtml(raceCheck(p, { km: d, target: T, date: F.date.value })) : "", box = body.querySelector(".checks");
       if (box.dataset.h !== ch) { box.innerHTML = ch; box.dataset.h = ch; }
     };
     body.querySelector(".checks").addEventListener("click", e => {
       const b = e.target.closest("[data-suggest]"); if (!b) return;
       const T = +b.dataset.suggest, d = km();
-      F.target.value = F.mode.value === "pace" ? fmtPace(T / d) : fmtTime(T); upd();
+      F.target.value = F.mode.value === "pace" ? fmtPace(T / d) : fmtTime(T); exact = T; exactShown = F.target.value; upd();
     });
-    let lastMode = "pace";
+    let lastMode = F.mode.value;
     form.addEventListener("input", upd);
     form.addEventListener("change", e => {
-      if (e.target.name === "mode" && F.mode.value !== lastMode) { const t = toSec(F.target.value), d = km(); if (t && d) F.target.value = F.mode.value === "time" ? fmtTime(t * d) : fmtPace(t / d); lastMode = F.mode.value; }
+      if (e.target.name === "mode" && F.mode.value !== lastMode) {
+        F.mode.value = lastMode; const T = targetT(); F.mode.value = e.target.value;      // อ่านค่าด้วยโหมดเดิมก่อนแปลง
+        const d = km(); if (T && d) { F.target.value = F.mode.value === "time" ? fmtTime(T) : fmtPace(T / d); exact = T; exactShown = F.target.value; }
+        lastMode = F.mode.value;
+      }
+      if (e.target.name === "dist" || e.target.name === "km") { exact = 0; exactShown = null; }
       upd();
     });
     upd();
     form.addEventListener("submit", e => {
       e.preventDefault();
-      const d = km(), t = toSec(F.target.value);
-      if (!d) return toast("ใส่ระยะก่อนนะ"); if (!t) return toast("ใส่เป้าหมาย เช่น 5:00");
-      const data = { name: F.name.value.trim(), date: F.date.value, km: d, target: F.mode.value === "pace" ? Math.round(t * d) : t };
+      const d = km(), T = targetT();
+      if (!d) return toast("ใส่ระยะก่อนนะ"); if (!T) return toast("ใส่เป้าหมาย เช่น 5:00");
+      if (!PACE_OK(T / d)) return toast("เป้าหมายดูไม่สมเหตุสมผล ตรวจรูปแบบเวลาอีกครั้ง");
+      const data = { name: F.name.value.trim(), date: F.date.value, km: d, target: Math.round(T), mode: F.mode.value };
       if (r) Object.assign(r, data); else p.races.push({ id: uid(), ...data });
       save(); closeSheet(); render(); toast("สร้างตารางใหม่แล้ว");
     });
