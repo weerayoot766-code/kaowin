@@ -253,7 +253,7 @@ const REC_DAYS = { "5": 4, "10": 7, "half": 12, "full": 21 };
 const WEEKLY_GROWTH = 1.08;
 
 /* ===================================================================== */
-const LS_KEY = "runplan.v2";
+const LS_KEY = "kaowin.v3";
 const TYPE_LABEL = { easy: "Easy", long: "Long", quality: "Quality", race: "Race", gym: "เวท", rest: "พัก" };
 const TYPE_COLOR = { easy: "#1f7a52", long: "#2f8a86", quality: "#d4822a", race: "#c9497a" };
 const RUN_TYPES = ["easy", "long", "quality", "race"];
@@ -326,41 +326,18 @@ function newProfile(name) {
     pbs: [], planStart: mondayOf(TODAY), runDays: [2, 5, 6], longDay: 6, gymDays: [0, 3],
     shoes: [], races: [], logs: [], overrides: {} };
 }
-const MY_PBS = () => [
-  { id: uid(), km: 4, time: toSec("17:56"), date: "", name: "" },
-  { id: uid(), km: 10, time: toSec("49:05"), date: "", name: "" },
-  { id: uid(), km: 21.0975, time: toSec("2:02:37"), date: "", name: "" }
-];
 function seed() {
-  const p = newProfile("ฉัน");
-  p.planStart = "2026-10-26"; p.pbs = MY_PBS();
-  p.shoes = [
-    { id: uid(), brand: "Adidas", model: "Adizero Boston 12",   role: "daily", startKm: 0, maxKm: 700 },
-    { id: uid(), brand: "Xtep",   model: "160X 3.5 Pro",        role: "speed", startKm: 0, maxKm: 450 },
-    { id: uid(), brand: "Adidas", model: "Adizero Adios Pro 4", role: "race",  startKm: 0, maxKm: 400 }
-  ];
-  p.races = [{ id: uid(), name: "Half Marathon", date: "2027-01-17", km: 21.0975, target: toSec("1:49:59") }];
-  try {
-    const old = JSON.parse(localStorage.getItem("runplan.v1"));
-    const map = { boston: p.shoes[0].id, xtep: p.shoes[1].id, adios: p.shoes[2].id };
-    if (old && Array.isArray(old.logs)) p.logs = old.logs.map(l => ({ ...l, shoe: map[l.shoe] || "", sessionKey: (l.type === "gym" ? "g-" : "r-") + l.date }));
-  } catch (e) {}
-  return { active: p.id, profiles: [p] };
+  const p = newProfile("");
+  p.onboarded = false;
+  return { active: p.id, profiles: [p], challenges: [] };
 }
 function migrate(db) {
   db.profiles.forEach(p => {
-    if (!Array.isArray(p.pbs)) {
-      p.pbs = [];
-      if (p.name === "ฉัน" && p.planStart === "2026-10-26") p.pbs = MY_PBS();
-      else if (p.recent && +p.recent.km && p.recent.time) p.pbs.push({ id: uid(), km: +p.recent.km, time: toSec(p.recent.time), date: p.recent.date || "", name: "" });
-    }
-    delete p.recent; p.logs = p.logs || []; p.overrides = p.overrides || {};
+    if (!Array.isArray(p.pbs)) p.pbs = [];
+    if (p.onboarded === undefined) p.onboarded = true;
+    delete p.recent; p.logs = p.logs || []; p.overrides = p.overrides || {}; p.shoes = p.shoes || []; p.races = p.races || [];
   });
-  if (!Array.isArray(db.challenges)) {
-    const m = TODAY.slice(0, 8);
-    const next = parseDate(m + "01"); next.setMonth(next.getMonth() + 1); next.setDate(0);
-    db.challenges = [{ id: uid(), name: "ระยะสะสมเดือนนี้", type: "distance", target: 100, start: m + "01", end: ds(next), members: db.profiles.map(p => p.id), guests: [{ id: uid(), name: "เพื่อน (ตัวอย่าง)", value: 18 }] }];
-  }
+  if (!Array.isArray(db.challenges)) db.challenges = [];
   return db;
 }
 let DB = migrate((() => { try { const d = JSON.parse(localStorage.getItem(LS_KEY)); if (d && Array.isArray(d.profiles) && d.profiles.length) return d; } catch (e) {} return seed(); })());
@@ -638,10 +615,11 @@ function render() {
   const p = P(), nr = nextRace(p);
   document.title = APP_NAME;
   
-  $("#who").textContent = `${p.name || "นักวิ่ง"} ▾`;
+  $("#who").textContent = p.onboarded ? `${p.name || "นักวิ่ง"} ▾` : "เริ่มต้นใช้งาน";
   const left = nr ? diffDays(TODAY, nr.date) : null;
   $("#countdown").textContent = left == null ? "—" : left > 0 ? `${distLabel(nr.km)} · อีก ${left} วัน` : "วันแข่ง!";
-  $("#fab").style.display = tab === "challenge" || tab === "me" ? "none" : "";
+  $("#countdown").style.display = left == null ? "none" : "";
+  $("#fab").style.display = tab === "challenge" || tab === "me" || !p.onboarded ? "none" : "";
   document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
   $("#view").innerHTML = ({ home: renderHome, plan: renderPlan, stats: renderStats, challenge: renderChallenges, me: renderMe })[tab]();
 }
@@ -660,8 +638,25 @@ function sessRow(s, isNext) {
 const noteHtml = a => a.notes.map(x => `<div class="note ${x.lvl === "ok" ? "" : x.lvl}">${esc(x.t)}</div>`).join("");
 const curWeek = () => W.find(w => w.start <= TODAY && TODAY <= w.end) || (W.length && TODAY < W[0].start ? W[0] : null);
 
+function renderWelcome() {
+  const p = P();
+  return installBanner() + `<div class="card hero" style="text-align:center"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:4px auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><div class="small mut" style="margin-top:4px">กรอกข้อมูลพื้นฐาน แล้วแอปจะสร้างตารางซ้อมให้</div></div>
+  <form class="card" id="welcomeForm">
+    <label class="f">ชื่อเล่น<input name="name" value="${p.name === "นักวิ่งใหม่" ? "" : esc(p.name)}" placeholder="เช่น ต้น" required></label>
+    <div class="grid2">
+      <label class="f">ระดับ<select name="level">${Object.entries(LEVELS).map(([k, v]) => `<option value="${k}" ${p.level === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+      <label class="f">วิ่งตอนนี้ (กม./สัปดาห์)<input name="weeklyKm" inputmode="decimal" value="${esc(p.weeklyKm)}"></label>
+    </div>
+    <div class="flabel">วันที่สะดวกวิ่ง</div>${dayChips("runDays", (p.runDays || []).map(Number))}
+    <label class="f">วัน Long Run<select name="longDay">${TH_DAY_FULL.map((d, i) => `<option value="${i}" ${+p.longDay === i ? "selected" : ""}>${d}</option>`).join("")}</select></label>
+    <div class="flabel">วันเล่นเวท (ไม่เล่นให้เว้นว่าง)</div>${dayChips("gymDays", (p.gymDays || []).map(Number))}
+    <button class="btn block" type="submit">ถัดไป: ตั้งเป้ารายการแข่ง</button>
+  </form>
+  <div class="tiny mut" style="text-align:center">ใส่ PB รองเท้า และรายละเอียดอื่นได้ภายหลังในแท็บ “ฉัน” · เคยใช้แล้ว? <button class="linkbtn" data-act="import">นำเข้าข้อมูล</button></div>`;
+}
 function renderHome() {
   const p = P(), races = sortedRaces(p), nr = nextRace(p);
+  if (!p.onboarded) return renderWelcome();
   if (!nr) return installBanner() + `<div class="card empty"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:0 auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><p>เพิ่มรายการแข่งพร้อมเป้าหมาย แอปจะสร้างตารางซ้อมให้อัตโนมัติ</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
   const pr = predict(p, nr), w = curWeek(), wi = w ? w.i : -1;
   const next = allSessions().find(s => s.date >= TODAY && s.type !== "rest" && status(s) !== "done");
@@ -936,6 +931,7 @@ function renderProfile() {
       <button class="btn ghost" data-act="profiles">สลับ / เพิ่มนักวิ่ง</button>
       <div class="grid2"><button class="btn line" data-act="export">Export</button><button class="btn line" data-act="import">Import</button></div>
       <button class="btn danger" data-act="delProfile">ลบนักวิ่ง “${esc(p.name)}”</button>
+      <button class="btn danger" data-act="resetAll">ล้างข้อมูลทั้งหมด เริ่มใหม่</button>
     </div>
   </div>`;
 }
@@ -1150,10 +1146,10 @@ function profilesSheet() {
       return `<div class="item" data-act="switchProfile" data-id="${p.id}"><div style="width:34px;height:34px;border-radius:11px;background:var(--pri);color:#fff;display:grid;place-items:center;font-weight:700">${esc((p.name || "?").slice(0, 1).toUpperCase())}</div>
         <div class="grow"><b>${esc(p.name)}</b><div class="tiny mut">${nr ? `${distLabel(nr.km)} · ${thDate(nr.date)} · ${fmtPace(nr.target / nr.km)}/กม.` : "ยังไม่มีรายการแข่ง"}${f ? ` · VO2 ${f.v.toFixed(1)}` : ""}</div></div>${p.id === DB.active ? '<span class="chip">กำลังดู</span>' : ""}</div>`;
     }).join("")}</div>
-    <form id="npForm" class="row" style="gap:8px"><label class="f" style="flex:1;margin:0"><input name="name" placeholder="ชื่อนักวิ่งใหม่" required></label><button class="btn" type="submit">เพิ่ม</button></form>`, body => {
+    <form id="npForm" class="row" style="gap:8px"><label class="f" style="flex:1;margin:0"><input name="name" placeholder="ชื่อนักวิ่งใหม่"></label><button class="btn" type="submit">เพิ่ม</button></form>`, body => {
     body.querySelector("#npForm").addEventListener("submit", e => {
       e.preventDefault(); const np = newProfile(e.target.elements.name.value.trim());
-      DB.profiles.push(np); DB.active = np.id; save(); closeSheet(); tab = "me"; meTab = "profile"; render(); toast("เพิ่มนักวิ่งแล้ว กรอกข้อมูลต่อได้เลย");
+      np.onboarded = false; DB.profiles.push(np); DB.active = np.id; save(); closeSheet(); tab = "home"; render(); window.scrollTo(0, 0);
     });
   });
 }
@@ -1189,13 +1185,26 @@ document.addEventListener("click", e => {
   if (act === "delProfile" && confirm(`ลบ “${p.name}” และผลซ้อมทั้งหมดของคนนี้?`)) {
     DB.profiles = DB.profiles.filter(x => x.id !== p.id);
     DB.challenges.forEach(c => c.members = (c.members || []).filter(m => m !== p.id));
-    if (!DB.profiles.length) DB.profiles.push(newProfile("นักวิ่งใหม่"));
+    if (!DB.profiles.length) { const np = newProfile(""); np.onboarded = false; DB.profiles.push(np); }
     DB.active = DB.profiles[0].id; save(); render();
   }
   if (act === "export") { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(DB, null, 2)], { type: "application/json" })); a.download = `kaowin-${TODAY}.json`; a.click(); }
   if (act === "import") $("#importFile").click();
+  if (act === "resetAll" && confirm("ล้างข้อมูลทุกคนในเครื่องนี้ (ผลซ้อม PB รองเท้า ชาเลนจ์) แล้วเริ่มใหม่?") && confirm("ยืนยันอีกครั้ง — ย้อนกลับไม่ได้ ถ้ายังไม่ได้ Export ข้อมูลจะหายถาวร")) {
+    DB = seed(); save(); tab = "home"; render(); window.scrollTo(0, 0); toast("เริ่มใหม่แล้ว");
+  }
 });
 document.addEventListener("submit", e => {
+  if (e.target.id === "welcomeForm") {
+    e.preventDefault(); const F = e.target.elements, p = P();
+    const runDays = [...e.target.querySelectorAll("input[name=runDays]:checked")].map(x => +x.value);
+    if (!F.name.value.trim()) return toast("ใส่ชื่อก่อนนะ");
+    if (runDays.length < 2) return toast("เลือกวันวิ่งอย่างน้อย 2 วัน");
+    let longDay = +F.longDay.value; if (!runDays.includes(longDay)) longDay = runDays[runDays.length - 1];
+    Object.assign(p, { name: F.name.value.trim(), level: F.level.value, weeklyKm: parseFloat(F.weeklyKm.value) || 0, runDays, longDay,
+      gymDays: [...e.target.querySelectorAll("input[name=gymDays]:checked")].map(x => +x.value), planStart: mondayOf(TODAY), onboarded: true });
+    save(); render(); raceForm(); return;
+  }
   if (e.target.id !== "meForm") return;
   e.preventDefault(); const F = e.target.elements, p = P();
   const runDays = [...e.target.querySelectorAll("input[name=runDays]:checked")].map(x => +x.value);
