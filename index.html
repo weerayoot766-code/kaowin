@@ -178,6 +178,12 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--p
 .ins i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:var(--pri);margin-top:1px}
 .ins.warn i{background:#e0a33a} .ins.bad i{background:var(--bad)} .ins.info i{background:#5b7fb8} .ins.gold i{background:var(--gold)}
 .celebrate{text-align:center;padding:6px 0 10px}
+.diffcard{padding:12px 14px;border-color:#f0dcae;background:#fffaf0}
+.diffrow{display:grid;grid-template-columns:76px 1fr;gap:8px;padding:8px 0;border-top:1px solid #f3e7c9;font-size:13.5px;line-height:1.45}
+.diffrow:first-of-type{border-top:0;margin-top:6px}
+.diffrow .dd{font-weight:700;color:var(--ink)}
+.diffrow s{color:var(--mut)}
+.diffrow b{color:#7a4f06}
 .ocr-card{border:1.5px dashed #9fd2ad;background:var(--soft2);border-radius:16px;padding:12px 14px;margin-bottom:14px}
 .ocr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
 .ocr-tile{position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff}
@@ -857,6 +863,26 @@ function analyzeLog(p, l) {
   const next = allSessions().find(x => x.date > l.date && RUN_TYPES.includes(x.type) && status(x) !== "done");
   return { insights: out, pbNew, next, pace };
 }
+/* ---------- แจ้งเมื่อแผนเปลี่ยน ---------- */
+const briefOf = (type, km, pace) => type === "rest" ? "พัก" : `${TYPE_LABEL[type] || type}${km ? " " + fmtKm(km) + " กม." : ""}${pace ? " · " + pace : ""}`;
+function planSnap(from, to) {          // ภาพแผนช่วง from–to (หลังปรับแล้ว) + ข้อความเหตุผลทั้งหมด
+  const m = {}; allSessions().filter(s => s.date > from && s.date <= to && s.date >= TODAY && s.type !== "rest")
+    .forEach(s => { const v = view(s); m[s.key] = { date: s.date, day: s.day, brief: briefOf(v.type, v.km, s.type === "gym" ? "" : v.pace), gym: s.type === "gym" ? v.detail.split(" —")[0] : "" }; });
+  const notes = new Set(); A.forEach(a => a.notes.forEach(n => { if (n.lvl !== "ok") notes.add(n.t); }));
+  if (PAIN) notes.add(`บาดเจ็บ (${PAIN_LABEL[PAIN.lvl]}) เมื่อ ${thDate(PAIN.d)} → พัก/วิ่งเบาถึง ${thDate(PAIN.until)}`);
+  return { m, notes };
+}
+function planDiff(before, after) {
+  const changes = [];
+  Object.keys(after.m).forEach(k => { const a = after.m[k], b = before.m[k]; if (!b) return; const bt = b.gym || b.brief, at = a.gym || a.brief; if (bt !== at) changes.push({ date: a.date, day: a.day, from: bt, to: at }); });
+  changes.sort((x, y) => x.date.localeCompare(y.date));
+  const reasons = [...after.notes].filter(t => !before.notes.has(t));
+  return { changes, reasons };
+}
+const diffHtml = d => `<div class="card diffcard"><div class="row"><b class="small">📋 แผนที่เปลี่ยนจากผลนี้</b>${d.changes.length ? `<span class="chip warn">${d.changes.length} นัด</span>` : ""}</div>
+  ${d.changes.length ? d.changes.map(c => `<div class="diffrow"><span class="dd">${TH_DAY[c.day]} ${thDate(c.date)}</span><span><s>${esc(c.from)}</s><br><b>→ ${esc(c.to)}</b></span></div>`).join("") : `<div class="small mut" style="margin-top:6px">แผนเดิม เดินหน้าต่อได้เลย 👍</div>`}
+  ${d.reasons.length ? `<div class="tiny mut" style="margin-top:8px">${d.reasons.map(esc).join("<br>")}</div>` : ""}</div>`;
+
 function showAnalysis(id) {
   const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
   const r = analyzeLog(p, l), sec = toSec(l.time);
@@ -874,6 +900,7 @@ function showAnalysis(id) {
       <div class="box"><b>${l.hrMax || "—"}</b><span class="tiny mut">HR สูงสุด</span></div>
       <div class="box"><b>${l.bestPace ? fmtPace(l.bestPace) : "—"}</b><span class="tiny mut">เพซดีสุด</span></div>
       <div class="box"><b>${l.movingSec ? fmtTime(l.movingSec) : "—"}</b><span class="tiny mut">เวลาเคลื่อนที่</span></div></div>` : ""}
+    ${l.planDiff ? diffHtml(l.planDiff) : ""}
     ${(() => { const ls = lapStats(l); if (!ls) return ""; const mn = Math.min(...ls.laps.map(x => x.pace)), mx = Math.max(...ls.laps.map(x => x.pace)), lo = mn - 15, hi = mx + 5;
       const hgt = pc => Math.round((hi - pc) / (hi - lo) * 100);
       return `<div class="card" style="padding:12px 14px"><div class="row"><b class="small">เพซรายกิโล (${ls.laps.length} รอบ)</b><span class="tiny mut">เฉลี่ย ${fmtPace(ls.avg)}</span></div>
@@ -882,6 +909,7 @@ function showAnalysis(id) {
         <div class="legend" style="margin-top:6px"><span><i style="background:#7cc93a"></i>เร็วกว่าเฉลี่ย</span><span><i style="background:var(--pri)"></i>ใกล้เฉลี่ย</span><span><i style="background:#e0a33a"></i>ช้ากว่าเฉลี่ย</span></div></div>`; })()}
     <div class="card" style="padding:4px 14px">${r.insights.map(x => `<div class="ins ${x.lvl}"><i>${ico[x.lvl]}</i><div>${esc(x.t)}</div></div>`).join("")}</div>
     ${l.src ? `<div class="tiny mut" style="margin:-6px 0 12px">ข้อมูลอ่านจาก${esc(l.src)}</div>` : ""}
+    ${(() => { const a = A.find((x, i) => W[i] && W[i].start <= TODAY && TODAY <= W[i].end); const g = a && a.notes.filter(n => n.act); return g && g.length ? noteHtml({ notes: g }) : ""; })()}
     ${r.next ? `<div class="flabel">นัดถัดไป</div><div class="card" style="padding:6px 14px">${sessRow(r.next)}</div>` : ""}
     <div class="btns"><button class="btn" data-act="closeSheet">เยี่ยม!</button></div>`);
 }
@@ -1535,7 +1563,9 @@ function openLog(key) {
       const hA = parseInt(F.hrAvg.value), hM = parseInt(F.hrMax.value);
       if (hA >= 60 && hA <= 230) l.hrAvg = hA; if (hM >= 60 && hM <= 230) l.hrMax = hM;
       if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
+      const to = addDays(l.date > TODAY ? l.date : TODAY, 14), snap0 = planSnap(l.date, to);
       p.logs.push(l); save(); render();
+      l.planDiff = planDiff(snap0, planSnap(l.date, to)); save();
       if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else showAnalysis(l.id);
     });
   });
@@ -1729,6 +1759,7 @@ document.addEventListener("click", e => {
   if (act === "delLog") { e.stopPropagation(); if (confirm("ลบผลซ้อมนี้?")) { p.logs = p.logs.filter(l => String(l.id) !== id); save(); render(); } return; }
   if (act === "closeSheet") closeSheet();
   if (act === "install") doInstall();
+  if (act === "seenWeek") { p.seenWeek = id; save(); closeSheet(); }
   if (act === "painOk" && PAIN) { PAIN.log.painResolved = true; save(); render(); toast("กลับแผนปกติแล้ว ค่อย ๆ เริ่มนะ"); }
   if (act === "applyTarget") { const r = p.races.find(x => x.id === id); if (r) { r.target = +el.dataset.t; p.dismissed = p.dismissed || {}; p.dismissed[el.dataset.key] = 1; save(); render(); toast(`ขยับเป้าเป็น ${fmtTime(r.target)} แล้ว · ตารางเพซปรับตาม`); } }
   if (act === "dismissSuggest") { p.dismissed = p.dismissed || {}; p.dismissed[id] = 1; save(); render(); }
@@ -1844,6 +1875,20 @@ $("#wordmark").src = LOGO_WORDMARK;
 (() => { const l = document.createElement("link"); l.rel = "icon"; l.type = "image/png"; l.href = LOGO_ICON; document.head.appendChild(l); })();
 
 render();
+// เปิดแอปครั้งแรกของสัปดาห์: ถ้าแผนสัปดาห์นี้ถูกปรับ เด้งสรุปให้ดูครั้งเดียว
+function weeklyPopup() {
+  const p = P(); if (!p.onboarded) return;
+  const w = curWeek(); if (!w || w.start > TODAY || (p.seenWeek || "") >= w.start) return;
+  const a = A[w.i], notes = a.notes.filter(n => n.lvl !== "ok");
+  const ch = w.sessions.filter(s => s.type !== "rest" && s.date >= TODAY).map(s => ({ s, v: view(s) })).filter(x => x.v.adjusted);
+  if (!notes.length && !ch.length) { p.seenWeek = w.start; save(); return; }
+  openSheet("แผนสัปดาห์นี้ปรับแล้ว", `
+    <div class="small mut" style="margin-bottom:10px">จากผลซ้อมสัปดาห์ที่ผ่านมา แอปปรับแผน ${thDate(w.start)}–${thDate(w.end)} ให้เหมาะกับร่างกายตอนนี้</div>
+    ${noteHtml({ notes })}
+    ${ch.length ? `<div class="card diffcard" style="margin-top:12px">${ch.map(({ s, v }) => { const rg = W[s.wi].pc.ranges[s.pace]; return `<div class="diffrow"><span class="dd">${TH_DAY[s.day]} ${thDate(s.date)}</span><span><s>${esc(s.type === "gym" ? s.detail.split(" —")[0] : briefOf(s.type, s.km, rg ? rng(rg) : ""))}</s><br><b>→ ${esc(s.type === "gym" && v.type !== "rest" ? v.detail : briefOf(v.type, v.km, v.pace))}</b></span></div>`; }).join("")}</div>` : ""}
+    <div class="btns" style="margin-top:12px"><button class="btn" data-act="seenWeek" data-id="${w.start}">รับทราบ</button></div>`);
+}
+setTimeout(weeklyPopup, 400);
 </script>
 </body>
 </html>
