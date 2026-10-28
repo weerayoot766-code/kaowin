@@ -28,6 +28,9 @@ main{flex:1 0 auto;width:100%;box-sizing:border-box}
 .foot-in{max-width:640px;margin:0 auto;padding:16px 16px calc(78px + env(safe-area-inset-bottom));text-align:left;font-size:12.5px;line-height:1.6;display:flex;flex-direction:column;align-items:flex-start}
 .foot-in b{color:#fff;font-weight:600;letter-spacing:.2px}
 .foot-in span{color:#b9dec6}
+.line-btn{display:inline-flex;align-items:center;gap:8px;background:#06c755;color:#fff;text-decoration:none;font-weight:700;font-size:15px;border-radius:12px;padding:11px 18px;margin-bottom:4px;min-height:44px;box-sizing:border-box}
+.line-btn:hover{background:#05b04b;color:#fff}
+.foot-in .line-id{font-size:12px;margin-bottom:12px}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Thai",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.5;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -199,7 +202,11 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--p
 </div></header>
 
 <main id="view"></main>
-<footer class="foot"><div class="foot-in"><b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์</span></div></footer>
+<footer class="foot"><div class="foot-in">
+  <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
+  <span class="line-id">LINE ID: Prungyapharmacy</span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์</span>
+</div></footer>
 
 <button class="btn fab" data-act="openLog" id="fab">＋ ส่งผลซ้อม</button>
 
