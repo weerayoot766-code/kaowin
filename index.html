@@ -178,6 +178,9 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--p
 .ins i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:var(--pri);margin-top:1px}
 .ins.warn i{background:#e0a33a} .ins.bad i{background:var(--bad)} .ins.info i{background:#5b7fb8} .ins.gold i{background:var(--gold)}
 .celebrate{text-align:center;padding:6px 0 10px}
+.datasrc{margin-top:10px;background:var(--soft2);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12.5px;color:var(--mut);line-height:1.55}
+.datasrc b{color:var(--ink)}
+.datasrc.few{background:#fff8ea;border-color:#f0dcae}
 .sp-box{width:100%;aspect-ratio:4/3;max-height:240px;border:1.5px dashed #9fd2ad;border-radius:16px;background:var(--soft2);color:var(--pri-d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:14px;overflow:hidden;position:relative}
 .sp-box.has{border-style:solid;border-color:var(--line);cursor:default;background:#fff}
 .sp-box img{width:100%;height:100%;object-fit:cover;display:block}
@@ -792,7 +795,9 @@ function predictRace(p, race) {
   const speedF = V ? vdotTime(V + gain, race.km) / vdotTime(V, race.km) : 1 - Math.min(0.04, 0.003 * weeks * comp);
   const day = today * Math.max(lvl === 0 ? 0.9 : 0.93, speedF * (1 + pen1) / (1 + pen0));   // พัฒนาได้ไม่เกิน ~7–10% ในรอบเตรียมตัวเดียว
   const spread = 0.015 + 0.03 / (1 + ev.length) + (weeks > 8 ? 0.01 : 0);
-  return { today, day, lo: day * (1 - spread), hi: day * (1 + spread), pot: V ? vdotTime(V, race.km) : 0, V, r0, r1, comp, weeks, ev, L, vol, Lplan, src: fit ? fit.best.label : "" };
+  const n42 = rec.length, n112 = runs.filter(l => l.date >= addDays(TODAY, -112) && l.date <= TODAY).length;
+  const first = rec.length ? rec.reduce((m, l) => l.date < m ? l.date : m, TODAY) : "";
+  return { today, day, lo: day * (1 - spread), hi: day * (1 + spread), pot: V ? vdotTime(V, race.km) : 0, V, r0, r1, comp, weeks, ev, L, vol, Lplan, src: fit ? fit.best.label : "", n42, n112, first };
 }
 const fmtTimeRound = s => fmtTime(Math.round(s / 30) * 30);
 function predict(p, race) {
@@ -1035,6 +1040,9 @@ function renderHome() {
         <div class="small mut">ช่วงที่น่าจะทำได้ <b style="color:var(--ink)">${fmtTimeRound(rp.lo)} – ${fmtTimeRound(rp.hi)}</b> · เพซ ${fmtPace(rp.day / nr.km)}/กม.</div></div>
       <span class="chip ${cls}">${gap <= 0 ? "ทันเป้า เหลือ " + fmtTime(-gap) : "ช้ากว่าเป้า " + fmtTime(gap)}</span></div>
       <div class="tiny mut" style="margin-top:4px">ถ้าซ้อมตามแผนอีก ${Math.round(rp.weeks)} สัปดาห์ (ทำตามแผนได้ ${Math.round(rp.comp * 100)}%)</div>
+      <div class="datasrc ${rp.n42 < 6 ? "few" : ""}">📅 ใช้ข้อมูลย้อนหลัง <b>42 วัน</b> (${thDate(addDays(TODAY, -42))}–${thDate(TODAY)}) · ผลวิ่ง <b>${rp.n42}</b> ครั้ง
+        ${rp.n112 > rp.n42 ? `· ผลระยะไกล/แข่งย้อนหลัง 112 วันอีก ${rp.n112 - rp.n42} ครั้ง` : ""}${(p.pbs || []).length ? ` · PB ${(p.pbs || []).length} รายการ` : ""}${rp.V ? " · VO2max" : ""}
+        ${rp.n42 < 6 ? `<div style="margin-top:4px">ข้อมูลยังน้อย — ใส่ผลวิ่งย้อนหลัง 4–6 สัปดาห์ (โดยเฉพาะ Long Run และงานแข่ง) จะคาดการณ์แม่นขึ้น <button class="linkbtn" data-act="openLog" style="font-size:12px">＋ ส่งผลย้อนหลัง</button></div>` : ""}</div>
       <div class="grid2" style="margin-top:12px">
         <div class="box" style="text-align:left"><span class="tiny mut">ถ้าแข่งวันนี้</span><b>${fmtTimeRound(rp.today)}</b><span class="tiny mut">จากความฟิตตอนนี้</span></div>
         <div class="box" style="text-align:left"><span class="tiny mut">ศักยภาพความเร็ว</span><b>${rp.pot ? fmtTimeRound(rp.pot) : "—"}</b>${rp.V ? `<span class="tiny mut">VO2 ${rp.V.toFixed(1)}</span>` : ""}</div>
