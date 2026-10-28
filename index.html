@@ -21,6 +21,13 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
+body{display:flex;flex-direction:column;min-height:100vh;box-sizing:border-box;padding-bottom:0!important}
+main{flex:1 0 auto;width:100%;box-sizing:border-box}
+.top,.foot{width:100%}
+.foot{background:#0d5a3c;color:#e3f4e8;margin-top:8px}
+.foot-in{max-width:640px;margin:0 auto;padding:16px 16px calc(78px + env(safe-area-inset-bottom));text-align:left;font-size:12.5px;line-height:1.6;display:flex;flex-direction:column;align-items:flex-start}
+.foot-in b{color:#fff;font-weight:600;letter-spacing:.2px}
+.foot-in span{color:#b9dec6}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Thai",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.5;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -192,6 +199,7 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--p
 </div></header>
 
 <main id="view"></main>
+<footer class="foot"><div class="foot-in"><b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์</span></div></footer>
 
 <button class="btn fab" data-act="openLog" id="fab">＋ ส่งผลซ้อม</button>
 
