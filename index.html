@@ -179,9 +179,13 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--p
 .ins.warn i{background:#e0a33a} .ins.bad i{background:var(--bad)} .ins.info i{background:#5b7fb8} .ins.gold i{background:var(--gold)}
 .celebrate{text-align:center;padding:6px 0 10px}
 .ocr-card{border:1.5px dashed #9fd2ad;background:var(--soft2);border-radius:16px;padding:12px 14px;margin-bottom:14px}
-.ocr-thumbs{display:flex;gap:6px;overflow-x:auto;margin-top:8px}
-.ocr-thumbs:empty{display:none}
-.ocr-thumbs img{height:72px;border-radius:8px;border:1px solid var(--line);flex:none}
+.ocr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.ocr-tile{position:relative;aspect-ratio:3/4;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.ocr-tile img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.ocr-tile .no{position:absolute;left:4px;top:4px;background:rgba(13,61,40,.85);color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:0 6px;line-height:18px}
+.ocr-tile .x{position:absolute;right:3px;top:3px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:16px;line-height:26px;padding:0;cursor:pointer}
+.ocr-add{aspect-ratio:3/4;border:1.5px dashed #7cc590;border-radius:10px;background:#fff;color:var(--pri-d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:12px;font-weight:600}
+.ocr-add b{font-size:26px;line-height:1}
 .ocr-status:empty{display:none}
 .ocr-status{margin-top:8px;color:var(--pri-d);font-weight:600}
 input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
@@ -1110,8 +1114,9 @@ function avatarHtml(p, size, radius) {
 }
 function pickPhoto() {
   const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
+  inp.style.cssText = "position:fixed;left:-9999px;opacity:0"; document.body.appendChild(inp);
   inp.onchange = () => {
-    const f = inp.files[0]; if (!f) return;
+    const f = inp.files[0]; inp.remove(); if (!f) return;
     const img = new Image(), url = URL.createObjectURL(f);
     img.onload = () => {
       const S = 256, c = document.createElement("canvas"); c.width = c.height = S;
@@ -1351,24 +1356,31 @@ function openLog(key) {
   const p = P();
   const shoeOpts = `<option value="">—</option>` + p.shoes.filter(x => !x.retired).map(x => `<option value="${x.id}">${esc(shoeShort(x))}</option>`).join("");
   openSheet("ส่งผลซ้อม", `<form id="logForm" autocomplete="off">
-    <div class="ocr-card">
-      <div class="row" style="align-items:flex-start"><div><b>📷 ส่งเป็นภาพหน้าจอ</b><div class="tiny mut">Garmin, COROS, Strava ฯลฯ เลือกได้หลายรูป (ภาพรวม · สถิติ · รอบ) แอปอ่านค่าให้เอง</div></div>
-      <button type="button" class="btn sm" data-ocr-pick style="flex:none">เลือกรูป</button></div>
-      <div class="ocr-thumbs"></div><div class="ocr-status tiny"></div><div class="ocr-result"></div>
+    <div class="seg" style="margin-bottom:14px"><button type="button" data-mode="photo"><span>📷 ส่งเป็นรูป</span></button><button type="button" data-mode="manual"><span>✍️ กรอกเอง</span></button></div>
+    <div class="ocr-card photo-only">
+      <div><b>ภาพหน้าจอจากนาฬิกา / แอปวิ่ง</b><div class="tiny mut">Garmin, COROS, Strava ฯลฯ เลือกได้สูงสุด 8 รูป (ภาพรวม · สถิติ · รอบ) แอปอ่านค่าและวิเคราะห์ให้เอง</div></div>
+      <div class="ocr-count"></div>
+      <div class="ocr-grid"></div>
+      <div class="ocr-status tiny"></div><div class="ocr-result"></div>
     </div>
     <label class="f">วันที่<input type="date" name="date" required></label>
     <label class="f">ตรงกับนัดซ้อมไหน<select name="sessionKey"></select></label>
     <div class="grid2">
       <label class="f">ประเภท<select name="type">${["easy", "long", "quality", "race", "gym"].map(t => `<option value="${t}">${TYPE_LABEL[t]}</option>`).join("")}</select></label>
       <label class="f">รองเท้า<select name="shoe">${shoeOpts}</select></label>
-      <label class="f">ระยะรวม (กม.)<input name="km" inputmode="decimal" placeholder="8"></label>
-      <label class="f">เวลารวม<input name="time" inputmode="decimal" placeholder="48:30"></label>
     </div>
-    <div class="grid2"><label class="f">HR เฉลี่ย (ถ้ามี)<input name="hrAvg" inputmode="numeric" placeholder="150"></label><label class="f">HR สูงสุด (ถ้ามี)<input name="hrMax" inputmode="numeric" placeholder="175"></label></div>
-    <details class="more"><summary>ช่วงเร็วต่อเนื่อง (ใช้วิเคราะห์และคำนวณ VO2max)</summary>
-      <p class="tiny mut" style="margin:6px 0 10px">ใส่ท่อนที่วิ่งต่อเนื่อง ≥ 2 กม. เช่น Tempo 4 กม. หรือ 1 ท่อนของ 3×2 กม.</p>
-      <div class="grid2"><label class="f">ระยะ (กม.)<input name="segKm" inputmode="decimal" placeholder="2"></label><label class="f">เวลา<input name="segTime" inputmode="decimal" placeholder="10:30"></label></div>
-    </details>
+    <button type="button" class="linkbtn photo-only" data-edit-nums style="margin:-4px 0 10px">แก้ค่าที่อ่านได้เอง ▾</button>
+    <div class="nums">
+      <div class="grid2">
+        <label class="f">ระยะรวม (กม.)<input name="km" inputmode="decimal" placeholder="8"></label>
+        <label class="f">เวลารวม<input name="time" inputmode="decimal" placeholder="48:30"></label>
+      </div>
+      <div class="grid2"><label class="f">HR เฉลี่ย (ถ้ามี)<input name="hrAvg" inputmode="numeric" placeholder="150"></label><label class="f">HR สูงสุด (ถ้ามี)<input name="hrMax" inputmode="numeric" placeholder="175"></label></div>
+      <details class="more"><summary>ช่วงเร็วต่อเนื่อง (ใช้วิเคราะห์และคำนวณ VO2max)</summary>
+        <p class="tiny mut" style="margin:6px 0 10px">ใส่ท่อนที่วิ่งต่อเนื่อง ≥ 2 กม. เช่น Tempo 4 กม. หรือ 1 ท่อนของ 3×2 กม.</p>
+        <div class="grid2"><label class="f">ระยะ (กม.)<input name="segKm" inputmode="decimal" placeholder="2"></label><label class="f">เวลา<input name="segTime" inputmode="decimal" placeholder="10:30"></label></div>
+      </details>
+    </div>
     <label class="f">ความเหนื่อย (RPE 1–10): <b class="rpeOut">5</b><input type="range" min="1" max="10" name="rpe" value="5"></label>
     <label class="inline"><input type="checkbox" name="pain" style="accent-color:var(--bad)"> มีอาการเจ็บ / ตึงผิดปกติ</label>
     <label class="f">โน้ต (ตะคริว เจล น้ำ อากาศ ฯลฯ)<textarea name="note"></textarea></label>
@@ -1380,28 +1392,60 @@ function openLog(key) {
       const m = prefer ? opts.find(s => s.key === prefer) : opts.find(s => s.date === date && s.type !== "gym" && !logsFor(s).length) || opts.find(s => s.date === date);
       F.sessionKey.value = m ? m.key : ""; apply();
     };
-    const apply = () => { const s = allSessions().find(x => x.key === F.sessionKey.value); if (!s) return; const v = view(s); F.type.value = v.type; F.shoe.value = s.shoe || ""; F.km.value = v.km || ""; };
+    let ocr = null, mode = "manual", picked = [], editNums = false;
+    const apply = () => { const s = allSessions().find(x => x.key === F.sessionKey.value); if (!s) return; const v = view(s); F.type.value = v.type; F.shoe.value = s.shoe || ""; if (!ocr) F.km.value = mode === "photo" ? "" : v.km || ""; };
     const s0 = key && allSessions().find(x => x.key === key);
     F.date.value = s0 ? s0.date : TODAY; fill(F.date.value, key);
     F.date.addEventListener("change", () => fill(F.date.value));
     F.sessionKey.addEventListener("change", apply);
     F.rpe.addEventListener("input", () => body.querySelector(".rpeOut").textContent = F.rpe.value);
-    let ocr = null;
-    body.querySelector("[data-ocr-pick]").addEventListener("click", () => {
+    // โหมด: ส่งเป็นรูป / กรอกเอง (จำโหมดล่าสุดไว้)
+    const setMode = m => {
+      mode = m; try { localStorage.setItem("kaowin.logMode", m); } catch (e) {}
+      body.querySelectorAll("[data-mode]").forEach(b => b.classList.toggle("on", b.dataset.mode === m));
+      body.querySelectorAll(".photo-only").forEach(x => x.hidden = m !== "photo");
+      body.querySelector(".nums").hidden = m === "photo" && !editNums;
+      body.querySelector("[data-edit-nums]").textContent = editNums ? "ซ่อนค่าที่อ่านได้ ▴" : "แก้ค่าที่อ่านได้เอง ▾";
+      if (m === "photo" && !ocr) { F.km.value = ""; }
+      if (m === "manual" && !ocr && !F.km.value) apply();
+    };
+    body.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+    body.querySelector("[data-edit-nums]").addEventListener("click", () => { editNums = !editNums; setMode(mode); });
+    let lastMode = "manual"; try { lastMode = localStorage.getItem("kaowin.logMode") || "manual"; } catch (e) {}
+    const renderPicked = () => {
+      body.querySelector(".ocr-count").innerHTML = picked.length ? `<div class="chip" style="margin-top:10px">เลือกแล้ว ${picked.length} รูป</div>` : "";
+      body.querySelector(".ocr-grid").innerHTML = picked.map((f, i) => `<div class="ocr-tile"><img src="${f.url}" alt="รูปที่ ${i + 1}"><span class="no">${i + 1}</span><button type="button" class="x" data-rm="${i}" aria-label="เอารูปที่ ${i + 1} ออก">×</button></div>`).join("")
+        + (picked.length < 8 ? `<button type="button" class="ocr-add" data-ocr-pick><b>＋</b><span>${picked.length ? "เพิ่มรูป" : "เลือกรูป"}</span></button>` : "");
+    };
+    const pickFiles = () => {
       const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
-      inp.onchange = async () => {
-        const files = [...inp.files].slice(0, 8); if (!files.length) return;
-        const st = body.querySelector(".ocr-status"), res = body.querySelector(".ocr-result"), th = body.querySelector(".ocr-thumbs");
-        th.innerHTML = files.map(f => `<img src="${URL.createObjectURL(f)}" alt="">`).join(""); res.innerHTML = "";
-        const btn = body.querySelector("[data-ocr-pick]"); btn.disabled = true;
+      inp.style.cssText = "position:fixed;left:-9999px;opacity:0"; document.body.appendChild(inp);     // iPhone ต้องอยู่ใน DOM ถึงจะรับไฟล์
+      inp.onchange = () => { const fs = [...inp.files]; inp.remove(); if (!fs.length) return;
+        fs.forEach(f => { if (picked.length < 8) picked.push({ file: f, url: URL.createObjectURL(f) }); });
+        if (fs.length + picked.length > 8) toast("เลือกได้สูงสุด 8 รูป");
+        renderPicked(); runOcr(); };
+      inp.click();
+    };
+    body.querySelector(".ocr-grid").addEventListener("click", e => {
+      if (e.target.closest("[data-ocr-pick]")) return pickFiles();
+      const rm = e.target.closest("[data-rm]"); if (!rm) return;
+      const [x] = picked.splice(+rm.dataset.rm, 1); URL.revokeObjectURL(x.url); renderPicked();
+      if (picked.length) runOcr(); else { ocr = null; body.querySelector(".ocr-result").innerHTML = ""; ["km", "time", "hrAvg", "hrMax"].forEach(n => { F[n].value = ""; F[n].classList.remove("ocr-filled"); }); }
+    });
+    renderPicked(); setMode(lastMode);
+    let runId = 0;
+    const runOcr = async () => {
+        const my = ++runId, files = picked.map(x => x.file);
+        const st = body.querySelector(".ocr-status"), res = body.querySelector(".ocr-result");
+        res.innerHTML = "";
         try {
           let cur = 0; const show = (pct, msg) => st.innerHTML = `<div class="bar"><i style="width:${Math.round(pct)}%"></i></div><div style="margin-top:4px">${msg}</div>`;
           show(3, "กำลังเตรียมตัวอ่านภาพ… (ครั้งแรกโหลดประมาณ 5 MB)");
           const w = await getOcr(m => { if (m.status === "recognizing text") show(10 + (cur + m.progress) / files.length * 88, `กำลังอ่านรูปที่ ${cur + 1}/${files.length}…`); else if (/load|init/.test(m.status)) show(3 + 7 * (m.progress || 0), "กำลังโหลดตัวอ่านภาพ…"); });
           const texts = [];
-          for (cur = 0; cur < files.length; cur++) { const c = await prepImage(files[cur]); const { data } = await w.recognize(c); texts.push(data.text); }
+          for (cur = 0; cur < files.length; cur++) { const c = await prepImage(files[cur]); const { data } = await w.recognize(c); if (my !== runId) return; texts.push(data.text); }
           ocr = parseRunText(texts);
-          if (!ocr.km && !ocr.timeSec && !ocr.laps.length) { st.innerHTML = ""; res.innerHTML = `<div class="note warn">อ่านค่าจากรูปไม่ได้ ลองใช้ภาพหน้าจอที่เห็นระยะและเวลาชัด ๆ หรือกรอกเองด้านล่าง</div>`; ocr = null; return; }
+          if (!ocr.km && !ocr.timeSec && !ocr.laps.length) { st.innerHTML = ""; res.innerHTML = `<div class="note warn">อ่านค่าจากรูปไม่ได้ ลองใช้ภาพหน้าจอที่เห็นระยะและเวลาชัด ๆ หรือกด “แก้ค่าที่อ่านได้เอง”</div>`; ocr = null; return; }
           if (ocr.date && ocr.date !== F.date.value) { F.date.value = ocr.date; fill(ocr.date); }
           if (ocr.km) F.km.value = ocr.km; if (ocr.timeSec) F.time.value = fmtTime(ocr.timeSec);
           if (ocr.hrAvg) F.hrAvg.value = ocr.hrAvg; if (ocr.hrMax) F.hrMax.value = ocr.hrMax;
@@ -1410,15 +1454,13 @@ function openLog(key) {
           else if (!F.sessionKey.value && ocr.km) F.type.value = ocr.km >= 14 ? "long" : "easy";
           ["km", "time", "hrAvg", "hrMax", "date"].forEach(n => { if (F[n].value) F[n].classList.add("ocr-filled"); });
           st.innerHTML = "";
-          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป · ตรวจค่าก่อนบันทึก</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>`;
-        } catch (err) { st.innerHTML = ""; res.innerHTML = `<div class="note bad">${esc(err.message || "อ่านภาพไม่สำเร็จ")} — กรอกเองด้านล่างได้</div>`; }
-        finally { btn.disabled = false; }
-      };
-      inp.click();
-    });
+          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>`;
+        } catch (err) { st.innerHTML = ""; res.innerHTML = `<div class="note bad">${esc(err.message || "อ่านภาพไม่สำเร็จ")} — สลับไป “กรอกเอง” ได้</div>`; }
+    };
     form.addEventListener("submit", e => {
       e.preventDefault();
       const km = parseFloat(F.km.value) || 0;
+      if (mode === "photo" && RUN_TYPES.includes(F.type.value) && !km) return toast(picked.length ? "ยังอ่านระยะจากรูปไม่ได้ รอสักครู่ หรือกด “แก้ค่าที่อ่านได้เอง”" : "เลือกรูปก่อน หรือสลับไป “กรอกเอง”");
       if (RUN_TYPES.includes(F.type.value) && !km) return toast("ใส่ระยะก่อนนะ");
       const tSec = F.time.value.trim() ? parseDuration(F.time.value, km) : 0, segKm = parseFloat(F.segKm.value) || 0, sSec = F.segTime.value.trim() ? parseDuration(F.segTime.value, segKm) : 0;
       if (F.time.value.trim() && (!tSec || (km && !PACE_OK(tSec / km)))) return toast("เวลารวมดูแปลก ๆ พิมพ์ เช่น 48:30 หรือ 1:52:10");
