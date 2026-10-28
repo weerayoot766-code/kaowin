@@ -180,6 +180,7 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--p
 .celebrate{text-align:center;padding:6px 0 10px}
 .datasrc{margin-top:10px;background:var(--soft2);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12.5px;color:var(--mut);line-height:1.55}
 .datasrc b{color:var(--ink)}
+input.need{border-color:#e0a83a!important;background:#fff8ea!important}
 .datasrc.few{background:#fff8ea;border-color:#f0dcae}
 .sp-box{width:100%;aspect-ratio:4/3;max-height:240px;border:1.5px dashed #9fd2ad;border-radius:16px;background:var(--soft2);color:var(--pri-d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:14px;overflow:hidden;position:relative}
 .sp-box.has{border-style:solid;border-color:var(--line);cursor:default;background:#fff}
@@ -1481,6 +1482,35 @@ function prepImage(file) {                     // ขาวดำ กลับ�
   });
 }
 const TH_MON_KEY = ["มค", "กพ", "มีค", "เมย", "พค", "มิย", "กค", "สค", "กย", "ตค", "พย", "ธค"];
+const TH_MON_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+function parseDateText(lines) {                  // หาวันที่ของกิจกรรมจากข้อความในรูป (ไทย/อังกฤษ/ตัวเลข, พ.ศ./ค.ศ.)
+  const y0 = +TODAY.slice(0, 4);
+  const mk = (d, m, y) => {
+    if (!(m >= 0 && m < 12 && d >= 1 && d <= 31)) return "";
+    if (y) { y = +y; if (y < 100) y += y >= 60 ? 1957 : 2000; if (y > 2400) y -= 543; if (y < y0 - 2 || y > y0) return ""; }
+    let dt = `${y || y0}-${pad(m + 1)}-${pad(d)}`;
+    if (!y && dt > TODAY) dt = `${y0 - 1}-${pad(m + 1)}-${pad(d)}`;
+    return dt <= TODAY && dt >= addDays(TODAY, -800) ? dt : "";
+  };
+  const TH = "(" + [...TH_MON_KEY, "ดค", "ศค"].map(k => [...k].join("\\s*")).join("|") + ")";
+  for (const raw of lines) {
+    const s = raw.replace(/[๐-๙]/g, c => "๐๑๒๓๔๕๖๗๘๙".indexOf(c)), z = s.replace(/[.·,@]/g, " ");
+    if (/วันนี้|^today\b/i.test(s) && /\d{1,2}:\d{2}/.test(s)) return TODAY;
+    if (/เมื่อวาน|yesterday/i.test(s)) return addDays(TODAY, -1);
+    let m, dt = "";
+    for (let i = 0; i < 12 && !dt; i++) { const f = s.match(new RegExp("(\\d{1,2})\\s*" + TH_MON_FULL[i] + "\\s*(\\d{4})?")); if (f) dt = mk(+f[1], i, f[2]); }
+    if (!dt && (m = z.match(new RegExp("(\\d{1,2})\\s*" + TH + "(?:\\s*(\\d{4}|\\d{2})(?![\\d:]))?")))) { let k = m[2].replace(/\s/g, ""); if (k === "ดค" || k === "ศค") k = "ตค"; dt = mk(+m[1], TH_MON_KEY.indexOf(k), m[3]); }
+    if (!dt && (m = s.match(/\b(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})\b/))) dt = mk(+m[3], +m[2] - 1, m[1]);
+    if (!dt && (m = s.match(/\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})\b/))) dt = mk(+m[1], +m[2] - 1, m[3]);
+    if (!dt && (m = s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?!\d)(?:,?\s+(\d{4}))?/i))) dt = mk(+m[2], EN_MON.indexOf(m[1].toLowerCase()), m[3]);
+    if (!dt && (m = s.match(/\b(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?(?:,?\s+(\d{4}))?/i))) dt = mk(+m[1], EN_MON.indexOf(m[2].toLowerCase()), m[3]);
+    if (dt) return dt;
+  }
+  return "";
+}
+function cropTop(file) {                          // ตัดส่วนหัวภาพ (ที่มีวันที่ตัวเล็ก) แล้วขยาย 2.5 เท่า
+  return prepImage(file).then(c => { const h = Math.round(c.height * 0.22), o = document.createElement("canvas"); o.width = c.width * 2.5; o.height = h * 2.5; o.getContext("2d").drawImage(c, 0, 0, c.width, h, 0, 0, o.width, o.height); return o; });
+}
 const EN_MON = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 function parseRunText(texts) {
   const r = { laps: [] }, lines = [];
@@ -1515,12 +1545,7 @@ function parseRunText(texts) {
   });
   r.laps.sort((a, b) => a.n - b.n);
   // วันที่
-  for (const s of lines) {
-    let m = s.match(/(\d{1,2})\s*(ม\.?\s*ค|ก\.?\s*พ|มี\.?\s*ค|เม\.?\s*ย|พ\.?\s*ค|มิ\.?\s*ย|ก\.?\s*ค|ส\.?\s*ค|ก\.?\s*ย|ต\.?\s*ค|พ\.?\s*ย|ธ\.?\s*ค)\.?/), mon = -1, day = 0;
-    if (m) { mon = TH_MON_KEY.indexOf(m[2].replace(/[.\s]/g, "")); day = +m[1]; }
-    else if ((m = s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})\b/i))) { mon = EN_MON.indexOf(m[1].toLowerCase()); day = +m[2]; }
-    if (mon >= 0 && day >= 1 && day <= 31) { let y = +TODAY.slice(0, 4), dt = `${y}-${pad(mon + 1)}-${pad(day)}`; if (dt > TODAY) dt = `${y - 1}-${pad(mon + 1)}-${pad(day)}`; r.date = dt; break; }
-  }
+  r.date = parseDateText(lines);
   if (!r.km && r.laps.length) r.km = Math.round(r.laps.reduce((t, l) => t + l.km, 0) * 100) / 100;
   if (!r.timeSec && r.laps.length) r.timeSec = r.laps.reduce((t, l) => t + l.sec, 0);
   // เพซเฉลี่ยที่แอปนาฬิกาบอกมา (ใช้ตรวจระยะ/เวลา)
@@ -1594,7 +1619,7 @@ function openLog(key) {
     const apply = () => { const s = allSessions().find(x => x.key === F.sessionKey.value); if (!s) return; const v = view(s); F.type.value = v.type; F.shoe.value = s.shoe || ""; if (!ocr) F.km.value = mode === "photo" ? "" : v.km || ""; };
     const s0 = key && allSessions().find(x => x.key === key);
     F.date.value = s0 ? s0.date : TODAY; fill(F.date.value, key);
-    F.date.addEventListener("change", () => fill(F.date.value));
+    F.date.addEventListener("change", () => { F.date.classList.remove("need"); fill(F.date.value); });
     F.sessionKey.addEventListener("change", apply);
     F.rpe.addEventListener("input", () => body.querySelector(".rpeOut").textContent = F.rpe.value);
     F.pain.addEventListener("change", () => body.querySelector(".painLvl").hidden = !F.pain.checked);
@@ -1644,8 +1669,13 @@ function openLog(key) {
           const texts = [];
           for (cur = 0; cur < files.length; cur++) { const c = await prepImage(files[cur]); const { data } = await w.recognize(c); if (my !== runId) return; texts.push(data.text); }
           ocr = parseRunText(texts);
+          for (let i = 0; !ocr.date && i < Math.min(2, files.length); i++) {          // ไม่เจอวันที่ → อ่านส่วนหัวรูปซ้ำแบบขยาย
+            show(98, "กำลังหาวันที่ในรูป…"); const { data } = await w.recognize(await cropTop(files[i])); if (my !== runId) return;
+            ocr.date = parseDateText(data.text.split(/\n/).map(x => x.replace(/\s+/g, " ").trim()).filter(Boolean));
+          }
           if (!ocr.km && !ocr.timeSec && !ocr.laps.length) { st.innerHTML = ""; res.innerHTML = `<div class="note warn">อ่านค่าจากรูปไม่ได้ ลองใช้ภาพหน้าจอที่เห็นระยะและเวลาชัด ๆ หรือกด “แก้ค่าที่อ่านได้เอง”</div>`; ocr = null; return; }
           if (ocr.date && ocr.date !== F.date.value) { F.date.value = ocr.date; fill(ocr.date); }
+          F.date.classList.toggle("need", !ocr.date);
           if (ocr.km) F.km.value = ocr.km; if (ocr.timeSec) F.time.value = fmtTime(ocr.timeSec);
           if (ocr.hrAvg) F.hrAvg.value = ocr.hrAvg; if (ocr.hrMax) F.hrMax.value = ocr.hrMax;
           const rc = sortedRaces(p).find(x => x.date === F.date.value && ocr.km && Math.abs(ocr.km - x.km) / x.km < 0.06);
@@ -1653,7 +1683,7 @@ function openLog(key) {
           else if (!F.sessionKey.value && ocr.km) F.type.value = ocr.km >= 14 ? "long" : "easy";
           ["km", "time", "hrAvg", "hrMax", "date"].forEach(n => { if (F[n].value) F[n].classList.add("ocr-filled"); });
           st.innerHTML = "";
-          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>`;
+          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>${ocr.date ? "" : `<div class="note warn" style="margin-top:8px">📅 ไม่พบวันที่ในรูป — ตอนนี้ใส่เป็น<b>วันนี้</b>ไว้ ถ้าเป็นผลวันก่อน เลือก “วันที่” ด้านล่างให้ถูกก่อนกดบันทึก</div>`}`;
         } catch (err) { st.innerHTML = ""; res.innerHTML = `<div class="note bad">${esc(err.message || "อ่านภาพไม่สำเร็จ")} — สลับไป “กรอกเอง” ได้</div>`; }
     };
     form.addEventListener("submit", e => {
@@ -1664,6 +1694,7 @@ function openLog(key) {
       const tSec = F.time.value.trim() ? parseDuration(F.time.value, km) : 0, segKm = parseFloat(F.segKm.value) || 0, sSec = F.segTime.value.trim() ? parseDuration(F.segTime.value, segKm) : 0;
       if (F.time.value.trim() && (!tSec || (km && !PACE_OK(tSec / km)))) return toast("เวลารวมดูแปลก ๆ พิมพ์ เช่น 48:30 หรือ 1:52:10");
       if (F.segTime.value.trim() && (!sSec || (segKm && !PACE_OK(sSec / segKm)))) return toast("เวลาช่วงเร็วดูแปลก ๆ พิมพ์ เช่น 10:30");
+      if (mode === "photo" && ocr && !ocr.date && F.date.value === TODAY && !form.dataset.dateOk) { form.dataset.dateOk = 1; F.date.focus(); F.date.scrollIntoView({ block: "center", behavior: "smooth" }); return toast("ไม่พบวันที่ในรูป — ผลนี้เป็นของวันนี้ใช่ไหม? ถ้าใช่ กดบันทึกอีกครั้ง"); }
       const l = { id: Date.now(), date: F.date.value, sessionKey: F.sessionKey.value || null, type: F.type.value, km, time: tSec ? fmtTime(tSec) : "",
         segKm, segTime: sSec ? fmtTime(sSec) : "", rpe: +F.rpe.value, pain: F.pain.checked, painLvl: F.pain.checked ? +F.painLvl.value : undefined, shoe: F.shoe.value, note: F.note.value.trim() };
       const hA = parseInt(F.hrAvg.value), hM = parseInt(F.hrMax.value);
