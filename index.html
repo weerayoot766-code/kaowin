@@ -178,6 +178,19 @@ details.more summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--p
 .ins i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:var(--pri);margin-top:1px}
 .ins.warn i{background:#e0a33a} .ins.bad i{background:var(--bad)} .ins.info i{background:#5b7fb8} .ins.gold i{background:var(--gold)}
 .celebrate{text-align:center;padding:6px 0 10px}
+.ocr-card{border:1.5px dashed #9fd2ad;background:var(--soft2);border-radius:16px;padding:12px 14px;margin-bottom:14px}
+.ocr-thumbs{display:flex;gap:6px;overflow-x:auto;margin-top:8px}
+.ocr-thumbs:empty{display:none}
+.ocr-thumbs img{height:72px;border-radius:8px;border:1px solid var(--line);flex:none}
+.ocr-status:empty{display:none}
+.ocr-status{margin-top:8px;color:var(--pri-d);font-weight:600}
+input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
+.laps{display:flex;align-items:flex-end;gap:2px;height:110px;margin-top:10px;position:relative}
+.laps i{flex:1;border-radius:3px 3px 0 0;background:var(--pri);min-width:3px}
+.laps i.slow{background:#e0a33a} .laps i.fast{background:#7cc93a}
+.laps .avg{position:absolute;left:0;right:0;border-top:1.5px dashed #66796b}
+.lapx{display:flex;gap:2px;font-size:10px;color:var(--mut);margin-top:3px}
+.lapx span{flex:1;text-align:center;min-width:3px}
 .install{display:flex;gap:12px;align-items:center;background:linear-gradient(120deg,#0d5a3c,#1f7a52);color:#fff;border:0}
 .install img{width:46px;height:46px;border-radius:12px;flex:none;background:#fff}
 .install .x{background:none;border:0;color:#cfe9da;font-size:20px;padding:4px 6px;cursor:pointer;line-height:1}
@@ -672,6 +685,30 @@ function predict(p, race) {
 }
 
 /* ---------- วิเคราะห์ผลหลังส่ง ---------- */
+// วิเคราะห์รอบ (lap) — ครึ่งแรก/ครึ่งหลัง, จุดที่เริ่มช้าลง, รอบเร็วสุด/ช้าสุด
+function lapStats(l) {
+  const laps = (l.laps || []).map(([km, sec], i) => ({ n: i + 1, km: +km, sec: +sec, pace: +sec / +km })).filter(x => x.km >= 0.5 && PACE_OK(x.pace));
+  if (laps.length < 4) return null;
+  const tot = laps.reduce((t, x) => t + x.km, 0), totSec = laps.reduce((t, x) => t + x.sec, 0);
+  const allKm = +l.km || tot, allSec = toSec(l.time);
+  let p1, p2, partial = null;
+  if (allSec && allKm - tot > Math.max(1, allKm * 0.15) && allSec > totSec) {
+    // รูปรอบไม่ครบ: เทียบช่วงที่มีรอบ กับระยะที่เหลือ (คำนวณจากเวลารวม)
+    partial = { km: tot, restKm: allKm - tot, restPace: (allSec - totSec) / (allKm - tot) };
+    p1 = totSec / tot; p2 = partial.restPace;
+  } else {
+    let acc = 0; const a = [0, 0], b = [0, 0];
+    laps.forEach(x => { const h = acc + x.km / 2 <= tot / 2 ? a : b; h[0] += x.km; h[1] += x.sec; acc += x.km; });
+    p1 = a[1] / a[0]; p2 = b[1] / b[0];
+  }
+  const fade = (p2 - p1) / p1;
+  const base = laps.slice(0, Math.min(5, Math.ceil(laps.length / 3))).reduce((t, x) => t + x.pace, 0) / Math.min(5, Math.ceil(laps.length / 3));
+  let dropAt = 0; for (let i = 2; i < laps.length - 1; i++) { if ((laps[i].pace + laps[i + 1].pace) / 2 > base * 1.07) { dropAt = laps[i].n; break; } }
+  const fast = laps.reduce((m, x) => x.pace < m.pace ? x : m), slow = laps.reduce((m, x) => x.pace > m.pace ? x : m);
+  const avg = laps.reduce((t, x) => t + x.sec, 0) / tot;
+  return { laps, p1, p2, fade, dropAt, fast, slow, avg, base, partial };
+}
+const hrMaxEst = p => { const y = parseInt(p.birthYear); return y > 1900 ? Math.round(208 - 0.7 * (+TODAY.slice(0, 4) - y)) : 0; };
 function analyzeLog(p, l) {
   const out = [], s = l.sessionKey ? allSessions().find(x => x.key === l.sessionKey) : null, v = s ? view(s) : null;
   const sec = toSec(l.time), pace = sec && +l.km ? sec / +l.km : 0;
@@ -702,6 +739,32 @@ function analyzeLog(p, l) {
     if (+l.rpe <= 5) out.push({ lvl: "info", t: `RPE ${l.rpe} สำหรับวันเร็วถือว่าสบาย — ความฟิตอาจดีกว่าเป้า` });
   }
   if (l.type === "race" && pace && nr) out.push({ lvl: "info", t: `เพซเฉลี่ย ${fmtPace(pace)}/กม. เทียบเพซเป้า ${nr.name} ${fmtPace(nr.target / nr.km)}/กม.` });
+
+  // รอบ (จากภาพหน้าจอหรือข้อมูลรอบ)
+  const ls = lapStats(l);
+  if (ls) {
+    const pct = Math.round(Math.abs(ls.fade) * 100), tgt = nr ? nr.target / nr.km : 0;
+    const L1 = ls.partial ? `${fmtKm(ls.partial.km)} กม.แรก` : "ครึ่งแรก", L2 = ls.partial ? `${fmtKm(ls.partial.restKm)} กม.ที่เหลือ` : "ครึ่งหลัง";
+    if (ls.partial) out.push({ lvl: ls.fade > 0.08 ? "warn" : "info", t: `${L1} เฉลี่ย ${fmtPace(ls.p1)} · ${L2} เฉลี่ย ${fmtPace(ls.p2)} (คำนวณจากเวลารวม รวมช่วงเดิน) — ช้าลง ${pct}%${ls.dropAt ? ` · เริ่มแผ่วตั้งแต่ กม. ${ls.dropAt}` : ""}` });
+    else if (ls.fade <= -0.01) out.push({ lvl: "gold", t: `Negative split! ครึ่งหลัง ${fmtPace(ls.p2)} เร็วกว่าครึ่งแรก ${fmtPace(ls.p1)} — คุมเพซได้ระดับมืออาชีพ` });
+    else if (ls.fade < 0.03) out.push({ lvl: "ok", t: `เพซสม่ำเสมอ: ครึ่งแรก ${fmtPace(ls.p1)} · ครึ่งหลัง ${fmtPace(ls.p2)} (ต่างกัน ${pct}%)` });
+    else out.push({ lvl: ls.fade > 0.08 ? "warn" : "info", t: `ครึ่งหลังช้าลง ${pct}%: ครึ่งแรก ${fmtPace(ls.p1)} → ครึ่งหลัง ${fmtPace(ls.p2)}${ls.dropAt ? ` · เริ่มช้าลงตั้งแต่ กม. ${ls.dropAt}` : ""}` });
+    if (ls.fade > 0.08) {
+      if (tgt && ls.base < tgt - 5) out.push({ lvl: "warn", t: `ช่วงต้นวิ่ง ${fmtPace(ls.base)}/กม. เร็วกว่าเพซเป้า ${fmtPace(tgt)} — ออกตัวเร็วเกินทำให้หมดแรงช่วงท้าย ครั้งหน้าคุม 3–5 กม.แรกให้ช้ากว่าเป้า 5–10 วิ` });
+      else out.push({ lvl: "warn", t: (+l.km || 0) >= 15 ? "ความทนทานคือจุดที่ต้องพัฒนา: Long Run สม่ำเสมอ ฝึกเติมน้ำ/เจลทุก 30–40 นาที และใส่เพซแข่งช่วงท้าย Long Run" : "ช่วงท้ายแผ่ว: ลองออกตัวช้าลงเล็กน้อย และเพิ่ม Tempo ในตาราง" });
+    }
+    if (ls.partial) out.push({ lvl: "info", t: `รูปรอบมีถึง กม. ${ls.laps[ls.laps.length - 1].n} — ส่งภาพหน้ารอบที่เลื่อนลงมาเพิ่มด้วย จะวิเคราะห์ได้ละเอียดทุกกิโล` });
+    out.push({ lvl: "info", t: `รอบเร็วสุด กม. ${ls.fast.n} (${fmtPace(ls.fast.pace)}) · ช้าสุด กม. ${ls.slow.n} (${fmtPace(ls.slow.pace)})` });
+  }
+  if (l.walkSec && sec && l.walkSec / sec > 0.04) out.push({ lvl: l.walkSec / sec > 0.1 ? "warn" : "info", t: `เดินรวม ${fmtTime(l.walkSec)} (${Math.round(l.walkSec / sec * 100)}% ของเวลา) — ถ้าเดินเพราะขาตึงหรือตะคริว ให้เพิ่ม Long Run และซ้อมเติมเกลือแร่` });
+  if (l.hrAvg) {
+    const est = hrMaxEst(p), seen = Math.max(0, ...p.logs.map(x => +x.hrMax || 0)), mx = est ? Math.max(est, seen) : 0;
+    if (mx) {
+      const r = l.hrAvg / mx, z = r < 0.6 ? 1 : r < 0.7 ? 2 : r < 0.8 ? 3 : r < 0.9 ? 4 : 5;
+      const easyDay = l.type === "easy" || l.type === "long";
+      out.push({ lvl: easyDay && r > 0.8 ? "warn" : "info", t: `HR เฉลี่ย ${l.hrAvg} ≈ ${Math.round(r * 100)}% ของ HR สูงสุด${seen >= est ? "ที่เคยวัดได้" : "โดยประมาณ"} (${mx}) · โซน ${z}${easyDay && r > 0.8 ? " — สูงไปสำหรับวันเบา ลองชะลอให้อยู่โซน 2–3" : ""}${l.hrMax ? ` · สูงสุด ${l.hrMax}` : ""}` });
+    } else out.push({ lvl: "info", t: `HR เฉลี่ย ${l.hrAvg}${l.hrMax ? ` · สูงสุด ${l.hrMax}` : ""} — ใส่ปีเกิดในโปรไฟล์เพื่อดูโซนหัวใจ` });
+  }
 
   const ef = [];
   if (+l.segKm >= 2 && l.segTime) ef.push(vdot(+l.segKm, toSec(l.segTime)));
@@ -743,7 +806,19 @@ function showAnalysis(id) {
       <div class="box"><b>${r.pace ? fmtPace(r.pace) : "—"}</b><span class="tiny mut">นาที/กม.</span></div>
       <div class="box"><b>${l.rpe}</b><span class="tiny mut">RPE</span></div>
     </div>
+    ${l.hrAvg || l.bestPace || l.movingSec ? `<div class="grid4" style="margin:-4px 0 12px">
+      <div class="box"><b>${l.hrAvg || "—"}</b><span class="tiny mut">HR เฉลี่ย</span></div>
+      <div class="box"><b>${l.hrMax || "—"}</b><span class="tiny mut">HR สูงสุด</span></div>
+      <div class="box"><b>${l.bestPace ? fmtPace(l.bestPace) : "—"}</b><span class="tiny mut">เพซดีสุด</span></div>
+      <div class="box"><b>${l.movingSec ? fmtTime(l.movingSec) : "—"}</b><span class="tiny mut">เวลาเคลื่อนที่</span></div></div>` : ""}
+    ${(() => { const ls = lapStats(l); if (!ls) return ""; const mn = Math.min(...ls.laps.map(x => x.pace)), mx = Math.max(...ls.laps.map(x => x.pace)), lo = mn - 15, hi = mx + 5;
+      const hgt = pc => Math.round((hi - pc) / (hi - lo) * 100);
+      return `<div class="card" style="padding:12px 14px"><div class="row"><b class="small">เพซรายกิโล (${ls.laps.length} รอบ)</b><span class="tiny mut">เฉลี่ย ${fmtPace(ls.avg)}</span></div>
+        <div class="laps"><div class="avg" style="bottom:${hgt(ls.avg)}%"></div>${ls.laps.map(x => `<i class="${x.pace > ls.avg * 1.04 ? "slow" : x.pace < ls.avg * 0.97 ? "fast" : ""}" style="height:${Math.max(4, hgt(x.pace))}%" title="กม. ${x.n}: ${fmtPace(x.pace)}"></i>`).join("")}</div>
+        <div class="lapx">${ls.laps.map(x => `<span>${x.n === 1 || x.n % 5 === 0 ? x.n : ""}</span>`).join("")}</div>
+        <div class="legend" style="margin-top:6px"><span><i style="background:#7cc93a"></i>เร็วกว่าเฉลี่ย</span><span><i style="background:var(--pri)"></i>ใกล้เฉลี่ย</span><span><i style="background:#e0a33a"></i>ช้ากว่าเฉลี่ย</span></div></div>`; })()}
     <div class="card" style="padding:4px 14px">${r.insights.map(x => `<div class="ins ${x.lvl}"><i>${ico[x.lvl]}</i><div>${esc(x.t)}</div></div>`).join("")}</div>
+    ${l.src ? `<div class="tiny mut" style="margin:-6px 0 12px">ข้อมูลอ่านจาก${esc(l.src)}</div>` : ""}
     ${r.next ? `<div class="flabel">นัดถัดไป</div><div class="card" style="padding:6px 14px">${sessRow(r.next)}</div>` : ""}
     <div class="btns"><button class="btn" data-act="closeSheet">เยี่ยม!</button></div>`);
 }
@@ -1197,10 +1272,90 @@ function editSession(key) {
   });
 }
 
+/* ---------- อ่านผลจากภาพหน้าจอนาฬิกา (OCR ในเครื่อง ด้วย Tesseract.js) ---------- */
+const OCR_LIB = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+let ocrWorkerP = null;
+function loadScript(src) { return new Promise((ok, no) => { if (window.Tesseract) return ok(); const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = () => no(new Error("โหลดตัวอ่านภาพไม่สำเร็จ (ต้องต่อเน็ตครั้งแรก)")); document.head.appendChild(s); }); }
+async function getOcr(onProg) {
+  if (!ocrWorkerP) ocrWorkerP = (async () => { await loadScript(OCR_LIB); return Tesseract.createWorker(["tha", "eng"], 1, { logger: m => ocrWorkerP && ocrWorkerP.onProg && ocrWorkerP.onProg(m) }); })();
+  ocrWorkerP.onProg = onProg;
+  try { return await ocrWorkerP; } catch (e) { ocrWorkerP = null; throw e; }
+}
+function prepImage(file) {                     // ขาวดำ กลับสีถ้าพื้นมืด ขยาย และเพิ่มคอนทราสต์ ให้อ่านแม่นขึ้น
+  return new Promise((ok, no) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const W = Math.min(1400, Math.max(1000, img.width)), H = Math.round(img.height * W / img.width);
+      const c = document.createElement("canvas"); c.width = W; c.height = H;
+      const x = c.getContext("2d"); x.drawImage(img, 0, 0, W, H);
+      const d = x.getImageData(0, 0, W, H), a = d.data; let sum = 0, mn = 255, mx = 0;
+      for (let i = 0; i < a.length; i += 4) { const g = 0.299 * a[i] + 0.587 * a[i + 1] + 0.114 * a[i + 2]; a[i] = g; sum += g; }
+      const inv = sum / (a.length / 4) < 128;
+      for (let i = 0; i < a.length; i += 4) { let g = inv ? 255 - a[i] : a[i]; a[i] = g; if (g < mn) mn = g; if (g > mx) mx = g; }
+      const k = 255 / Math.max(1, mx - mn);
+      for (let i = 0; i < a.length; i += 4) { const g = (a[i] - mn) * k; a[i] = a[i + 1] = a[i + 2] = g; }
+      x.putImageData(d, 0, 0); URL.revokeObjectURL(url); ok(c);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); no(new Error("เปิดรูปไม่ได้")); };
+    img.src = url;
+  });
+}
+const TH_MON_KEY = ["มค", "กพ", "มีค", "เมย", "พค", "มิย", "กค", "สค", "กย", "ตค", "พย", "ธค"];
+const EN_MON = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+function parseRunText(texts) {
+  const r = { laps: [] }, lines = [];
+  texts.forEach(t => String(t).split(/\n/).forEach(x => {
+    x = x.replace(/[\[|!l]\s*km\b/gi, "/km").replace(/(\d)\s+([.,])\s*(\d)/g, "$1$2$3").replace(/\s+/g, " ").trim();
+    if (x) lines.push(x);
+  }));
+  const T3 = /\b(\d{1,2}):(\d{2}):(\d{2})\b/, T2 = /\b(\d{1,3}):(\d{2})\b/;
+  const t3 = s => { const m = s.match(T3); return m ? +m[1] * 3600 + +m[2] * 60 + +m[3] : 0; };
+  const tAny = s => t3(s) || (s.match(T2) ? +s.match(T2)[1] * 60 + +s.match(T2)[2] : 0);
+  const byLabel = (re, any) => { for (let i = 0; i < lines.length; i++) if (re.test(lines[i])) { const v = (any ? tAny : t3)(lines[i].replace(re, " ")); if (v) return v; const pv = i ? (any ? tAny : t3)(lines[i - 1]) : 0; if (pv) return pv; } return 0; };
+  // ระยะ
+  const kms = []; lines.forEach(s => { const re = /(\d{1,3}[.,]\d{1,2})\s*(?:กม\.?|km\b)(?!\s*\/\s*h)/gi; let m; while ((m = re.exec(s))) { const v = parseFloat(m[1].replace(",", ".")); if (v > 0.2 && v <= 300) kms.push(v); } });
+  if (kms.length) r.km = Math.max(...kms);
+  // เวลา
+  r.timeSec = byLabel(/เวลารวม|total time|^time\b|elapsed/i, true);
+  if (!r.timeSec) { const cnt = {}; lines.forEach(s => { const v = t3(s); if (v) cnt[v] = (cnt[v] || 0) + 1; }); const best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]; if (best) r.timeSec = +best[0]; }
+  r.movingSec = byLabel(/เวลาที่เคลื่อนไหว|moving time/i, true);
+  r.walkSec = byLabel(/เวลาเดิน|walk(ing)? time/i, true);
+  // หัวใจ
+  const hrs = []; lines.forEach(s => { const re = /(\d{2,3})\s*(?:bpm|ppm|opm|[๐-๙]{2}ท\S?)/gi; let m; const row = []; while ((m = re.exec(s))) { const v = +m[1]; if (v >= 60 && v <= 230) row.push(v); } if (row.length) hrs.push(row); });
+  if (hrs.length) { r.hrAvg = hrs[0][0]; const pair = hrs.find(x => x.length >= 2); if (pair && pair[1] > pair[0]) r.hrMax = pair[1]; }
+  lines.forEach((s, i) => { if (/สูงสุด|max/i.test(s) && /หัวใจ|heart|hr/i.test(s)) { const m = s.match(/(\d{2,3})\s*(?:bpm)?\s*$/i); if (m && +m[1] > (r.hrAvg || 0)) r.hrMax = +m[1]; } });
+  // เพซดีที่สุด
+  lines.forEach((s, i) => { if (/ดีที่สุด|best pace/i.test(s)) { const all = (s.match(/\d{1,2}:\d{2}\s*\/km/g) || []).concat(i && /ดีที่สุด/.test(s) && !/\d:\d{2}/.test(s) ? (lines[i - 1].match(/\d{1,2}:\d{2}\s*\/km/g) || []).slice(-1) : []); if (all.length && !r.bestPace) r.bestPace = tAny(all[all.length - 1]); } });
+  // รอบ (lap)
+  const seen = {};
+  lines.forEach(s => {
+    const m = s.match(/^(\d{1,2})\s+(\d{1,2}:\d{2}(?:[.,]\d)?|\d:\d{3})\s+(\d{1,2}[.,]\d{2})\s+(\d{1,2}):(\d{2})$/);
+    if (!m) return; const n = +m[1], d = parseFloat(m[3].replace(",", ".")), pace = +m[4] * 60 + +m[5];
+    if (d > 0 && d <= 10 && PACE_OK(pace) && !seen[n]) { seen[n] = 1; r.laps.push({ n, km: d, sec: Math.round(pace * d) }); }
+  });
+  r.laps.sort((a, b) => a.n - b.n);
+  // วันที่
+  for (const s of lines) {
+    let m = s.match(/(\d{1,2})\s*(ม\.?\s*ค|ก\.?\s*พ|มี\.?\s*ค|เม\.?\s*ย|พ\.?\s*ค|มิ\.?\s*ย|ก\.?\s*ค|ส\.?\s*ค|ก\.?\s*ย|ต\.?\s*ค|พ\.?\s*ย|ธ\.?\s*ค)\.?/), mon = -1, day = 0;
+    if (m) { mon = TH_MON_KEY.indexOf(m[2].replace(/[.\s]/g, "")); day = +m[1]; }
+    else if ((m = s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})\b/i))) { mon = EN_MON.indexOf(m[1].toLowerCase()); day = +m[2]; }
+    if (mon >= 0 && day >= 1 && day <= 31) { let y = +TODAY.slice(0, 4), dt = `${y}-${pad(mon + 1)}-${pad(day)}`; if (dt > TODAY) dt = `${y - 1}-${pad(mon + 1)}-${pad(day)}`; r.date = dt; break; }
+  }
+  if (!r.km && r.laps.length) r.km = Math.round(r.laps.reduce((t, l) => t + l.km, 0) * 100) / 100;
+  if (!r.timeSec && r.laps.length) r.timeSec = r.laps.reduce((t, l) => t + l.sec, 0);
+  return r;
+}
+const ocrSummary = r => [r.km ? `ระยะ <b>${(Math.round(r.km * 100) / 100).toLocaleString("th-TH")} กม.</b>` : "", r.timeSec ? `เวลา <b>${fmtTime(r.timeSec)}</b>` : "", r.km && r.timeSec ? `เพซ <b>${fmtPace(r.timeSec / r.km)}</b>` : "", r.hrAvg ? `HR <b>${r.hrAvg}${r.hrMax ? "/" + r.hrMax : ""}</b>` : "", r.walkSec ? `เดิน <b>${fmtTime(r.walkSec)}</b>` : "", r.laps.length ? `<b>${r.laps.length}</b> รอบ` : "", r.date ? `วันที่ <b>${thDate(r.date)}</b>` : ""].filter(Boolean).map(x => `<span class="chip" style="font-weight:500">${x}</span>`).join(" ");
+
 function openLog(key) {
   const p = P();
   const shoeOpts = `<option value="">—</option>` + p.shoes.filter(x => !x.retired).map(x => `<option value="${x.id}">${esc(shoeShort(x))}</option>`).join("");
   openSheet("ส่งผลซ้อม", `<form id="logForm" autocomplete="off">
+    <div class="ocr-card">
+      <div class="row" style="align-items:flex-start"><div><b>📷 ส่งเป็นภาพหน้าจอ</b><div class="tiny mut">Garmin, COROS, Strava ฯลฯ เลือกได้หลายรูป (ภาพรวม · สถิติ · รอบ) แอปอ่านค่าให้เอง</div></div>
+      <button type="button" class="btn sm" data-ocr-pick style="flex:none">เลือกรูป</button></div>
+      <div class="ocr-thumbs"></div><div class="ocr-status tiny"></div><div class="ocr-result"></div>
+    </div>
     <label class="f">วันที่<input type="date" name="date" required></label>
     <label class="f">ตรงกับนัดซ้อมไหน<select name="sessionKey"></select></label>
     <div class="grid2">
@@ -1209,6 +1364,7 @@ function openLog(key) {
       <label class="f">ระยะรวม (กม.)<input name="km" inputmode="decimal" placeholder="8"></label>
       <label class="f">เวลารวม<input name="time" inputmode="decimal" placeholder="48:30"></label>
     </div>
+    <div class="grid2"><label class="f">HR เฉลี่ย (ถ้ามี)<input name="hrAvg" inputmode="numeric" placeholder="150"></label><label class="f">HR สูงสุด (ถ้ามี)<input name="hrMax" inputmode="numeric" placeholder="175"></label></div>
     <details class="more"><summary>ช่วงเร็วต่อเนื่อง (ใช้วิเคราะห์และคำนวณ VO2max)</summary>
       <p class="tiny mut" style="margin:6px 0 10px">ใส่ท่อนที่วิ่งต่อเนื่อง ≥ 2 กม. เช่น Tempo 4 กม. หรือ 1 ท่อนของ 3×2 กม.</p>
       <div class="grid2"><label class="f">ระยะ (กม.)<input name="segKm" inputmode="decimal" placeholder="2"></label><label class="f">เวลา<input name="segTime" inputmode="decimal" placeholder="10:30"></label></div>
@@ -1230,6 +1386,36 @@ function openLog(key) {
     F.date.addEventListener("change", () => fill(F.date.value));
     F.sessionKey.addEventListener("change", apply);
     F.rpe.addEventListener("input", () => body.querySelector(".rpeOut").textContent = F.rpe.value);
+    let ocr = null;
+    body.querySelector("[data-ocr-pick]").addEventListener("click", () => {
+      const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
+      inp.onchange = async () => {
+        const files = [...inp.files].slice(0, 8); if (!files.length) return;
+        const st = body.querySelector(".ocr-status"), res = body.querySelector(".ocr-result"), th = body.querySelector(".ocr-thumbs");
+        th.innerHTML = files.map(f => `<img src="${URL.createObjectURL(f)}" alt="">`).join(""); res.innerHTML = "";
+        const btn = body.querySelector("[data-ocr-pick]"); btn.disabled = true;
+        try {
+          let cur = 0; const show = (pct, msg) => st.innerHTML = `<div class="bar"><i style="width:${Math.round(pct)}%"></i></div><div style="margin-top:4px">${msg}</div>`;
+          show(3, "กำลังเตรียมตัวอ่านภาพ… (ครั้งแรกโหลดประมาณ 5 MB)");
+          const w = await getOcr(m => { if (m.status === "recognizing text") show(10 + (cur + m.progress) / files.length * 88, `กำลังอ่านรูปที่ ${cur + 1}/${files.length}…`); else if (/load|init/.test(m.status)) show(3 + 7 * (m.progress || 0), "กำลังโหลดตัวอ่านภาพ…"); });
+          const texts = [];
+          for (cur = 0; cur < files.length; cur++) { const c = await prepImage(files[cur]); const { data } = await w.recognize(c); texts.push(data.text); }
+          ocr = parseRunText(texts);
+          if (!ocr.km && !ocr.timeSec && !ocr.laps.length) { st.innerHTML = ""; res.innerHTML = `<div class="note warn">อ่านค่าจากรูปไม่ได้ ลองใช้ภาพหน้าจอที่เห็นระยะและเวลาชัด ๆ หรือกรอกเองด้านล่าง</div>`; ocr = null; return; }
+          if (ocr.date && ocr.date !== F.date.value) { F.date.value = ocr.date; fill(ocr.date); }
+          if (ocr.km) F.km.value = ocr.km; if (ocr.timeSec) F.time.value = fmtTime(ocr.timeSec);
+          if (ocr.hrAvg) F.hrAvg.value = ocr.hrAvg; if (ocr.hrMax) F.hrMax.value = ocr.hrMax;
+          const rc = sortedRaces(p).find(x => x.date === F.date.value && ocr.km && Math.abs(ocr.km - x.km) / x.km < 0.06);
+          if (rc) F.type.value = "race";
+          else if (!F.sessionKey.value && ocr.km) F.type.value = ocr.km >= 14 ? "long" : "easy";
+          ["km", "time", "hrAvg", "hrMax", "date"].forEach(n => { if (F[n].value) F[n].classList.add("ocr-filled"); });
+          st.innerHTML = "";
+          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป · ตรวจค่าก่อนบันทึก</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>`;
+        } catch (err) { st.innerHTML = ""; res.innerHTML = `<div class="note bad">${esc(err.message || "อ่านภาพไม่สำเร็จ")} — กรอกเองด้านล่างได้</div>`; }
+        finally { btn.disabled = false; }
+      };
+      inp.click();
+    });
     form.addEventListener("submit", e => {
       e.preventDefault();
       const km = parseFloat(F.km.value) || 0;
@@ -1239,6 +1425,9 @@ function openLog(key) {
       if (F.segTime.value.trim() && (!sSec || (segKm && !PACE_OK(sSec / segKm)))) return toast("เวลาช่วงเร็วดูแปลก ๆ พิมพ์ เช่น 10:30");
       const l = { id: Date.now(), date: F.date.value, sessionKey: F.sessionKey.value || null, type: F.type.value, km, time: tSec ? fmtTime(tSec) : "",
         segKm, segTime: sSec ? fmtTime(sSec) : "", rpe: +F.rpe.value, pain: F.pain.checked, shoe: F.shoe.value, note: F.note.value.trim() };
+      const hA = parseInt(F.hrAvg.value), hM = parseInt(F.hrMax.value);
+      if (hA >= 60 && hA <= 230) l.hrAvg = hA; if (hM >= 60 && hM <= 230) l.hrMax = hM;
+      if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
       p.logs.push(l); save(); render();
       if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else showAnalysis(l.id);
     });

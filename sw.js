@@ -1,6 +1,6 @@
 // KAOWIN service worker — ทำให้ติดตั้งเป็นแอปได้ และเปิดได้แม้ไม่มีเน็ต
 // อัปเดตแอปแล้วอยากล้างแคชเก่า: เปลี่ยนเลขเวอร์ชันด้านล่าง
-const CACHE = "kaowin-v11";
+const CACHE = "kaowin-v12";
 const SHELL = ["./", "index.html", "manifest.json", "icon.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
