@@ -745,6 +745,56 @@ function fitness(p) {
   if (!m) return calc ? { ...calc, calcV: calc.v } : null;
   return { v: +m.value, best: { label: `VO2max ${m.source || "ใส่เอง"} (${thDate(m.date)})` }, longest: calc && calc.longest, efforts: calc ? calc.efforts : [], manual: m, calcV: calc ? calc.v : null };
 }
+/* ---------- คาดการณ์เวลาวันแข่งจริง ----------
+   1) ความเร็ว: VO2max (ใส่เอง/คำนวณ) → เวลาตามศักยภาพ
+   2) ความพร้อมความทนทาน: Long Run ไกลสุด + ระยะ/สัปดาห์ เทียบที่ระยะนั้นต้องการ → บวกเวลาเพิ่ม
+   3) หลักฐานจริง: ผลวิ่ง/แข่ง/PB ระยะใกล้เคียง (ถ่วงน้ำหนักตามความหนักและความใหม่)
+   4) ถึงวันแข่ง: ถ้าซ้อมตามแผน (คูณอัตราทำตามแผนจริง) ความเร็วและความทนทานจะดีขึ้น */
+const LONG_REQ = { "5": 8, "10": 14, "half": 18, "full": 30 };
+const PEN_MAX = { "5": 0.03, "10": 0.06, "half": 0.12, "full": 0.2 };
+function predictRace(p, race) {
+  const c = cat(race.km), lvl = { beginner: 0, intermediate: 1, advanced: 2 }[p.level] ?? 1;
+  const fit = fitness(p), runs = runLogs(p);
+  // ค่าจากนาฬิกามักสูงกว่าที่วิ่งได้จริง: ถ้ามีค่าคำนวณจากผลวิ่งด้วย ใช้ค่าเฉลี่ยของทั้งสอง
+  const V = fit ? (fit.manual && fit.calcV ? (fit.v + fit.calcV) / 2 : fit.v) : 0;
+  const weeks = Math.max(0, diffDays(TODAY, race.date) / 7);
+  // ความพร้อมตอนนี้
+  const rec = runs.filter(l => l.date >= addDays(TODAY, -42) && l.date <= TODAY);
+  let L = rec.reduce((m, l) => Math.max(m, +l.km || 0), 0), vol = sumKm(runs, addDays(TODAY, -27), TODAY) / 4;
+  if (!rec.length) { vol = +p.weeklyKm || 0; L = vol * 0.35; }
+  const volReq = PEAK_KM[c][lvl] * 0.75, ready = (l, v) => 0.6 * Math.min(1, l / LONG_REQ[c]) + 0.4 * Math.min(1, v / volReq);
+  // อัตราทำตามแผน 4 สัปดาห์ล่าสุด
+  const due = allSessions().filter(s => RUN_TYPES.includes(s.type) && s.date < TODAY && s.date >= addDays(TODAY, -28) && s.date >= (p.startedOn || ""));
+  const comp = due.length >= 3 ? due.filter(s => status(s) === "done").length / due.length : 0.85;
+  // แผนถึงวันแข่ง
+  const before = W.filter(w => w.end < race.date);
+  const Lplan = Math.max(0, ...before.flatMap(w => w.sessions.filter(s => s.type === "long").map(s => view(s).km || 0)));
+  const volPlan = Math.max(0, ...before.map(w => w.sessions.filter(s => RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0)));
+  const Lr = Lplan > L ? L + (Lplan - L) * comp : L, Vr = volPlan > vol ? vol + (volPlan - vol) * comp : vol;
+  const r0 = ready(L, vol), r1 = ready(Lr, Vr), pen0 = (1 - r0) * PEN_MAX[c], pen1 = (1 - r1) * PEN_MAX[c];
+  // หลักฐานจริงระยะใกล้เคียง
+  const ref = hrRef(p), ev = [];
+  runs.filter(l => l.date >= addDays(TODAY, -112) && +l.km >= race.km * 0.7 && toSec(l.time)).forEach(l => {
+    const hard = l.type === "race" || (l.hrAvg && ref && l.hrAvg / ref >= 0.85);
+    ev.push({ T: toSec(l.time) * Math.pow(race.km / +l.km, 1.06), w: l.type === "race" ? 1 : hard ? 0.9 : l.type === "long" ? 0.35 : 0.5, label: `${TYPE_LABEL[l.type]} ${fmtKm(+l.km)} กม. ${l.time} (${thDate(l.date)})` });
+  });
+  (p.pbs || []).filter(b => +b.km >= race.km * 0.7 && +b.time).forEach(b => {
+    const age = b.date ? diffDays(b.date, TODAY) : 999;
+    ev.push({ T: +b.time * Math.pow(race.km / +b.km, 1.06), w: age <= 180 ? 0.8 : age <= 365 ? 0.6 : 0.4, label: `PB ${distLabel(+b.km)} ${fmtTime(b.time)}` });
+  });
+  if (!V && !ev.length) return null;
+  const parts = [];
+  if (V) parts.push({ T: vdotTime(V, race.km) * (1 + pen0), w: ev.length ? 0.6 : 1 });
+  ev.forEach(e => parts.push(e));
+  const sw = parts.reduce((t, x) => t + x.w, 0), today = Math.exp(parts.reduce((t, x) => t + x.w * Math.log(x.T), 0) / sw);
+  // ถึงวันแข่ง
+  const gain = Math.min(lvl === 0 ? 3 : 2, (lvl === 0 ? 0.25 : 0.15) * weeks * comp);
+  const speedF = V ? vdotTime(V + gain, race.km) / vdotTime(V, race.km) : 1 - Math.min(0.04, 0.003 * weeks * comp);
+  const day = today * Math.max(lvl === 0 ? 0.9 : 0.93, speedF * (1 + pen1) / (1 + pen0));   // พัฒนาได้ไม่เกิน ~7–10% ในรอบเตรียมตัวเดียว
+  const spread = 0.015 + 0.03 / (1 + ev.length) + (weeks > 8 ? 0.01 : 0);
+  return { today, day, lo: day * (1 - spread), hi: day * (1 + spread), pot: V ? vdotTime(V, race.km) : 0, V, r0, r1, comp, weeks, ev, L, vol, Lplan, src: fit ? fit.best.label : "" };
+}
+const fmtTimeRound = s => fmtTime(Math.round(s / 30) * 30);
 function predict(p, race) {
   const ef = efforts(p, 42);
   if (!ef.length) { const m = manualVo2(p); if (!m) return null; const T = vdotTime(+m.value, race.km); return { near: { T, label: `VO2max ${m.source || "ใส่เอง"} ${(+m.value).toFixed(1)}`, date: m.date }, pot: { T, v: +m.value, label: "" } }; }
@@ -977,7 +1027,23 @@ function renderHome() {
   const fit = fitness(p);
 
   let predHtml;
-  if (pr) {
+  const rp = predictRace(p, nr);
+  if (rp) {
+    const gap = rp.day - nr.target, cls = gap <= 0 ? "" : gap < nr.target * 0.03 ? "warn" : "bad";
+    const pctBar = x => `<div class="bar" style="margin-top:4px"><i style="width:${Math.round(x * 100)}%"></i></div>`;
+    predHtml = `<div class="row" style="align-items:flex-start"><div><div class="mut small">คาดการณ์วันแข่ง ${esc(distLabel(nr.km))} · ${thDate(nr.date)}</div><div class="mid">${fmtTimeRound(rp.day)}</div>
+        <div class="small mut">ช่วงที่น่าจะทำได้ <b style="color:var(--ink)">${fmtTimeRound(rp.lo)} – ${fmtTimeRound(rp.hi)}</b> · เพซ ${fmtPace(rp.day / nr.km)}/กม.</div></div>
+      <span class="chip ${cls}">${gap <= 0 ? "ทันเป้า เหลือ " + fmtTime(-gap) : "ช้ากว่าเป้า " + fmtTime(gap)}</span></div>
+      <div class="tiny mut" style="margin-top:4px">ถ้าซ้อมตามแผนอีก ${Math.round(rp.weeks)} สัปดาห์ (ทำตามแผนได้ ${Math.round(rp.comp * 100)}%)</div>
+      <div class="grid2" style="margin-top:12px">
+        <div class="box" style="text-align:left"><span class="tiny mut">ถ้าแข่งวันนี้</span><b>${fmtTimeRound(rp.today)}</b><span class="tiny mut">จากความฟิตตอนนี้</span></div>
+        <div class="box" style="text-align:left"><span class="tiny mut">ศักยภาพความเร็ว</span><b>${rp.pot ? fmtTimeRound(rp.pot) : "—"}</b>${rp.V ? `<span class="tiny mut">VO2 ${rp.V.toFixed(1)}</span>` : ""}</div>
+      </div>
+      <div style="margin-top:12px"><div class="row small"><span>ความพร้อมด้านความทนทาน</span><b>${Math.round(rp.r0 * 100)}% → ${Math.round(rp.r1 * 100)}%</b></div>${pctBar(rp.r0)}
+        <div class="tiny mut" style="margin-top:4px">Long Run ไกลสุด 6 สัปดาห์ ${fmtKm(rp.L)} กม. (ควรถึง ${LONG_REQ[cat(nr.km)]}) · เฉลี่ย ${fmtKm(rp.vol)} กม./สัปดาห์${rp.Lplan ? ` · แผนพาไปถึง Long ${fmtKm(rp.Lplan)} กม.` : ""}</div></div>
+      ${rp.pot && rp.today - rp.pot > rp.pot * 0.06 ? `<div class="note info" style="margin-top:10px">ความเร็วพอสำหรับ ${fmtTimeRound(rp.pot)} แต่ความทนทานยังดึงเวลาไว้ ${fmtTime(rp.today - rp.pot)} — Long Run และการเติมพลังงานคือกุญแจ</div>` : ""}
+      <details class="more" style="margin:10px 0 0"><summary>คำนวณจากอะไร</summary><div class="tiny mut" style="margin-top:6px;line-height:1.7">${rp.V ? `• ความเร็ว: ${esc(rp.src)}${Math.abs(rp.V - (fitness(p).v || 0)) > 0.05 ? ` (เฉลี่ยกับค่าจากผลวิ่ง → ${rp.V.toFixed(1)})` : ""}<br>` : ""}${rp.ev.map(e => `• ${esc(e.label)}`).join("<br>")}${rp.ev.length ? "<br>" : ""}• ปรับตามความพร้อมความทนทานและอัตราทำตามแผน · ค่าประมาณ อากาศร้อน/เส้นทางมีผลได้อีก</div></details>`;
+  } else if (pr) {
     const gap = pr.near.T - nr.target, cls = gap <= 0 ? "" : gap < nr.target * 0.03 ? "warn" : "bad";
     const pg = pr.pot.T - nr.target;
     predHtml = `<div class="row"><div><div class="mut small">คาดการณ์ ${esc(distLabel(nr.km))} ${pr.near.label.startsWith("VO2max") ? "จาก VO2max" : "จากผลใกล้เคียง"}</div><div class="mid">${fmtTime(pr.near.T)}</div></div><span class="chip ${cls}">${gap <= 0 ? "เร็วกว่าเป้า " + fmtTime(-gap) : "ช้ากว่าเป้า " + fmtTime(gap)}</span></div>
