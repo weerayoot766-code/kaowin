@@ -80,6 +80,18 @@ h3{font-size:15px;margin:0 0 8px}
 .day b{display:block;font-size:15px} .day span{font-size:11px;color:var(--mut)}
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:6px;color:#fff;margin-right:6px;vertical-align:1px}
 .t-easy{background:var(--c-easy)} .t-long{background:var(--c-long)} .t-quality{background:var(--c-quality)} .t-race{background:var(--c-race)} .t-gym{background:var(--c-gym)} .t-rest{background:var(--c-rest)}
+.gym-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 12px}
+.gym-sum div{background:var(--soft2);border-radius:14px;padding:10px;text-align:center}.gym-sum b{display:block;font-size:22px;color:var(--ink)}.gym-sum span{font-size:12px;color:var(--mut)}
+.gym-step{background:#fff8ea;border:1px solid #f0dcae;border-radius:14px;padding:10px 12px;font-size:13.5px;margin:10px 0}
+.ex{display:flex;gap:12px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px;margin:10px 0}
+.ex-fig{flex:none;align-self:flex-start;width:112px;height:128px;background:linear-gradient(180deg,#f3faf5,#e4f2e9);border-radius:14px;display:flex;align-items:center;justify-content:center;padding:4px}
+.ex-fig svg{width:104px;height:auto}
+.ex-body{min-width:0;flex:1}.ex-name{font-weight:700;font-size:16px;line-height:1.3}.ex-name span{display:block;font-weight:500;font-size:12px;color:var(--mut)}
+.ex-dose{margin:6px 0;font-size:14px;color:var(--c-gym)}.ex-dose b{color:var(--c-gym)}
+.ex ul{margin:0 0 8px 16px;padding:0;font-size:12.5px;color:var(--mut);line-height:1.5}
+.ex-sets{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.setdot{width:34px;height:34px;border-radius:50%;border:2px solid var(--c-gym);background:#fff;color:var(--c-gym);font-weight:700;font-size:14px;cursor:pointer}
+.setdot.on{background:var(--c-gym);color:#fff}
 .sdesc{font-weight:500} .smeta{font-size:12.5px;color:var(--mut)}
 .st{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);background:#fff;color:var(--mut);font-size:14px}
 .st.done{background:var(--pri);border-color:var(--pri);color:#fff}
@@ -311,6 +323,78 @@ const GYM = {
   B:     "เวทขา B — Squat, Romanian Deadlift, Hip Thrust, Side Plank",
   light: "เวทเบา — Mobility + Calf Raise เบา ๆ"
 };
+
+
+// ===== ท่าเวท: เซต/ครั้ง/พัก + ภาพเคลื่อนไหว (ท่าทาง 2 จังหวะ วาดด้วยเส้น) =====
+// จุดข้อต่อ: h หัว, n คอ/ไหล่, hp สะโพก, kL/aL/tL เข่า-ข้อเท้า-ปลายเท้า (ขาใกล้), kR/aR/tR (ขาไกล), eL/wL eR/wR ศอก-มือ
+const POSE = {
+  split:  [{ h:[58,16],n:[58,28],hp:[60,60],kL:[50,84],aL:[44,108],tL:[34,110],kR:[70,84],aR:[80,104],tR:[86,110],eL:[56,44],wL:[58,58],eR:[60,44],wR:[62,58] },
+           { h:[61,34],n:[61,46],hp:[65,76],kL:[46,79],aL:[44,108],tL:[34,110],kR:[72,102],aR:[84,104],tR:[90,110],eL:[59,61],wL:[61,74],eR:[63,61],wR:[65,74] }],
+  stepup: [{ h:[54,17],n:[56,29],hp:[63,58],kL:[46,62],aL:[44,86],tL:[34,88],kR:[65,84],aR:[67,108],tR:[57,110],eL:[52,43],wL:[50,55],eR:[60,43],wR:[64,55] },
+           { h:[46,-3],n:[46,9],hp:[47,40],kL:[47,63],aL:[44,86],tL:[34,88],kR:[58,52],aR:[60,74],tR:[52,76],eL:[44,23],wL:[42,35],eR:[50,23],wR:[54,35] }],
+  calf:   [{ h:[60,17],n:[60,29],hp:[60,60],kL:[60,84],aL:[61,106],tL:[50,110],kR:[63,84],aR:[64,106],tR:[53,110],eL:[58,44],wL:[58,58],eR:[62,44],wR:[62,58] },
+           { h:[60,8],n:[60,20],hp:[60,51],kL:[60,75],aL:[58,97],tL:[50,110],kR:[63,75],aR:[61,97],tR:[53,110],eL:[58,35],wL:[58,49],eR:[62,35],wR:[62,49] }],
+  balance:[{ h:[60,16],n:[60,28],hp:[60,60],kL:[60,84],aL:[60,108],tL:[50,110],kR:[48,64],aR:[52,86],tR:[44,88],eL:[52,40],wL:[42,46],eR:[66,40],wR:[76,46] },
+           { h:[61,16],n:[61,28],hp:[60,60],kL:[60,84],aL:[60,108],tL:[50,110],kR:[46,62],aR:[50,84],tR:[42,86],eL:[53,38],wL:[43,42],eR:[67,38],wR:[77,42] }],
+  goblet: [{ h:[60,16],n:[60,28],hp:[61,60],kL:[60,84],aL:[61,108],tL:[51,110],kR:[63,84],aR:[64,108],tR:[54,110],eL:[54,44],wL:[54,34],eR:[56,44],wR:[56,34] },
+           { h:[56,40],n:[60,51],hp:[74,80],kL:[54,80],aL:[61,108],tL:[51,110],kR:[57,80],aR:[64,108],tR:[54,110],eL:[52,66],wL:[52,57],eR:[54,66],wR:[54,57] }],
+  rdl:    [{ h:[60,16],n:[60,28],hp:[62,60],kL:[62,84],aL:[62,108],tL:[52,110],kR:[64,84],aR:[64,108],tR:[54,110],eL:[59,44],wL:[59,60],eR:[61,44],wR:[61,60] },
+           { h:[31,48],n:[41,53],hp:[73,58],kL:[67,83],aL:[62,108],tL:[52,110],kR:[69,83],aR:[64,108],tR:[54,110],eL:[41,68],wL:[43,82],eR:[43,68],wR:[45,82] }],
+  bridge: [{ h:[18,102],n:[30,104],hp:[58,105],kL:[73,86],aL:[84,106],tL:[94,110],kR:[75,87],aR:[86,106],tR:[96,110],eL:[40,108],wL:[50,108],eR:[41,108],wR:[51,108] },
+           { h:[18,102],n:[30,103],hp:[58,84],kL:[77,82],aL:[84,106],tL:[94,110],kR:[79,83],aR:[86,106],tR:[96,110],eL:[40,108],wL:[50,108],eR:[41,108],wR:[51,108] }],
+  plank:  [{ h:[21,79],n:[30,87],hp:[64,96],kL:[82,101],aL:[99,106],tL:[103,110],kR:[82,99],aR:[99,103],tR:[104,106],eL:[30,108],wL:[42,108],eR:[33,72],wR:[35,58] },
+           { h:[21,77],n:[30,86],hp:[64,91],kL:[82,99],aL:[99,106],tL:[103,110],kR:[82,97],aR:[99,103],tR:[104,106],eL:[30,108],wL:[42,108],eR:[33,70],wR:[34,55] }],
+  swing:  [{ h:[60,16],n:[60,28],hp:[60,60],kL:[60,84],aL:[60,108],tL:[50,110],kR:[48,80],aR:[38,98],tR:[30,96],eL:[66,44],wL:[62,57],eR:[54,44],wR:[58,57] },
+           { h:[60,16],n:[60,28],hp:[60,60],kL:[60,84],aL:[60,108],tL:[50,110],kR:[70,82],aR:[80,100],tR:[76,106],eL:[66,44],wL:[62,57],eR:[54,44],wR:[58,57] }],
+  hipflex:[{ h:[66,38],n:[66,50],hp:[66,82],kL:[45,84],aL:[42,108],tL:[32,110],kR:[72,106],aR:[90,108],tR:[96,108],eL:[71,63],wL:[66,74],eR:[73,63],wR:[68,74] },
+           { h:[61,40],n:[62,52],hp:[60,85],kL:[42,84],aL:[42,108],tL:[32,110],kR:[71,106],aR:[90,108],tR:[96,108],eL:[67,65],wL:[61,76],eR:[69,65],wR:[63,76] }]
+};
+const PROP = {
+  stepup: `<rect x="22" y="88" width="34" height="22" rx="3" fill="#d9e9df" stroke="#9cbfab" stroke-width="2"/>`,
+  rdl: "db", goblet: "db"
+};
+const BONES = [["n","hp",0],["hp","kR",1],["kR","aR",1],["aR","tR",1],["n","eR",1],["eR","wR",1],["hp","kL",0],["kL","aL",0],["aL","tL",0],["n","eL",0],["eL","wL",0]];
+function figSVG(key, size = 120) {
+  const [A, B] = POSE[key], dur = key === "plank" || key === "balance" ? "3.2s" : "2.6s";
+  const an = (attr, a, b) => `<animate attributeName="${attr}" values="${a};${b};${b};${a};${a}" keyTimes="0;.4;.5;.9;1" dur="${dur}" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;0 0 1 1;.45 0 .55 1;0 0 1 1"/>`;
+  const line = ([p, q, far]) => `<line x1="${A[p][0]}" y1="${A[p][1]}" x2="${A[q][0]}" y2="${A[q][1]}" stroke="${far ? "#8fc4a6" : "#0d5a3c"}" stroke-width="${p === "n" && q === "hp" ? 9 : 6.5}" stroke-linecap="round">${an("x1", A[p][0], B[p][0])}${an("y1", A[p][1], B[p][1])}${an("x2", A[q][0], B[q][0])}${an("y2", A[q][1], B[q][1])}</line>`;
+  const db = PROP[key] === "db" ? ["wR", "wL"].map((w, i) => `<rect x="${A[w][0] - 6}" y="${A[w][1] - 3}" width="12" height="6" rx="2" fill="${i ? "#3d3d3d" : "#777"}">${an("x", A[w][0] - 6, B[w][0] - 6)}${an("y", A[w][1] - 3, B[w][1] - 3)}</rect>`).join("") : "";
+  return `<svg viewBox="0 -14 120 128" width="${size}" height="${size * 128 / 120}" role="img" aria-label="ภาพท่า"><line x1="4" y1="111" x2="116" y2="111" stroke="#cfe0d6" stroke-width="3" stroke-linecap="round"/>${PROP[key] && PROP[key] !== "db" ? PROP[key] : ""}${BONES.filter(b => b[2]).map(line).join("")}<circle cx="${A.h[0]}" cy="${A.h[1]}" r="8.5" fill="#0d5a3c">${an("cx", A.h[0], B.h[0])}${an("cy", A.h[1], B.h[1])}</circle>${BONES.filter(b => !b[2]).map(line).join("")}${db}</svg>`;
+}
+// ex: [ท่า(pose), ชื่อ, ชื่อไทย, เซต, ครั้ง/เวลา, วินาทีต่อเซต(ประมาณ), พัก(วิ), จุดสังเกต[], เพิ่มเซตตามระดับได้?]
+const EX = {
+  split:   ["split", "Split Squat", "สปลิทสควอท", 3, "8–10 ครั้ง/ข้าง", 60, 60, ["ยืนแยกขาหน้า-หลังกว้างประมาณ 1 ก้าวใหญ่", "ย่อตัวลงตรง ๆ จนเข่าหลังเกือบแตะพื้น", "เข่าหน้าชี้ตามปลายเท้า ลำตัวตั้งตรง", "ดันส้นเท้าหน้าขึ้น ครบแล้วสลับข้าง"], 1],
+  stepup:  ["stepup", "Step-up", "ก้าวขึ้นกล่อง/บันได", 3, "10 ครั้ง/ข้าง", 60, 60, ["ใช้กล่อง/ขั้นบันไดสูงประมาณเข่า", "วางเท้าเต็มฝ่าเท้าบนกล่อง ดันส้นเท้าขึ้น", "อย่าถีบขาหลังช่วย ยกเข่าอีกข้างขึ้นด้านบน", "ลงช้า ๆ คุมเข่าไม่ให้บิดเข้าใน"], 1],
+  calf:    ["calf", "Single-leg Calf Raise", "เขย่งน่องขาเดียว", 3, "15 ครั้ง/ข้าง", 50, 45, ["จับผนังเบา ๆ ยืนขาเดียว", "เขย่งสุดปลายเท้า ค้าง 1 วินาที", "ลดส้นลงช้า ๆ 2–3 วินาที", "ช่วยกันบาดเจ็บน่องและเอ็นร้อยหวาย"], 1],
+  balance: ["balance", "Single-leg Balance", "ยืนทรงตัวขาเดียว", 3, "30 วินาที/ข้าง", 60, 30, ["ยืนขาเดียว ยกเข่าอีกข้างขึ้น", "เกร็งหน้าท้อง สะโพกเสมอกัน", "ง่ายไปให้หลับตา หรือยืนบนหมอน", "ช่วยข้อเท้าและการลงเท้าตอนวิ่ง"], 0],
+  goblet:  ["goblet", "Goblet Squat", "สควอทถือดัมเบลหน้าอก", 3, "10 ครั้ง", 40, 90, ["ถือดัมเบล/ขวดน้ำชิดหน้าอก ยืนกว้างเท่าไหล่", "นั่งลงเหมือนนั่งเก้าอี้ จนต้นขาขนานพื้น", "หลังตรง ส้นเท้าติดพื้น เข่าตามปลายเท้า", "ดันพื้นยืนขึ้น ขมิบก้นด้านบน"], 1],
+  rdl:     ["rdl", "Romanian Deadlift", "โรมาเนียนเดดลิฟต์", 3, "10 ครั้ง", 40, 90, ["ถือดัมเบลสองมือ เข่างอเล็กน้อย", "พับสะโพกไปด้านหลัง หลังตรงตลอด", "ลดดัมเบลเลียดขาจนตึงหลังต้นขา", "ดันสะโพกกลับมายืนตรง ไม่แอ่นหลัง"], 1],
+  bridge:  ["bridge", "Hip Thrust / Glute Bridge", "ยกสะโพก", 3, "12 ครั้ง", 40, 60, ["นอนหงาย ชันเข่า เท้าห่างเท่าสะโพก", "ดันส้นเท้า ยกสะโพกจนลำตัวเป็นเส้นตรง", "ขมิบก้นค้าง 2 วินาทีด้านบน", "อยากหนักขึ้น: วางน้ำหนักบนสะโพก หรือทำขาเดียว"], 1],
+  plank:   ["plank", "Side Plank", "แพลงก์ด้านข้าง", 3, "30 วินาที/ข้าง", 60, 30, ["ตั้งศอกใต้ไหล่ ขาเหยียดซ้อนกัน", "ยกสะโพกขึ้นให้ตัวเป็นเส้นตรง", "อย่าให้สะโพกตก หายใจปกติ", "ง่ายลง: วางเข่าล่างบนพื้น"], 0],
+  swing:   ["swing", "Leg Swing", "แกว่งขา", 2, "10 ครั้ง/ข้าง", 30, 20, ["จับผนังหรือเก้าอี้ ยืนขาเดียว", "แกว่งขาหน้า-หลังสบาย ๆ ไม่ฝืน", "ค่อย ๆ เพิ่มระยะการแกว่ง", "คลายสะโพกก่อน/หลังวิ่ง"], 0],
+  bridgeL: ["bridge", "Glute Bridge", "ยกสะโพก (เบา)", 2, "12 ครั้ง", 40, 45, ["นอนหงาย ชันเข่า", "ยกสะโพกขึ้น ค้าง 2 วินาที", "ลงช้า ๆ ไม่ใช้น้ำหนักเพิ่ม"], 0],
+  calfL:   ["calf", "Calf Raise", "เขย่งน่อง (สองขา)", 2, "15 ครั้ง", 40, 30, ["ยืนสองขา เขย่งขึ้น-ลงช้า ๆ", "เน้นคุมจังหวะ ไม่ต้องหนัก"], 0],
+  hipflex: ["hipflex", "Hip Flexor Stretch", "ยืดสะโพกด้านหน้า", 2, "30 วินาที/ข้าง", 60, 15, ["คุกเข่าข้างหนึ่ง อีกขาก้าวไปด้านหน้า", "ขมิบก้น ดันสะโพกไปข้างหน้าเบา ๆ", "รู้สึกตึงหน้าสะโพกขาที่คุกเข่า", "ช่วยคลายสะโพกที่ตึงจากการวิ่ง"], 0]
+};
+const GYM_PLAN = { A: ["split", "stepup", "calf", "balance"], B: ["goblet", "rdl", "bridge", "plank"], light: ["swing", "bridgeL", "calfL", "hipflex"] };
+const gymKeyOf = d => d === GYM.A || /^เวทขา A/.test(d) ? "A" : d === GYM.B || /^เวทขา B/.test(d) ? "B" : d === GYM.light || /^เวทเบา/.test(d) ? "light" : "";
+function gymHtml(s, detail) {
+  const k = gymKeyOf(detail); if (!k) return "";
+  const p = P(), lvl = { beginner: -1, intermediate: 0, advanced: 1 }[p.level] ?? 0, done = (p.gymDone || {})[s.key] || {};
+  const list = GYM_PLAN[k].map(id => { const e = EX[id]; return { id, e, sets: Math.max(2, e[3] + (e[8] ? lvl : 0)) }; });
+  const mins = Math.round((list.reduce((t, x) => t + x.sets * (x.e[5] + x.e[6]), 0)) / 60) + (k === "light" ? 3 : 10);
+  return `<div class="gym-sum"><div><b>${mins}</b><span>นาที (รวมวอร์ม)</span></div><div><b>${list.length}</b><span>ท่า</span></div><div><b>${list.reduce((t, x) => t + x.sets, 0)}</b><span>เซตรวม</span></div></div>
+    <div class="gym-step">🔥 <b>วอร์มอัพ ${k === "light" ? 2 : 5} นาที</b> — เดินเร็ว/วิ่งเหยาะอยู่กับที่ + แกว่งขา หมุนสะโพก</div>
+    ${list.map((x, i) => { const e = x.e, n = Math.min(done[i] || 0, x.sets); return `<div class="ex">
+      <div class="ex-fig">${figSVG(e[0])}</div>
+      <div class="ex-body"><div class="ex-name">${i + 1}. ${e[2]}<span>${e[1]}</span></div>
+        <div class="ex-dose"><b>${x.sets} เซต</b> × ${e[4]} · พัก ${e[6] >= 60 ? (e[6] / 60) + " นาที" : e[6] + " วิ"}</div>
+        <ul>${e[7].map(c => `<li>${c}</li>`).join("")}</ul>
+        <div class="ex-sets">${Array.from({ length: x.sets }, (_, j) => `<button type="button" class="setdot ${j < n ? "on" : ""}" data-act="gymSet" data-key="${s.key}" data-i="${i}" data-j="${j}">${j < n ? "✓" : j + 1}</button>`).join("")}<span class="tiny mut">แตะเมื่อเล่นจบแต่ละเซต</span></div>
+      </div></div>`; }).join("")}
+    <div class="gym-step">🧘 <b>คูลดาวน์ ${k === "light" ? 3 : 5} นาที</b> — ยืดน่อง ต้นขาหน้า-หลัง สะโพก ค้างท่าละ 30 วินาที</div>
+    <p class="tiny mut" style="margin:8px 2px 12px">${lvl < 0 ? "ระดับเริ่มต้น: ลดเซตแล้ว เน้นท่าถูกก่อนเพิ่มน้ำหนัก" : "น้ำหนัก: เลือกให้ 2 ครั้งสุดท้ายของเซตเริ่มหนัก แต่ท่ายังถูก"} · ถ้าเจ็บแปลบ ๆ ให้หยุดท่านั้น · วันก่อน Quality/Long ให้เบาลง</p>`;
+}
 
 // เทมเพลตชาเลนจ์
 const CHALLENGE_TEMPLATES = [
@@ -1423,6 +1507,7 @@ function openSession(key) {
       ${v.pace ? `<tr><td class="mut">เพซ</td><td class="num">${v.pace} /กม.</td></tr>` : ""}
       ${RUN_TYPES.includes(s.type) ? `<tr><td class="mut">รองเท้า</td><td class="num">${sh ? `<span style="display:inline-flex;align-items:center;gap:8px">${sh.photo ? `<img src="${sh.photo}" alt="" style="width:44px;height:33px;object-fit:cover;border-radius:7px">` : ""}${esc(shoeName(sh))}</span>` : "ยังไม่ได้เลือก"}</td></tr>` : ""}
     </table>
+    ${s.type === "gym" && v.type === "gym" ? gymHtml(s, v.detail) : ""}
     ${logs.length ? `<div class="flabel">ผลที่ส่งแล้ว</div><div class="card" style="padding:4px 14px">${logs.map(l => `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow small">${fmtKm(+l.km)} กม. ${esc(l.time)} · RPE ${l.rpe}</div><span class="linkbtn">ดูวิเคราะห์ ›</span></div>`).join("")}</div>` : ""}
     <div class="btns">
       ${s.type !== "rest" ? `<button class="btn" data-act="openLog" data-key="${s.key}">ส่งผลซ้อม</button>` : ""}
@@ -1918,6 +2003,11 @@ document.addEventListener("click", e => {
   if (act === "installHide") { try { localStorage.setItem("kaowin.installHide", "1"); } catch (e) {} render(); toast("ติดตั้งได้ภายหลังที่แท็บ “ฉัน”"); }
   if (act === "openLog") openLog(el.dataset.key);
   if (act === "session") openSession(el.dataset.key);
+  if (act === "gymSet") { const k = el.dataset.key, i = +el.dataset.i, j = +el.dataset.j; p.gymDone = p.gymDone || {}; const d = p.gymDone[k] = p.gymDone[k] || {};
+    d[i] = (d[i] || 0) === j + 1 ? j : j + 1; save();
+    el.parentElement.querySelectorAll(".setdot").forEach((b, x) => { b.classList.toggle("on", x < d[i]); b.textContent = x < d[i] ? "✓" : x + 1; });
+    const all = [...document.querySelectorAll("#sheetBody .ex")].every(ex => [...ex.querySelectorAll(".setdot")].every(b => b.classList.contains("on")));
+    if (all) toast("ครบทุกเซตแล้ว เก่งมาก! 💪 กด “ส่งผลซ้อม” เพื่อบันทึก"); return; }
   if (act === "analysis") showAnalysis(id);
   if (act === "editSession") editSession(el.dataset.key);
   if (act === "resetSession") { delete p.overrides[el.dataset.date]; save(); closeSheet(); render(); }
