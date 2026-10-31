@@ -164,6 +164,43 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .foodgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.foodgrid div{border-radius:12px;padding:10px;font-size:12.5px;line-height:1.55;background:#f5fbf5;border:1px solid var(--line)}.foodgrid div:last-child{background:#fff8ea;border-color:#f0dcae}.foodgrid b{display:block;font-size:13.5px;margin-bottom:4px}.kb ul,.kb ol{margin:0 0 6px 18px;padding:0;font-size:13.5px;line-height:1.6}
 .callbtn{display:flex;align-items:center;justify-content:center;gap:8px;background:#e2453c;color:#fff!important;text-decoration:none;border-radius:14px;padding:12px;font-weight:800;font-size:16px;margin:12px 0 4px}
 .kbgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}.kbgrid button{border:1px solid var(--line);border-radius:12px;padding:9px 10px;font:inherit;font-size:12.5px;text-align:left;background:#fff;cursor:pointer;color:var(--ink)}.kbgrid button.red{border-left:4px solid #e2453c}.kbgrid button.amber{border-left:4px solid #e0a83a}.kbgrid button.green{border-left:4px solid #3aa06a}
+.cx-hero{position:relative;overflow:hidden;border-radius:24px;padding:16px 16px 14px;color:#fff;cursor:pointer;background:radial-gradient(120% 140% at 100% 0%,#1f8a5b 0%,#0d5a3c 45%,#073826 100%);box-shadow:0 18px 40px rgba(7,56,38,.3);margin-bottom:14px}
+.cx-hero:after{content:"";position:absolute;inset:-40% -30% auto auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(200,245,96,.22),transparent 65%);pointer-events:none}
+.cx-lbl{font-size:11.5px;letter-spacing:.06em;opacity:.8;font-weight:700}
+.cx-row{display:flex;gap:14px;align-items:center;margin-top:10px;position:relative;z-index:1}
+.cx-ring{flex:none;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#c8f560 calc(var(--p)*1%),rgba(255,255,255,.14) 0);position:relative}
+.cx-ring:before{content:"";position:absolute;inset:8px;border-radius:50%;background:#0b4d34}.cx-ring b{position:relative;font-family:Outfit,sans-serif;font-size:26px;line-height:1}.cx-ring span{position:absolute;bottom:20px;font-size:10px;opacity:.7}
+.cx-info{flex:1;min-width:0}.cx-info .t{font-weight:800;font-size:16.5px;line-height:1.25}.cx-info .s{font-size:12.5px;opacity:.82;margin-top:3px}
+.cx-pill{display:inline-flex;align-items:baseline;gap:4px;margin-top:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 12px;font-size:12.5px}.cx-pill b{font-family:Outfit,sans-serif;font-size:20px;color:#c8f560}
+.cx-up{color:#c8f560;font-weight:700;font-size:12px;margin-left:6px}
+.cx-mini{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 10px;border-radius:14px;background:rgba(255,255,255,.08);position:relative;z-index:1;font-size:12.5px}.cx-mini b{color:#c8f560}
+.cx-bar{flex:1;height:6px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}.cx-bar i{display:block;height:100%;background:#c8f560;border-radius:4px}
+.cx-foot{display:flex;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;position:relative;z-index:1}
+.cx-promo{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 14px;padding:12px 14px;border:0;border-radius:18px;color:#fff;font:inherit;cursor:pointer;background:linear-gradient(120deg,#0d5a3c,#1f8a5b);box-shadow:0 10px 24px rgba(7,56,38,.25)}
+.cx-sech{display:flex;justify-content:space-between;align-items:baseline;margin:6px 2px 10px}.cx-sech h2{margin:0}.cx-sech span{font-size:12px;color:var(--mut)}
+.cx-lob{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cx-lc{position:relative;overflow:hidden;border-radius:20px;padding:14px 12px 12px;color:#fff;min-height:150px;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.12);cursor:pointer}
+.cx-em{font-size:30px}.cx-n{font-weight:800;font-size:15px;line-height:1.25;margin-top:6px}.cx-m{font-size:11.5px;opacity:.85;margin-top:2px}
+.cx-ft{margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding-top:10px}
+.cx-av{display:flex}.cx-av i{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.9);margin-left:-6px;display:grid;place-items:center;font-style:normal;font-size:9px;color:#333;font-weight:700}.cx-av i:first-child{margin-left:0}
+.cx-jbtn{background:#fff;color:#0d5a3c;font:inherit;font-weight:800;font-size:12.5px;border-radius:999px;padding:6px 12px;border:0;cursor:pointer}.cx-jbtn.on{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4)}
+.cx-g1{background:linear-gradient(150deg,#1f8a5b,#0b4d34)}.cx-g2{background:linear-gradient(150deg,#3b7dd8,#1d3f8a)}.cx-g3{background:linear-gradient(150deg,#f08a3c,#c2410c)}.cx-g4{background:linear-gradient(150deg,#8a6a3a,#4a3418)}
+.cx-podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:8px 0 0}
+.cx-pd{text-align:center;flex:1;min-width:0}.cx-pd .ava{width:50px;height:50px;border-radius:50%;margin:0 auto;display:grid;place-items:center;font-weight:800;color:#fff;font-size:18px;border:3px solid #fff;box-shadow:0 6px 14px rgba(0,0,0,.15)}
+.cx-pd .nm{font-weight:700;font-size:13px;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cx-pd .v{font-family:Outfit,sans-serif;font-weight:800;font-size:14px;color:#0d5a3c}
+.cx-pd .blk{margin-top:6px;border-radius:12px 12px 4px 4px;color:#fff;font-family:Outfit,sans-serif;font-weight:800;font-size:22px;display:grid;place-items:center}
+.cx-pd.p1 .blk{height:74px;background:linear-gradient(180deg,#f4c430,#c99a10)}.cx-pd.p2 .blk{height:54px;background:linear-gradient(180deg,#cfd8dc,#90a4ae)}.cx-pd.p3 .blk{height:42px;background:linear-gradient(180deg,#e0a370,#b8733e)}
+.cx-filt{display:flex;gap:6px;margin:0 0 10px;overflow:auto}.cx-filt button{white-space:nowrap;padding:6px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink)}.cx-filt button.on{background:#0d5a3c;color:#fff;border-color:#0d5a3c}
+.cx-lb{background:#fff;border-radius:18px;border:1px solid var(--line);overflow:hidden;margin-top:10px}
+.cx-lr{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid #eef3ef;font-size:13.5px}.cx-lr:first-child{border-top:0}
+.cx-lr .no{width:26px;text-align:center;font-family:Outfit,sans-serif;font-weight:800;color:#7a8a80}.cx-lr .a{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px;flex:none}
+.cx-lr .nm{flex:1;min-width:0}.cx-lr .nm small{display:block;color:var(--mut);font-size:11px}.cx-lr .bv{width:64px;height:5px;border-radius:3px;background:#e7efe9;overflow:hidden;flex:none}.cx-lr .bv i{display:block;height:100%;background:#1f8a5b}
+.cx-lr .kv{min-width:50px;text-align:right;font-family:Outfit,sans-serif;font-weight:800}
+.cx-lr.me{background:linear-gradient(90deg,#effae0,#fff);box-shadow:inset 4px 0 0 #8fd14f}
+.cx-gap{text-align:center;color:#a5b3aa;font-size:12px;padding:2px 0;border-top:1px solid #eef3ef}
+.cx-mebar{position:sticky;bottom:0;margin:10px 0 0;border-radius:18px;background:#0d5a3c;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 -6px 20px rgba(0,0,0,.15)}
+.cx-mebar .no{font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:#c8f560}.cx-mebar small{opacity:.8}
+.cx-an{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}.cx-an div{background:linear-gradient(90deg,#0d5a3c,#1f8a5b);color:#fff;border-radius:12px;padding:8px 12px;font-size:13px;cursor:pointer}
 .achpop{position:fixed;inset:0;z-index:60;background:rgba(10,40,26,.55);display:flex;align-items:center;justify-content:center;padding:18px;animation:fadein .25s}
 .achpop.out{opacity:0;transition:opacity .25s}
 .achcard{position:relative;background:#fff;border-radius:26px;padding:20px 18px 16px;width:100%;max-width:400px;max-height:88vh;overflow:auto;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:popin .45s cubic-bezier(.2,1.4,.4,1)}
@@ -1423,11 +1460,166 @@ document.addEventListener("scroll", e => {
   const i = Math.round(s.scrollLeft / s.clientWidth), dots = s.nextElementSibling; if (dots) [...dots.children].forEach((d, k) => d.classList.toggle("on", k === i));
 }, true);
 
+
+/* ---------- ชาเลนจ์ออนไลน์ (ห้องประจำเดือน) — Cloudflare Worker ---------- */
+const CH_API = "https://kaowin-challenge.weerayoot766.workers.dev";   // URL ของ Worker หลังตั้งค่า เช่น https://kaowin-challenge.xxx.workers.dev
+const CROOMS = [
+  { k: "km100",    em: "🏃", name: "100 กม.", full: "100 กม. ในเดือนนี้", sub: "ระยะสะสม · เป้า 100 กม.", unit: "กม.", target: 100, g: "cx-g1" },
+  { k: "runs12",   em: "📅", name: "วิ่ง 12 ครั้ง", full: "วิ่ง 12 ครั้งในเดือนนี้", sub: "ความสม่ำเสมอ · เป้า 12 ครั้ง", unit: "ครั้ง", target: 12, g: "cx-g2" },
+  { k: "longest",  em: "🌅", name: "วิ่งไกลสุดครั้งเดียว", full: "วิ่งไกลสุดครั้งเดียว", sub: "ใครไกลสุดชนะ", unit: "กม.", target: 0, g: "cx-g3" },
+  { k: "vert2000", em: "⛰️", name: "ไต่สะสม 2,000 ม.", full: "ไต่สะสม 2,000 ม.", sub: "สายเทรล · เป้า 2,000 ม.", unit: "ม.", target: 2000, g: "cx-g4" }
+];
+const curMonth = () => TODAY.slice(0, 7);
+const monthTH = m => TH_MON_FULL[+m.slice(5, 7) - 1];
+const roomDef = room => CROOMS.find(r => r.k === String(room).split(":")[1]);
+const monthLeft = () => { const [y, m] = curMonth().split("-").map(Number); return diffDays(TODAY, ds(new Date(y, m, 0))) + 1; };
+function roomVal(p, room, exceptId) {
+  const [m, k] = room.split(":"), L = runLogs(p).filter(l => l.date.slice(0, 7) === m && l.id !== exceptId);
+  if (k === "km100") return Math.round(L.reduce((t, l) => t + (+l.km || 0), 0) * 100) / 100;
+  if (k === "runs12") return L.filter(l => +l.km >= 1).length;
+  if (k === "longest") return L.reduce((x, l) => Math.max(x, +l.km || 0), 0);
+  if (k === "vert2000") return L.reduce((t, l) => t + (+l.dplus || 0), 0);
+  return 0;
+}
+const fmtRoom = (room, v) => { const d = roomDef(room); return d && d.unit === "ครั้ง" ? String(v) : d && d.unit === "ม." ? fmtVert(v) : fmtKm(v); };
+const rnd = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("");
+function chIdent(p) { if (!p.chId) { p.chId = { uid: rnd(16), key: rnd(32) }; save(); } return p.chId; }
+const agCode = p => { const a = ageGroup(p, { km: 21, date: TODAY }); return a && a.g ? (a.g[1] === Infinity ? a.g[0] + "+" : a.g[0] === 0 ? String(a.g[1]) : a.g[0] + "-" + a.g[1]) : ""; };
+const agText = c => !c ? "" : /\+$/.test(c) ? c.replace("+", "+") : /-/.test(c) ? c.replace("-", "–") : "≤" + c;
+async function chApi(path, body) {
+  if (!CH_API) throw new Error("ระบบชาเลนจ์ออนไลน์ยังไม่เปิด");
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 12000);
+  try {
+    const r = await fetch(CH_API.replace(/\/$/, "") + path, body ? { method: "POST", body: JSON.stringify(body), signal: ctl.signal } : { signal: ctl.signal });
+    const j = await r.json(); if (!j.ok) throw new Error(j.error || "error"); return j;
+  } finally { clearTimeout(t); }
+}
+const joinedRooms = (p, month) => Object.keys(p.chJoined || {}).filter(r => !month || r.startsWith(month + ":"));
+let chBusy = false;
+async function chSync(p, opt = {}) {
+  if (!CH_API || chBusy || !navigator.onLine) return;
+  const mine = joinedRooms(p).filter(r => r.slice(0, 7) >= addDays(curMonth() + "-01", -1).slice(0, 7));
+  chBusy = true;
+  try {
+    const id = chIdent(p);
+    if (mine.length) await chApi("/submit", { uid: id.uid, key: id.key, entries: mine.map(room => ({ room, value: roomVal(p, room) })) });
+    p.chCache = p.chCache || {}; p.chRank = p.chRank || {};
+    for (const room of mine.filter(r => r.startsWith(curMonth()))) {
+      const b = await chApi(`/board?room=${encodeURIComponent(room)}&uid=${id.uid}`);
+      const old = p.chCache[room];
+      p.chCache[room] = { at: Date.now(), rank: b.me ? b.me.rank : 0, total: b.total, prevRank: old ? old.rank : 0 };
+      const rh = p.chRank[room] = p.chRank[room] || {};
+      if (rh.d !== TODAY) { rh.y = rh.r || 0; rh.d = TODAY; } rh.r = p.chCache[room].rank;
+    }
+    if (opt.lobby !== false) { const L = await chApi(`/rooms?month=${curMonth()}`); p.chLobby = { month: curMonth(), at: Date.now(), rooms: L.rooms }; }
+    save();
+    if (tab === "home" || tab === "challenge") { const y = window.scrollY; render(); window.scrollTo(0, y); }
+    if (opt.after) opt.after();
+  } catch (e) { console.warn("[KAOWIN] challenge sync", e.message); }
+  finally { chBusy = false; }
+}
+const rankDelta = (p, room) => { const rh = (p.chRank || {})[room]; return rh && rh.y && rh.r ? rh.y - rh.r : 0; };
+function chHeroHtml(p, title) {
+  const rooms = joinedRooms(p, curMonth()); if (!rooms.length) return "";
+  const main = rooms.map(r => ({ r, d: roomDef(r) })).sort((a, b) => (b.d.target ? 1 : 0) - (a.d.target ? 1 : 0))[0], R = main.r, d = main.d;
+  const v = roomVal(p, R), c = (p.chCache || {})[R] || {}, pct = d.target ? Math.min(100, Math.round(v / d.target * 100)) : 0, left = monthLeft(), dl = rankDelta(p, R);
+  const need = d.target ? Math.max(0, d.target - v) : 0;
+  const others = rooms.filter(r => r !== R).map(r => { const dd = roomDef(r), vv = roomVal(p, r), cc = (p.chCache || {})[r] || {};
+    return `<div class="cx-mini"><span>${dd.em}</span><span style="flex:none">${dd.name}</span><span class="cx-bar"><i style="width:${dd.target ? Math.min(100, vv / dd.target * 100) : 100}%"></i></span><b>${fmtRoom(r, vv)}${dd.target ? "/" + fmtRoom(r, dd.target) : " " + dd.unit}</b>${cc.rank ? `<span style="opacity:.75">#${cc.rank}</span>` : ""}</div>`; }).join("");
+  return `<div class="cx-hero" data-act="chBoard" data-id="${R}"><div class="cx-lbl">🏆 ${title} · เหลือ ${left} วัน</div>
+    <div class="cx-row">${d.target ? `<div class="cx-ring" style="--p:${pct}"><b>${pct}%</b><span>ของเป้า</span></div>` : `<div class="cx-ring" style="--p:100"><b style="font-size:20px">${fmtRoom(R, v)}</b><span>${d.unit}</span></div>`}
+      <div class="cx-info"><div class="t">${d.full.replace("ในเดือนนี้", "")} · ${monthTH(R)}</div><div class="s">${d.target ? `${fmtRoom(R, v)} / ${fmtRoom(R, d.target)} ${d.unit}${need ? ` · อีก ${fmtRoom(R, need)} ${d.unit}${d.unit === "กม." ? ` ≈ วันละ ${fmtKm(need / left)} กม.` : ""}` : " · ทำครบเป้าแล้ว ✅"}` : `ไกลสุดเดือนนี้ ${fmtKm(v)} กม.`}</div>
+        ${c.rank ? `<div class="cx-pill">อันดับ <b>${c.rank}</b> / ${c.total}${dl > 0 ? `<span class="cx-up">▲ ${dl}</span>` : dl < 0 ? `<span class="cx-up" style="color:#ffb4a8">▼ ${-dl}</span>` : ""}</div>` : `<div class="cx-pill">${CH_API ? "กำลังโหลดอันดับ…" : "ออฟไลน์"}</div>`}</div></div>
+    ${others}<div class="cx-foot"><span>${p.sex && birthCE(p) ? `รุ่น${p.sex === "m" ? "ชาย" : "หญิง"} ${agText(agCode(p))}` : "แตะเพื่อดูตารางอันดับ"}</span><span>ดูตาราง ›</span></div></div>`;
+}
+function chHomeHtml(p) {
+  if (!CH_API) return "";
+  const h = chHeroHtml(p, "ชาเลนจ์ของฉัน"); if (h) return h;
+  const L = p.chLobby && p.chLobby.month === curMonth() ? p.chLobby.rooms : null, n = L ? Object.values(L).reduce((t, r) => t + r.n, 0) : 0;
+  return `<button class="cx-promo" data-act="goChallenge"><span style="font-size:22px">🔥</span><span style="flex:1;text-align:left"><b>ชาเลนจ์เดือน${monthTH(curMonth())}</b><br><span class="tiny">${n ? `${n} คนกำลังวิ่งอยู่ · ` : ""}กดเข้าร่วมได้เลย ฟรี</span></span><span>›</span></button>`;
+}
+function chLobbyHtml(p) {
+  if (!CH_API) return `<div class="card" style="text-align:center"><div style="font-size:30px">🔥</div><b>ชาเลนจ์ออนไลน์กำลังจะเปิด</b><div class="tiny mut">ห้องประจำเดือนที่ทุกคนเข้าร่วมได้ด้วยปุ่มเดียว</div></div>`;
+  const m = curMonth(), L = p.chLobby && p.chLobby.month === m ? p.chLobby.rooms : {};
+  const av = names => (names || []).slice(0, 3).map((n, i) => `<i style="background:${["#e8f5ec", "#e3edfa", "#fde9dc"][i]}">${esc(String(n).slice(0, 1))}</i>`).join("");
+  return `<div class="cx-sech"><h2>🔥 ชาเลนจ์เดือน${monthTH(m)}</h2><span>เหลือ ${monthLeft()} วัน</span></div>
+    <div class="cx-lob">${CROOMS.map(r => { const room = m + ":" + r.k, j = !!(p.chJoined || {})[room], info = L[r.k] || { n: 0, names: [] };
+      return `<div class="cx-lc ${r.g}" data-act="${j ? "chBoard" : "chJoin"}" data-id="${room}"><div class="cx-em">${r.em}</div><div class="cx-n">${r.full.replace(" ในเดือนนี้", "<br>ในเดือนนี้").replace("ครั้งในเดือนนี้", "ครั้ง<br>ในเดือนนี้")}</div><div class="cx-m">${r.sub}</div>
+        <div class="cx-ft"><div class="cx-av">${av(info.names)}</div><button class="cx-jbtn ${j ? "on" : ""}" data-act="${j ? "chBoard" : "chJoin"}" data-id="${room}">${j ? "✓ เข้าแล้ว" : "เข้าร่วม"}</button></div><div class="cx-m" style="margin-top:4px">${info.n ? info.n.toLocaleString("th-TH") + " คน" : "เป็นคนแรก!"}</div></div>`; }).join("")}</div>
+    ${chHeroHtml(p, "ห้องที่เข้าร่วม") ? `<div style="height:14px"></div>${chHeroHtml(p, "ห้องที่เข้าร่วม")}` : ""}
+    <div class="tiny mut" style="text-align:center;margin:8px 0 18px">ส่งขึ้นตารางแค่ชื่อเล่น + ยอดรวมของห้อง ไม่ส่งเวลา เพซ หัวใจ หรือข้อมูลสุขภาพ</div>`;
+}
+function chJoinSheet(room) {
+  const p = P(), d = roomDef(room), canAg = !!(p.sex && birthCE(p));
+  openSheet(`${d.em} เข้าร่วม ${d.full}`, `<form id="cjForm">
+    <p class="small mut" style="margin-top:0">${d.sub} · เดือน${monthTH(room)} · ยอดคิดจากผลซ้อมที่ส่งในเดือนนี้อัตโนมัติ (รวมที่ส่งไปแล้ว)</p>
+    <label class="f">ชื่อที่จะแสดงในตาราง<input name="name" maxlength="20" value="${esc(p.chName || p.name || "")}" required></label>
+    <label class="inline"><input type="checkbox" name="showAg" ${canAg ? "checked" : "disabled"}> แสดงเพศและรุ่นอายุ (${canAg ? `${p.sex === "m" ? "ชาย" : "หญิง"} ${agText(agCode(p))}` : "ใส่เพศ/ปีเกิดในแท็บ ฉัน ก่อน"}) เพื่อจัดอันดับในรุ่น</label>
+    <div class="note info" style="margin:10px 0">ส่งขึ้นไปแค่ชื่อเล่น${canAg ? " เพศ รุ่นอายุ" : ""} และยอดรวมของห้องนี้ ออกจากห้องได้ทุกเมื่อ ยอดจะถูกลบ</div>
+    <button class="btn block" type="submit">เข้าร่วมเลย</button></form>`, body => {
+    body.querySelector("#cjForm").addEventListener("submit", async e => {
+      e.preventDefault(); const F = e.target.elements, btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "กำลังเข้าร่วม…";
+      try {
+        const id = chIdent(p), name = F.name.value.trim().slice(0, 20) || "นักวิ่ง", sh = F.showAg.checked;
+        await chApi("/join", { uid: id.uid, key: id.key, room, name, sex: sh ? p.sex : "", ag: sh ? agCode(p) : "" });
+        p.chName = name; p.chJoined = p.chJoined || {}; p.chJoined[room] = { at: TODAY, showAg: sh }; save(); track("challenge-join");
+        closeSheet(); toast("เข้าร่วมแล้ว! 🎉"); render(); chSync(p, { after: () => chBoardSheet(room) });
+      } catch (err) { btn.disabled = false; btn.textContent = "เข้าร่วมเลย"; toast(err.message === "name" ? "ชื่อนี้ใช้ไม่ได้ ลองชื่ออื่น" : "เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง"); }
+    });
+  });
+}
+const AVC = ["#1f8a5b", "#3b7dd8", "#f08a3c", "#8a6a3a", "#c9497a", "#6a5acd", "#2f8a86"];
+const avc = s => AVC[[...String(s)].reduce((t, c) => t + c.charCodeAt(0), 0) % AVC.length];
+async function chBoardSheet(room, f = "all") {
+  const p = P(), d = roomDef(room), id = chIdent(p), admin = (() => { try { return localStorage.getItem("kaowin.admin") || ""; } catch (e) { return ""; } })();
+  const canAg = (p.chJoined || {})[room] && p.chJoined[room].showAg;
+  const chips = [["all", "ทั้งหมด"], ["m", "ชาย"], ["f", "หญิง"]].concat(canAg ? [["ag", `รุ่น${p.sex === "m" ? "ชาย" : "หญิง"} ${agText(agCode(p))}`]] : []);
+  const head = `<div class="cx-filt">${chips.map(([k, l]) => `<button class="${k === f ? "on" : ""}" data-chf="${k}">${l}</button>`).join("")}</div>`;
+  openSheet(`${d.em} ${d.full.replace("ในเดือนนี้", "")} · ${monthTH(room)}`, head + `<div class="mut small" style="text-align:center;padding:30px">กำลังโหลดตารางอันดับ…</div>`);
+  const bind = () => document.querySelectorAll("#sheetBody [data-chf]").forEach(b => b.addEventListener("click", () => chBoardSheet(room, b.dataset.chf)));
+  bind();
+  let b; try { b = await chApi(`/board?room=${encodeURIComponent(room)}&uid=${id.uid}&f=${f}`); } catch (e) { $("#sheetBody").innerHTML = head + `<div class="note warn">โหลดตารางไม่ได้ — ${esc(e.message)}</div>`; bind(); return; }
+  const unit = d.unit, tgt = d.target, all = [...b.top], ids = new Set(all.map(r => r.rank));
+  const row = r => `<div class="cx-lr ${r.me ? "me" : ""}"><span class="no">${r.rank}</span><span class="a" style="background:${avc(r.name)}">${esc(String(r.name).slice(0, 1))}</span><span class="nm"><b>${esc(r.name)}${r.me ? " (คุณ)" : ""}</b><small>${r.sex ? (r.sex === "m" ? "ชาย" : "หญิง") + " " : ""}${agText(r.ag)}${tgt && r.value >= tgt ? " · ✅ ครบเป้า" : ""}</small></span>${tgt ? `<span class="bv"><i style="width:${Math.min(100, r.value / tgt * 100)}%"></i></span>` : ""}<span class="kv">${fmtRoom(room, r.value)}</span>${admin && !r.me ? `<button class="del" data-adm="${r.id}">✕</button>` : ""}</div>`;
+  const pod = b.top.slice(0, 3), podH = pod.length ? `<div class="cx-podium">${[1, 0, 2].filter(i => pod[i]).map(i => { const r = pod[i]; return `<div class="cx-pd p${i + 1}">${i === 0 ? '<div style="font-size:20px">👑</div>' : ""}<div class="ava" style="background:${avc(r.name)}${i === 0 ? ";width:60px;height:60px" : ""}">${esc(String(r.name).slice(0, 1))}</div><div class="nm">${esc(r.name)}${r.me ? " (คุณ)" : ""}</div><div class="v">${fmtRoom(room, r.value)} ${unit}</div><div class="blk">${i + 1}</div></div>`; }).join("")}</div>` : `<div class="mut small" style="text-align:center;padding:20px">ยังไม่มีใครในกลุ่มนี้</div>`;
+  const rest = b.top.slice(3).map(row).join(""), extra = b.around.filter(r => !ids.has(r.rank));
+  const me = b.me && b.me.inFilter ? b.me : null, ahead = me && b.around.concat(b.top).find(r => r.rank === me.rank - 1);
+  const meBar = me ? `<div class="cx-mebar"><span class="no">#${me.rank}</span><span style="flex:1"><b>${esc(p.chName || p.name)}</b> · ${fmtRoom(room, me.value)} ${unit} <small>จาก ${b.total} คน</small><br><small>${me.rank === 1 ? "อยู่อันดับ 1! รักษาไว้นะ 🔥" : ahead ? (ahead.value - me.value <= 0 ? `ยอดเท่ากับ ${esc(ahead.name)} — อีกนิดเดียวแซงได้!` : `ตามหลัง ${esc(ahead.name)} ${fmtRoom(room, ahead.value - me.value)} ${unit}${ahead.value - me.value <= Math.max(1, me.value * 0.1) ? " — อีกนิดแซงได้!" : " — สู้ต่อ!"}`) : ""}</small></span>${rankDelta(p, room) > 0 && f === "all" ? `<span>▲ ${rankDelta(p, room)}</span>` : ""}</div>` : "";
+  $("#sheetBody").innerHTML = head + `<div class="card" style="padding:12px 10px 0">${podH}</div>${rest || extra.length ? `<div class="cx-lb">${rest}${extra.length ? `<div class="cx-gap">···</div>${extra.map(row).join("")}` : ""}</div>` : ""}
+    ${b.needAg ? `<div class="note info">เข้าห้องโดยเลือก "แสดงเพศและรุ่นอายุ" เพื่อดูอันดับในรุ่น</div>` : ""}
+    <div class="row" style="justify-content:space-between;margin:12px 2px"><span class="tiny mut">อัปเดตทุกครั้งที่ส่งผลซ้อม · ${b.total} คน</span>${(p.chJoined || {})[room] ? `<button class="linkbtn" data-chleave="${room}" style="color:var(--mut);font-size:12px">ออกจากห้อง</button>` : ""}</div>${meBar}`;
+  bind();
+  document.querySelectorAll("#sheetBody [data-adm]").forEach(x => x.addEventListener("click", async () => { if (!confirm("ลบชื่อนี้ออกจากห้อง?")) return; try { await chApi("/admin/remove", { admin, room, id: x.dataset.adm }); chBoardSheet(room, f); } catch (e) { toast("ลบไม่ได้: " + e.message); } }));
+  const lv = document.querySelector("#sheetBody [data-chleave]");
+  if (lv) lv.addEventListener("click", async () => { if (!confirm("ออกจากห้องนี้? ยอดของคุณในตารางจะถูกลบ")) return;
+    try { await chApi("/leave", { uid: id.uid, key: id.key, room }); delete p.chJoined[room]; if (p.chCache) delete p.chCache[room]; save(); closeSheet(); render(); toast("ออกจากห้องแล้ว"); } catch (e) { toast("ทำไม่ได้ตอนนี้ ลองใหม่"); } });
+}
+function chAnalysisHtml(p, l) {
+  const rooms = joinedRooms(p, l.date.slice(0, 7)); if (!rooms.length || !RUN_TYPES.includes(l.type)) return "";
+  return `<div class="cx-an">${rooms.map(room => { const d = roomDef(room), v1 = roomVal(p, room), v0 = roomVal(p, room, l.id), c = (p.chCache || {})[room] || {};
+    if (v1 === v0) return ""; const add = d.k === "longest" ? `ไกลสุดใหม่ ${fmtKm(v1)} กม.` : `+${fmtRoom(room, v1 - v0)} ${d.unit}`;
+    return `<div data-act="chBoard" data-id="${room}">${d.em} <b>${add}</b> เข้าห้อง ${d.full.replace(" ในเดือนนี้", "").replace("ในเดือนนี้", "")}${d.target ? ` → ${Math.min(100, Math.round(v1 / d.target * 100))}%` : ""}<span class="cx-rk" data-room="${room}">${c.rank ? ` · อันดับ #${c.rank}` : ""}</span>${d.target && v0 < d.target && v1 >= d.target ? " · ครบเป้าแล้ว! 🎉" : ""}</div>`; }).join("")}</div>`;
+}
+function chMonthEnd(p) {
+  const done = p.chDone = p.chDone || {}, out = [];
+  joinedRooms(p).filter(r => r.slice(0, 7) < curMonth() && !done[r]).forEach(room => {
+    const d = roomDef(room), v = roomVal(p, room), c = (p.chCache || {})[room] || {}; done[room] = 1;
+    if (d.target ? v >= d.target : c.rank && c.rank <= 3) {
+      const k = "ch-" + room; p.badges = p.badges || [];
+      if (!p.badges.some(b => b.k === k)) { const a = { k, kind: "plan", medal: d.target ? "✓" : "#" + c.rank, title: `Finisher ชาเลนจ์ ${d.name} · ${monthTH(room)}`, sub: d.target ? `ทำได้ ${fmtRoom(room, v)} ${d.unit} จากเป้า ${fmtRoom(room, d.target)}` : `จบอันดับ ${c.rank} ของห้อง` };
+        p.badges.push({ ...a, d: TODAY }); out.push(a); }
+    }
+  });
+  if (Object.keys(done).length) save();
+  return out;
+}
+
 function showAnalysis(id) {
   const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
   const r = analyzeLog(p, l), sec = toSec(l.time);
   const ico = { ok: "✓", warn: "!", bad: "!", info: "i", gold: "★" };
   openSheet(`ผลซ้อม ${TH_DAY[dow(l.date)]} ${thDate(l.date)}`, `
+    ${chAnalysisHtml(p, l)}
     ${(l.ach || []).length ? `<div class="achmini">${l.ach.map(a => `<span>${medalSVG(a.kind, a.medal, 26)}${esc(a.title)}</span>`).join("")}</div>` : ""}
     ${r.pbNew ? `<div class="celebrate"><div style="font-size:34px">🏆</div><div class="mid">PB ใหม่ ${esc(distLabel(r.pbNew.km))}!</div><div class="small mut">${fmtTime(r.pbNew.sec)}${r.pbNew.old ? ` · เร็วขึ้น ${fmtTime(r.pbNew.old - r.pbNew.sec)}` : ""}</div></div>` : ""}
     <div class="grid4" style="margin-bottom:12px">
@@ -1546,7 +1738,7 @@ function renderHome() {
   const weekKm = w ? w.sessions.filter(s => RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0) : 0;
   const weekGot = w ? sumKm(runLogs(p), w.start, w.end) : 0;
   const vertGot = w ? runLogs(p).filter(l => l.date >= w.start && l.date <= w.end).reduce((t, l) => t + (+l.dplus || 0), 0) : 0;
-  return installBanner() + tipBarHtml(p) + `
+  return installBanner() + tipBarHtml(p) + chHomeHtml(p) + `
   <div class="card hero">
     <div class="row"><span><span class="chip pink">${esc(raceShort(nr))}</span> <span class="chip">${PRIO[prioOf(p, nr)].icon} ${PRIO[prioOf(p, nr)].label}</span>${agChip(p, nr) ? ` <span class="chip ag">🏅 ${esc(agChip(p, nr))}</span>` : ""}</span><span class="tiny mut">${thDateY(nr.date)}</span></div>
     <div style="font-weight:600;margin-top:8px">${esc(nr.name)}</div>
@@ -1685,7 +1877,8 @@ function chBoard(ch) {
 const chFmt = (ch, v) => ch.type === "runs" || ch.type === "days" ? String(v) : fmtKm(v);
 const chState = ch => TODAY < ch.start ? "upcoming" : TODAY > ch.end ? "ended" : "active";
 const chOrder = { active: 0, upcoming: 1, ended: 2 };
-function renderChallenges() {
+function renderChallenges() { return chLobbyHtml(P()) + `<div style="margin-top:6px"></div>` + renderLocalChallenges().replace("<h2 style=\"margin:0\">ชาเลนจ์กลุ่ม</h2>", "<h2 style=\"margin:0\">ชาเลนจ์ในเครื่อง</h2>"); }
+function renderLocalChallenges() {
   const list = [...(DB.challenges || [])].sort((a, b) => chOrder[chState(a)] - chOrder[chState(b)] || a.end.localeCompare(b.end));
   const cards = list.map(ch => {
     const st = chState(ch), board = chBoard(ch), top = Math.max(ch.target || 0, board[0] ? board[0].value : 0, 1), u = CH_TYPES[ch.type].unit;
@@ -1867,7 +2060,7 @@ function renderProfile() {
   <div class="card" style="text-align:center;padding:14px"><img src="${LOGO_WORDMARK}" alt="KAOWIN" style="height:30px">${sloganHtml()}</div>
   <h2>นักวิ่ง & ข้อมูล</h2>
   <div class="card">
-    <div class="small mut" style="margin-bottom:10px">ข้อมูลทุกคนเก็บในเบราว์เซอร์เครื่องนี้ Export เพื่อสำรองหรือย้ายเครื่อง<br><span class="tiny">🔒 แอปนับจำนวนผู้ใช้แบบไม่ระบุตัวตนด้วย Cloudflare Web Analytics — ไม่ใช้คุกกี้ ไม่ส่งชื่อ ข้อมูลการวิ่ง หรือข้อมูลสุขภาพออกจากเครื่อง</span></div>
+    <div class="small mut" style="margin-bottom:10px">ข้อมูลทุกคนเก็บในเบราว์เซอร์เครื่องนี้ Export เพื่อสำรองหรือย้ายเครื่อง<br><span class="tiny">🔒 แอปนับจำนวนผู้ใช้แบบไม่ระบุตัวตนด้วย Cloudflare Web Analytics — ไม่ใช้คุกกี้ ไม่ส่งชื่อ ข้อมูลการวิ่ง หรือข้อมูลสุขภาพออกจากเครื่อง · ถ้าเข้าร่วมชาเลนจ์ออนไลน์ จะส่งเฉพาะชื่อเล่น (เพศ/รุ่น ถ้าเลือก) และยอดรวมของห้อง</span></div>
     <div class="btns">
       ${isStandalone() ? `<div class="note" style="margin:0">✓ ติดตั้งเป็นแอปแล้ว · ใช้งานออฟไลน์ได้</div>` : `<button class="btn" data-act="install">📲 ติดตั้งแอปลงหน้าจอโฮม</button>`}
       <button class="btn ghost" data-act="profiles">สลับ / เพิ่มนักวิ่ง</button>
@@ -2214,6 +2407,8 @@ function openLog(key) {
       if (ach.length) { p.badges = p.badges || []; ach.forEach(a => { if (!p.badges.some(x => x.k === a.k)) p.badges.push({ k: a.k, kind: a.kind, medal: String(a.medal), title: a.title, d: l.date, logId: l.id }); }); l.ach = ach; }
       save();
       if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else { showAnalysis(l.id); if (ach.length) setTimeout(() => showAch(ach, l), 300); }
+      if (joinedRooms(p, l.date.slice(0, 7)).length) { const before = Object.fromEntries(joinedRooms(p).map(r => [r, ((p.chCache || {})[r] || {}).rank || 0]));
+        chSync(p, { lobby: false, after: () => document.querySelectorAll(".cx-rk").forEach(s => { const r = s.dataset.room, n = ((p.chCache || {})[r] || {}).rank, o = before[r]; if (n) s.textContent = o && o !== n ? ` · อันดับ ${o} → ${n}${n < o ? " 🎉" : ""}` : ` · อันดับ #${n}`; }) }); }
     });
   });
 }
@@ -2459,6 +2654,9 @@ document.addEventListener("click", e => {
   if (act === "openLog") openLog(el.dataset.key);
   if (act === "session") openSession(el.dataset.key);
   if (act === "tip") openTip(id);
+  if (act === "chJoin") { e.stopPropagation(); chJoinSheet(id); return; }
+  if (act === "chBoard") { e.stopPropagation(); chBoardSheet(id); return; }
+  if (act === "goChallenge") { tab = "challenge"; render(); window.scrollTo(0, 0); chSync(P()); }
   if (act === "gymSet") { const k = el.dataset.key, i = +el.dataset.i, j = +el.dataset.j; p.gymDone = p.gymDone || {}; const d = p.gymDone[k] = p.gymDone[k] || {};
     d[i] = (d[i] || 0) === j + 1 ? j : j + 1; save();
     el.parentElement.querySelectorAll(".setdot").forEach((b, x) => { b.classList.toggle("on", x < d[i]); b.textContent = x < d[i] ? "✓" : x + 1; });
@@ -2588,6 +2786,8 @@ function track(name) {
   setTimeout(() => { try { history.pushState(null, "", base + "e/" + name); setTimeout(() => history.replaceState(null, "", back), 400); } catch (e) {} }, 2500);
 }
 if (isStandalone()) track("installed");
+try { const m = location.hash.match(/admin=([^&]+)/); if (m) { localStorage.setItem("kaowin.admin", decodeURIComponent(m[1])); history.replaceState(null, "", location.pathname); } } catch (e) {}
+setTimeout(() => { const p = P(); const me = chMonthEnd(p); if (me.length) showAch(me, null); if (CH_API) chSync(p); }, 1200);
 if (DB.profiles.some(p => p.onboarded)) track("active-user");
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f662baf1b4ed4b46bbe43eb84d5cdf6d"}'></script><!-- End Cloudflare Web Analytics -->
