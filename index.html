@@ -154,6 +154,17 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .tabs button.on{color:var(--pri-d);font-weight:700}
 .tabs svg{width:22px;height:22px}
 /* sheet + forms */
+.achpop{position:fixed;inset:0;z-index:60;background:rgba(10,40,26,.55);display:flex;align-items:center;justify-content:center;padding:18px;animation:fadein .25s}
+.achpop.out{opacity:0;transition:opacity .25s}
+.achcard{position:relative;background:#fff;border-radius:26px;padding:20px 18px 16px;width:100%;max-width:400px;max-height:88vh;overflow:auto;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:popin .45s cubic-bezier(.2,1.4,.4,1)}
+.achhead{font-size:26px;font-weight:800;color:var(--forest,#0d5a3c);margin-bottom:6px}
+.achmedals{display:flex;justify-content:center;align-items:flex-end;gap:6px;margin:4px 0 10px}.achmedals .m{animation:medal .7s cubic-bezier(.2,1.5,.4,1) both}
+.achrow{background:#f5fbf5;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0;text-align:left}.achrow b{display:block;font-size:16px}.achrow span{font-size:13px;color:var(--mut)}
+.conf{position:fixed;inset:0;pointer-events:none;overflow:hidden}.conf i{position:absolute;top:-20px;width:9px;height:14px;border-radius:2px;opacity:.9;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg)}}@keyframes popin{from{transform:scale(.7);opacity:0}}@keyframes medal{from{transform:translateY(30px) scale(.3) rotate(-25deg);opacity:0}}@keyframes fadein{from{opacity:0}}
+.achmini{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.achmini span{display:inline-flex;align-items:center;gap:4px;background:#fbf6e2;border:1px solid #efe2b0;border-radius:999px;padding:2px 10px 2px 4px;font-size:12.5px;font-weight:600}
+.finrow{display:flex;flex-wrap:wrap;gap:6px}.finrow div{display:flex;flex-direction:column;align-items:center;font-size:11px;font-weight:700;width:58px}.finrow .lock{filter:grayscale(1);opacity:.35}
+@media (prefers-reduced-motion:reduce){.conf{display:none}.achcard,.achmedals .m{animation:none}}
 .sheet{position:fixed;inset:0;z-index:20;background:rgba(20,40,26,.35);display:flex;align-items:flex-end;justify-content:center}
 .sheet.hidden{display:none}
 .panel{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom))}
@@ -1185,11 +1196,96 @@ const diffHtml = d => `<div class="card diffcard"><div class="row"><b class="sma
   ${d.changes.length ? d.changes.map(c => `<div class="diffrow"><span class="dd">${TH_DAY[c.day]} ${thDate(c.date)}</span><span><s>${esc(c.from)}</s><br><b>→ ${esc(c.to)}</b></span></div>`).join("") : `<div class="small mut" style="margin-top:6px">แผนเดิม เดินหน้าต่อได้เลย 👍</div>`}
   ${d.reasons.length ? `<div class="tiny mut" style="margin-top:8px">${d.reasons.map(esc).join("<br>")}</div>` : ""}</div>`;
 
+
+/* ---------- ป้าย / เหรียญ หลังส่งผลซ้อม ---------- */
+const FIN = [{ km: 5, lb: "5K" }, { km: 10, lb: "10K" }, { km: 21.0975, lb: "21.1K" }, { km: 42.195, lb: "42.195K" }, { km: 50, lb: "50K" }, { km: 100, lb: "100K" }, { km: 160, lb: "100 ไมล์" }];
+const KM_MS = [50, 100, 250, 500, 1000, 2000, 3000, 5000, 10000], RUN_MS = [10, 25, 50, 100, 200, 300, 500, 1000];
+const MEDAL = { fin: ["#f4c430", "#b8860b"], pb: ["#ffd75e", "#c9497a"], rec: ["#7fd6a4", "#0d5a3c"], ms: ["#8ec5ff", "#2b5d8a"], plan: ["#c8f560", "#0d5a3c"], shoe: ["#f0c8a0", "#8a6a3a"] };
+function medalSVG(kind, text, size = 74) {
+  const [c1, c2] = MEDAL[kind] || MEDAL.rec, fs = String(text).length > 5 ? 13 : String(text).length > 3 ? 16 : 20;
+  return `<svg viewBox="0 0 80 96" width="${size}" height="${size * 1.2}" aria-hidden="true"><path d="M22 0h14l8 26-14 4zM58 0H44l-8 26 14 4z" fill="${c2}"/><path d="M29 0h6l7 24-6 2zM51 0h-6l-7 24 6 2z" fill="#fff" opacity=".35"/>
+    <circle cx="40" cy="58" r="32" fill="${c2}"/><circle cx="40" cy="58" r="27" fill="${c1}"/><circle cx="40" cy="58" r="22" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="3 3"/>
+    <text x="40" y="${58 + fs * 0.36}" text-anchor="middle" font-family="Outfit,IBM Plex Sans Thai,sans-serif" font-weight="800" font-size="${fs}" fill="#123">${esc(text)}</text></svg>`;
+}
+function achievementsFor(p, l) {
+  if (!RUN_TYPES.includes(l.type) || !(+l.km > 0)) return [];
+  const prev = runLogs(p).filter(x => x !== l && x.id !== l.id), out = [], km = +l.km, sec = toSec(l.time);
+  const add = (k, kind, medal, title, sub) => out.push({ k, kind, medal, title, sub });
+  // Finisher
+  if (l.type === "race") {
+    const f = [...FIN].reverse().find(f => km >= f.km * 0.97 && km <= f.km * 1.12) || [...FIN].reverse().find(f => km >= f.km * 0.97);
+    if (f) { const first = !prev.some(x => x.type === "race" && +x.km >= f.km * 0.97);
+      add("fin-race-" + l.id, "fin", f.lb, `Finisher ${f.lb}${steepLog(l) ? " เทรล" : ""}! 🏅`, `${first ? "จบงานแข่งระยะนี้ครั้งแรก — " : ""}${sec ? "เวลา " + fmtTime(sec) + " · " : ""}เก่งมาก ภูมิใจในตัวเองได้เลย`); }
+  } else {
+    const f = [...FIN].reverse().find(f => km >= f.km * 0.98 && !prev.some(x => +x.km >= f.km * 0.98));
+    if (f) add("fin-" + f.lb, "fin", f.lb, `ปลดล็อกระยะ ${f.lb}!`, `วิ่งครบ ${f.lb} ในครั้งเดียวเป็นครั้งแรก${sec ? " ใช้เวลา " + fmtTime(sec) : ""}`);
+  }
+  // PB (คิดก่อนแอปอัปเดต PB)
+  if (l.type === "race" && sec && !steepLog(l)) {
+    const std = DISTS.find(d => sameDist(km, d.km)), old = std && (p.pbs || []).find(b => sameDist(+b.km, std.km));
+    if (std && old && sec < +old.time) add("pb-" + l.id, "pb", "PB", `PB ใหม่ ${distLabel(std.km)}! 🏆`, `${fmtTime(sec)} · เร็วขึ้น ${fmtTime(+old.time - sec)}`);
+  }
+  if (prev.length >= 3) {
+    const maxKm = Math.max(...prev.map(x => +x.km || 0));
+    if (km > maxKm + 0.05 && !out.some(a => a.kind === "fin" && a.k.startsWith("fin-") && !a.k.startsWith("fin-race"))) add("far-" + l.id, "rec", "ไกลสุด", "ไกลที่สุดตั้งแต่เคยวิ่ง!", `${fmtKm(km)} กม. (เดิม ${fmtKm(maxKm)} กม.) — ความทนทานมาแล้ว`);
+    const maxT = Math.max(0, ...prev.map(x => toSec(x.time) || 0));
+    if (sec >= 3600 && sec > maxT + 60 && maxT) add("long-" + l.id, "rec", "นานสุด", "วิ่งนานที่สุดเท่าที่เคยมา!", `${durTH(sec)} บนขาตัวเอง (เดิม ${durTH(maxT)})`);
+    const f5 = prev.filter(x => +x.km >= 5 && toSec(x.time) && !steepLog(x)).map(x => toSec(x.time) / +x.km);
+    if (km >= 5 && sec && !steepLog(l) && f5.length >= 3 && sec / km < Math.min(...f5) - 1) add("fast-" + l.id, "rec", "เร็วสุด", "เพซเร็วที่สุดของการวิ่ง 5 กม.ขึ้นไป!", `${fmtPace(sec / km)}/กม. (เดิม ${fmtPace(Math.min(...f5))})`);
+    const wk = w => { const s = mondayOf(w); return runLogs(p).filter(x => x.date >= s && x.date <= addDays(s, 6)).reduce((t, x) => t + (+x.km || 0), 0); };
+    const weeks = [...new Set(prev.map(x => mondayOf(x.date)))].filter(s => s !== mondayOf(l.date));
+    const bestPrev = Math.max(0, ...weeks.map(s => prev.filter(x => mondayOf(x.date) === s).reduce((t, x) => t + (+x.km || 0), 0)));
+    if (weeks.length >= 3 && wk(l.date) > bestPrev + 0.5 && wk(l.date) - km < bestPrev + 0.5) add("week-" + mondayOf(l.date), "rec", "สัปดาห์", "สัปดาห์ที่วิ่งเยอะที่สุด!", `${fmtKm(wk(l.date))} กม. ในสัปดาห์นี้ (เดิม ${fmtKm(bestPrev)} กม.)`);
+  }
+  const maxD = Math.max(0, ...prev.map(x => +x.dplus || 0));
+  if (+l.dplus >= 300 && +l.dplus > maxD) add("vert-" + l.id, "rec", "⛰️", "ไต่สูงที่สุดเท่าที่เคยมา!", `ขึ้นสะสม ${fmtVert(l.dplus)} ม.${maxD ? ` (เดิม ${fmtVert(maxD)} ม.)` : ""}`);
+  // สะสม
+  const tot0 = prev.reduce((t, x) => t + (+x.km || 0), 0), tot1 = tot0 + km;
+  const kmMs = KM_MS.filter(m => tot0 < m && tot1 >= m).pop();
+  if (kmMs) add("km-" + kmMs, "ms", kmMs >= 1000 ? kmMs / 1000 + "K" : kmMs, `สะสมครบ ${kmMs.toLocaleString("th-TH")} กม.!`, `ระยะทางทั้งหมดใน KAOWIN ${fmtKm(tot1)} กม. — ทุกก้าวคือชัยชนะ`);
+  const n1 = prev.length + 1; if (RUN_MS.includes(n1)) add("runs-" + n1, "ms", n1, `วิ่งครบ ${n1} ครั้ง!`, "ความสม่ำเสมอคือเคล็ดลับที่แท้จริง");
+  // ทำตามแผนครบสัปดาห์
+  const s = l.sessionKey && allSessions().find(x => x.key === l.sessionKey), w = s && W[s.wi];
+  if (w) { const rs = w.sessions.filter(x => RUN_TYPES.includes(view(x).type)); if (rs.length >= 2 && rs.every(x => logsFor(x).length)) add("plan-" + w.start, "plan", "100%", "ทำตามแผนครบทั้งสัปดาห์! 💯", `${rs.length} นัดวิ่งของสัปดาห์ ${thDate(w.start)}–${thDate(w.end)} ครบหมด`); }
+  // รองเท้า
+  const sh = l.shoe && p.shoes.find(x => x.id === l.shoe);
+  if (sh) { const u1 = shoeUsed(p, sh), u0 = u1 - km, mx = +sh.maxKm || 600, ms = [100, 300, 500].filter(m => m < mx && u0 < m && u1 >= m).pop();
+    if (u0 < mx && u1 >= mx) add("shoe-max-" + sh.id, "shoe", "👟", `${shoeShort(sh)} ครบอายุ ${mx} กม.`, "ขอบคุณที่พาวิ่งมาไกล — เตรียมหาคู่ใหม่ หรือปลดไว้ใส่วันเบา");
+    else if (ms) add("shoe-" + ms + "-" + sh.id, "shoe", ms, `${shoeShort(sh)} วิ่งครบ ${ms} กม.!`, `ใช้ไปแล้ว ${fmtKm(u1)} / ${mx} กม.`); }
+  return out;
+}
+function showAch(list, l) {
+  const old = document.getElementById("achPop"); if (old) old.remove();
+  const el = document.createElement("div"); el.id = "achPop"; el.className = "achpop";
+  const conf = Array.from({ length: 34 }, (_, i) => `<i style="left:${(i * 29) % 100}%;background:${["#c8f560", "#f4c430", "#7fd6a4", "#ff8fb1", "#8ec5ff"][i % 5]};animation-delay:${(i % 9) * 0.12}s;animation-duration:${2.2 + (i % 5) * 0.3}s"></i>`).join("");
+  const top = list[0], shareTxt = `🏅 ${list.map(a => a.title).join(" · ")}\n${list[0].sub}\n— บันทึกด้วย KAOWIN ก้าววิน · Every Step Wins. ${location.origin + location.pathname}`;
+  el.innerHTML = `<div class="conf">${conf}</div><div class="achcard" role="dialog" aria-label="ยินดีด้วย">
+    <div class="achhead">ยินดีด้วย! 🎉</div>
+    <div class="achmedals">${list.slice(0, 3).map((a, i) => `<div class="m" style="animation-delay:${0.15 + i * 0.15}s">${medalSVG(a.kind, a.medal, i === 0 ? 92 : 70)}</div>`).join("")}</div>
+    ${list.map(a => `<div class="achrow"><b>${esc(a.title)}</b><span>${esc(a.sub)}</span></div>`).join("")}
+    <div class="btns" style="margin-top:14px"><button class="btn" data-ach="close">เยี่ยม! ดูวิเคราะห์</button><button class="btn ghost" data-ach="share">แชร์ความภูมิใจ</button></div></div>`;
+  el.addEventListener("click", async e => {
+    const b = e.target.closest("[data-ach]"); if (!b && e.target !== el) return;
+    if (b && b.dataset.ach === "share") { try { if (navigator.share) await navigator.share({ text: shareTxt }); else { await navigator.clipboard.writeText(shareTxt); toast("คัดลอกข้อความแล้ว วางในโพสต์ได้เลย"); } } catch (err) {} return; }
+    el.classList.add("out"); setTimeout(() => el.remove(), 250);
+  });
+  document.body.appendChild(el);
+}
+function badgesHtml(p) {
+  const b = [...(p.badges || [])].sort((a, c) => c.d.localeCompare(a.d)), runs = runLogs(p); if (!b.length && !runs.length) return "";
+  const fin = FIN.map(f => ({ f, got: runs.some(x => +x.km >= f.km * 0.98) }));
+  return `<h2>🏅 ป้ายและเหรียญ (${b.length})</h2><div class="card">
+    <div class="small mut" style="margin-bottom:6px">Finisher ที่ปลดล็อกแล้ว</div>
+    <div class="finrow">${fin.slice(0, 4).concat(fin.slice(4).filter(x => x.got)).map(x => `<div class="${x.got ? "" : "lock"}">${medalSVG("fin", x.f.lb, 46)}<span>${x.f.lb}</span></div>`).join("")}</div>
+    <div style="margin-top:8px">${b.slice(0, 12).map(x => `<div class="item" style="cursor:default">${medalSVG(x.kind, x.medal, 30)}<div class="grow"><b class="small">${esc(x.title)}</b><div class="tiny mut">${thDateY(x.d)}</div></div></div>`).join("")}</div></div>`;
+}
+
 function showAnalysis(id) {
   const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
   const r = analyzeLog(p, l), sec = toSec(l.time);
   const ico = { ok: "✓", warn: "!", bad: "!", info: "i", gold: "★" };
   openSheet(`ผลซ้อม ${TH_DAY[dow(l.date)]} ${thDate(l.date)}`, `
+    ${(l.ach || []).length ? `<div class="achmini">${l.ach.map(a => `<span>${medalSVG(a.kind, a.medal, 26)}${esc(a.title)}</span>`).join("")}</div>` : ""}
     ${r.pbNew ? `<div class="celebrate"><div style="font-size:34px">🏆</div><div class="mid">PB ใหม่ ${esc(distLabel(r.pbNew.km))}!</div><div class="small mut">${fmtTime(r.pbNew.sec)}${r.pbNew.old ? ` · เร็วขึ้น ${fmtTime(r.pbNew.old - r.pbNew.sec)}` : ""}</div></div>` : ""}
     <div class="grid4" style="margin-bottom:12px">
       <div class="box"><b>${fmtKm(+l.km || 0)}</b><span class="tiny mut">กม.</span></div>
@@ -1426,6 +1522,7 @@ function renderStats() {
     <div class="row small" style="margin-top:12px"><span>ทำตามแผน ≥ 80% ติดกัน</span><b>${streak} สัปดาห์</b></div>
     ${ld ? `<div class="row small" style="margin-top:4px"><span>วิ่งไกลสุด</span><b>${fmtKm(+ld.km)} กม. · ${thDate(ld.date)}</b></div>` : ""}
   </div>
+  ${badgesHtml(p)}
   <h2>ประวัติผลซ้อม</h2><div class="card">${hist}</div>`;
 }
 
@@ -1959,8 +2056,11 @@ function openLog(key) {
       if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
       const to = addDays(l.date > TODAY ? l.date : TODAY, 14), snap0 = planSnap(l.date, to);
       p.logs.push(l); save(); render();
-      l.planDiff = planDiff(snap0, planSnap(l.date, to)); save();
-      if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else showAnalysis(l.id);
+      l.planDiff = planDiff(snap0, planSnap(l.date, to));
+      const ach = achievementsFor(p, l);
+      if (ach.length) { p.badges = p.badges || []; ach.forEach(a => { if (!p.badges.some(x => x.k === a.k)) p.badges.push({ k: a.k, kind: a.kind, medal: String(a.medal), title: a.title, d: l.date, logId: l.id }); }); l.ach = ach; }
+      save();
+      if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else { showAnalysis(l.id); if (ach.length) setTimeout(() => showAch(ach, l), 300); }
     });
   });
 }
