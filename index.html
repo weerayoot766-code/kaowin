@@ -1867,7 +1867,7 @@ function renderProfile() {
   <div class="card" style="text-align:center;padding:14px"><img src="${LOGO_WORDMARK}" alt="KAOWIN" style="height:30px">${sloganHtml()}</div>
   <h2>นักวิ่ง & ข้อมูล</h2>
   <div class="card">
-    <div class="small mut" style="margin-bottom:10px">ข้อมูลทุกคนเก็บในเบราว์เซอร์เครื่องนี้ Export เพื่อสำรองหรือย้ายเครื่อง</div>
+    <div class="small mut" style="margin-bottom:10px">ข้อมูลทุกคนเก็บในเบราว์เซอร์เครื่องนี้ Export เพื่อสำรองหรือย้ายเครื่อง<br><span class="tiny">🔒 แอปนับจำนวนผู้ใช้แบบไม่ระบุตัวตนด้วย Cloudflare Web Analytics — ไม่ใช้คุกกี้ ไม่ส่งชื่อ ข้อมูลการวิ่ง หรือข้อมูลสุขภาพออกจากเครื่อง</span></div>
     <div class="btns">
       ${isStandalone() ? `<div class="note" style="margin:0">✓ ติดตั้งเป็นแอปแล้ว · ใช้งานออฟไลน์ได้</div>` : `<button class="btn" data-act="install">📲 ติดตั้งแอปลงหน้าจอโฮม</button>`}
       <button class="btn ghost" data-act="profiles">สลับ / เพิ่มนักวิ่ง</button>
@@ -2208,7 +2208,7 @@ function openLog(key) {
       if (F.env.value === "tm") { l.env = "tm"; const inc = parseFloat(String(F.incline.value).replace(",", ".")); if (inc >= 0 && inc <= 15) l.incline = inc; }
       if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
       const to = addDays(l.date > TODAY ? l.date : TODAY, 14), snap0 = planSnap(l.date, to);
-      p.logs.push(l); save(); render();
+      p.logs.push(l); save(); render(); track("first-log");
       l.planDiff = planDiff(snap0, planSnap(l.date, to));
       const ach = achievementsFor(p, l);
       if (ach.length) { p.badges = p.badges || []; ach.forEach(a => { if (!p.badges.some(x => x.k === a.k)) p.badges.push({ k: a.k, kind: a.kind, medal: String(a.medal), title: a.title, d: l.date, logId: l.id }); }); l.ach = ach; }
@@ -2494,6 +2494,7 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("submit", e => {
   if (e.target.id === "welcomeForm") {
+    track("new-user");
     e.preventDefault(); const F = e.target.elements, p = P();
     const runDays = [...e.target.querySelectorAll("input[name=runDays]:checked")].map(x => +x.value);
     if (!F.name.value.trim()) return toast("ใส่ชื่อก่อนนะ");
@@ -2580,6 +2581,15 @@ function weeklyPopup() {
     <div class="btns" style="margin-top:12px"><button class="btn" data-act="seenWeek" data-id="${w.start}">รับทราบ</button></div>`);
 }
 setTimeout(weeklyPopup, 400);
+// ---- นับผู้ใช้แบบไม่ระบุตัวตน (Cloudflare Web Analytics) — ส่งเป็น "หน้าเสมือน" ครั้งเดียวต่อเครื่อง ไม่ส่งข้อมูลการวิ่ง ----
+function track(name) {
+  try { if (!navigator.onLine || localStorage.getItem("kaowin.ev." + name)) return; localStorage.setItem("kaowin.ev." + name, "1"); } catch (e) { return; }
+  const back = location.pathname + location.search + location.hash, base = location.pathname.replace(/[^/]*$/, "");
+  setTimeout(() => { try { history.pushState(null, "", base + "e/" + name); setTimeout(() => history.replaceState(null, "", back), 400); } catch (e) {} }, 2500);
+}
+if (isStandalone()) track("installed");
+if (DB.profiles.some(p => p.onboarded)) track("active-user");
 </script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f662baf1b4ed4b46bbe43eb84d5cdf6d"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
