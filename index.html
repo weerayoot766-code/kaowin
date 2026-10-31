@@ -160,7 +160,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .tipbar.red{background:#fdecea;border-color:#f3c3bd;color:#8e2a20}.tipbar.amber{background:#fff6e0;border-color:#f0dcae;color:#7a5306}.tipbar.green{background:#e9f6ee;border-color:#c5e6d2;color:#0d5a3c}
 .tipdots{display:flex;gap:4px;justify-content:center;margin:0 0 12px}.tipdots i{width:5px;height:5px;border-radius:3px;background:#c9dcd0;transition:width .2s}.tipdots i.on{background:#0d5a3c;width:14px}
 .kb .sev{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700}.kb .sev.red{background:#fdecea;color:#b3261e}.kb .sev.amber{background:#fff6e0;color:#8a5a00}.kb .sev.green{background:#e9f6ee;color:#0d5a3c}
-.kb h4{margin:14px 0 6px;font-size:14px}.kb ul,.kb ol{margin:0 0 6px 18px;padding:0;font-size:13.5px;line-height:1.6}
+.kb h4{margin:14px 0 6px;font-size:14px}
+.foodgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.foodgrid div{border-radius:12px;padding:10px;font-size:12.5px;line-height:1.55;background:#f5fbf5;border:1px solid var(--line)}.foodgrid div:last-child{background:#fff8ea;border-color:#f0dcae}.foodgrid b{display:block;font-size:13.5px;margin-bottom:4px}.kb ul,.kb ol{margin:0 0 6px 18px;padding:0;font-size:13.5px;line-height:1.6}
 .callbtn{display:flex;align-items:center;justify-content:center;gap:8px;background:#e2453c;color:#fff!important;text-decoration:none;border-radius:14px;padding:12px;font-weight:800;font-size:16px;margin:12px 0 4px}
 .kbgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}.kbgrid button{border:1px solid var(--line);border-radius:12px;padding:9px 10px;font:inherit;font-size:12.5px;text-align:left;background:#fff;cursor:pointer;color:var(--ink)}.kbgrid button.red{border-left:4px solid #e2453c}.kbgrid button.amber{border-left:4px solid #e0a83a}.kbgrid button.green{border-left:4px solid #3aa06a}
 .achpop{position:fixed;inset:0;z-index:60;background:rgba(10,40,26,.55);display:flex;align-items:center;justify-content:center;padding:18px;animation:fadein .25s}
@@ -1348,12 +1349,20 @@ const TIPS = {
     signs: ["ขาตึง ปวดเมื่อย 2–3 วันหลังแข่งเป็นเรื่องปกติ", "นอนหลับยาก HR ตอนตื่นสูงกว่าปกติ = ยังไม่ฟื้น"],
     now: ["2–3 วันแรกเดินเบา ๆ ยืดเหยียด ไม่วิ่งหนัก", "กินโปรตีนและคาร์บให้พอ ดื่มน้ำ", "แอปจะวางสัปดาห์ฟื้นตัวให้อัตโนมัติ"],
     prevent: ["หลัง Half พักวิ่งหนัก ~1–2 สัปดาห์ หลัง Full ~3 สัปดาห์"] },
+  carb: { lvl: "green", ic: "🍚", t: "คาร์บเชิงเดี่ยว vs เชิงซ้อน", bar: "กินคาร์บแบบไหน เมื่อไหร่ ให้วิ่งดี", sub: "เชิงซ้อนเป็นฐาน เชิงเดี่ยวใช้ช่วงวิ่ง แตะดูตัวอย่างอาหาร", call: 0,
+    signs: ["<b>คาร์บเชิงซ้อน</b> ย่อยช้า ให้พลังงานยาว มีใยอาหาร — ใช้เป็นมื้อหลักทุกวัน", "<b>คาร์บเชิงเดี่ยว</b> ย่อยเร็ว เข้ากระแสเลือดไว — ใช้ก่อนวิ่งใกล้ ๆ ระหว่างวิ่ง และหลังวิ่งทันที", "ใยอาหารและไขมันสูงก่อนวิ่ง = เสี่ยงจุก ท้องอืด เข้าห้องน้ำกลางทาง"],
+    extra: `<div class="foodgrid"><div><b>🌾 เชิงซ้อน (มื้อหลัก)</b>ข้าวกล้อง/ข้าวไรซ์เบอร์รี่ · ข้าวโอ๊ต · มันเทศ ฟักทอง ข้าวโพด · ขนมปังโฮลวีต · เส้นก๋วยเตี๋ยว/พาสต้า · ถั่ว ธัญพืช</div><div><b>⚡ เชิงเดี่ยว (ช่วงวิ่ง)</b>กล้วยหอม · ขนมปังขาวทาแยม/น้ำผึ้ง · ข้าวเหนียว · เจลพลังงาน · ลูกอม/เยลลี่ · น้ำผลไม้ · เครื่องดื่มเกลือแร่ · อินทผลัม</div></div>`,
+    now: ["<b>มื้อปกติ</b>: เน้นเชิงซ้อน + โปรตีน + ผัก ปริมาณคาร์บตามวันซ้อม (วันพักกินน้อยลง วัน Long กินมากขึ้น)", "<b>ก่อนวิ่ง 2–3 ชม.</b>: มื้อย่อยง่าย ใยอาหารต่ำ เช่น ข้าวต้ม ข้าวขาว+ไข่ต้ม ขนมปัง+กล้วย", "<b>ก่อนวิ่ง 30–60 นาที</b>: เชิงเดี่ยวนิดหน่อย เช่น กล้วย 1 ลูก ขนมปังทาแยม", "<b>ระหว่างวิ่งเกิน 75 นาที</b>: เชิงเดี่ยว 30–60 ก./ชม. (เจล 1 ซองทุก 30–45 นาที หรือกล้วย/ลูกอม) + น้ำ/เกลือแร่", "<b>หลังวิ่ง 30–60 นาที</b>: คาร์บ + โปรตีน เช่น นมช็อกโกแลต ข้าวไข่เจียว ข้าวผัดกะเพราไก่ ข้าวมันไก่", "<b>ก่อน Full / อัลตร้า 1–2 วัน (Carb loading)</b>: เพิ่มคาร์บเป็นราว 8–10 ก./กก./วัน ลดใยอาหารและไขมัน"],
+    prevent: ["อย่าลองอาหาร/เจลใหม่วันแข่ง ซ้อมกินใน Long Run ก่อน", "ท้องไส้ไวให้เลี่ยงนม ถั่ว ของทอด ของเผ็ดคืนก่อนแข่ง", "งานระยะสั้น (5K/10K) ไม่ต้อง Carb loading แค่กินมื้อเช้าที่คุ้นเคย"],
+    personal: p => { const w = parseFloat(p.weightKg); if (!(w > 30)) return `<div class="note info" style="margin:8px 0">ใส่น้ำหนักในแท็บ “ฉัน” แอปจะคำนวณปริมาณคาร์บเป็นกรัมให้</div>`;
+      const g = (a, b) => `${Math.round(w * a)}–${Math.round(w * b)} ก.`;
+      return `<div class="agbox" style="margin:8px 0">🧮 <b>สำหรับคุณ (${w} กก.)</b><br>วันซ้อมเบา ${g(3, 5)}/วัน · วันซ้อมหนัก/Long ${g(5, 7)}/วัน<br>มื้อก่อนวิ่ง 2–3 ชม. ${g(1, 2)} · Carb loading ${g(8, 10)}/วัน<div class="tiny mut">ข้าวสวย 1 ทัพพี ≈ 20–25 ก. · กล้วยหอม 1 ลูก ≈ 25–30 ก. · เจล 1 ซอง ≈ 20–25 ก.</div></div>`; } },
   easy: { lvl: "green", ic: "🐢", t: "วิ่งช้า คือวิ่งถูก", bar: "วันเบาต้องเบาจริง ถึงจะเร็วขึ้น", sub: "80% ของการซ้อมควรเป็นเพซที่คุยได้ แตะดูเหตุผล", call: 0,
     signs: ["วิ่งแล้วพูดเป็นประโยคได้ = Easy ถูกโซน", "วันเบาหอบจนพูดไม่ได้ = เร็วเกิน"],
     now: ["วิ่งตามช่วงเพซ Easy ในแอป ร้อนให้ช้ากว่านี้ได้", "เดินสลับวิ่งได้ ไม่ผิด"],
     prevent: ["ความทนทานมาจากเวลาบนขาที่สม่ำเสมอ ไม่ใช่วิ่งเร็วทุกวัน", "เก็บแรงไว้สำหรับวัน Quality"] }
 };
-const TIP_ROT = ["heat", "heart", "fuel", "hypona", "injury", "easy", "heart", "cramp", "bonk", "heat", "rhabdo", "sick", "hot", "heatex"];   // raceday/recovery ขึ้นเฉพาะช่วงแข่ง
+const TIP_ROT = ["heat", "heart", "fuel", "hypona", "injury", "carb", "easy", "heart", "cramp", "bonk", "heat", "rhabdo", "sick", "hot", "heatex", "carb"];   // raceday/recovery ขึ้นเฉพาะช่วงแข่ง
 const dayNo = d => Math.floor(Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)) / 864e5);
 function tipsFor(p) {
   const out = [], push = id => { if (TIPS[id] && !out.includes(id)) out.push(id); }, dn = dayNo(TODAY), odd = dn % 2;
@@ -1361,7 +1370,7 @@ function tipsFor(p) {
   // ---- เหตุพิเศษของคนนี้ ----
   if (PAIN) push("injury");
   const up = sortedRaces(p).find(r => r.date >= TODAY && diffDays(TODAY, r.date) <= 3);
-  if (up) push("raceday");
+  if (up) { push("raceday"); if (LONGCATS.includes(rcat(up))) push("carb"); }
   const past = sortedRaces(p).filter(r => r.date < TODAY && diffDays(r.date, TODAY) <= 3).pop() || runLogs(p).find(l => l.type === "race" && l.date < TODAY && diffDays(l.date, TODAY) <= 3);
   if (past) push("recovery");
   const longSoon = allSessions().find(s => (s.date === TODAY || s.date === addDays(TODAY, 1)) && view(s).type === "long");
@@ -1386,7 +1395,7 @@ function openTip(id) {
   const t = TIPS[id]; if (!t) return;
   const lv = { red: "🚨 อันตรายถึงชีวิต", amber: "⚠️ ต้องระวัง", green: "💡 ความรู้" }[t.lvl];
   openSheet(`${t.ic} ${t.t}`, `<div class="kb"><span class="sev ${t.lvl}">${lv}</span>
-    <h4>${t.lvl === "green" ? "ควรรู้" : "อาการเตือน"}</h4><ul>${t.signs.map(x => `<li>${x}</li>`).join("")}</ul>
+    <h4>${t.lvl === "green" ? "ควรรู้" : "อาการเตือน"}</h4><ul>${t.signs.map(x => `<li>${x}</li>`).join("")}</ul>${t.extra || ""}${t.personal ? t.personal(P()) : ""}
     <h4>${t.lvl === "green" ? "ทำอย่างไร" : "ทำทันที"}</h4><ol>${t.now.map(x => `<li>${x}</li>`).join("")}</ol>
     ${t.call ? `<a class="callbtn" href="tel:1669">📞 โทร 1669 (เจ็บป่วยฉุกเฉิน)</a>` : ""}
     <h4>ป้องกัน</h4><ul>${t.prevent.map(x => `<li>${x}</li>`).join("")}</ul>
