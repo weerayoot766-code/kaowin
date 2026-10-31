@@ -569,6 +569,10 @@ function ageGroup(p, r) {
   return { age, sx, g, label: `${sx ? sx + " " : ""}${agLabel(g)}`, short: `${sx ? sx + " " : ""}${g[1] === Infinity ? g[0] + "+" : g[0] === 0 ? "≤" + g[1] : g[0] + "–" + g[1]}` };
 }
 const agChip = (p, r) => { const a = ageGroup(p, r); return a ? `รุ่น ${a.short}` : ""; };
+// ---- ลู่วิ่งไฟฟ้า: เทียบเป็นวิ่งข้างนอก (ความชัน 1% ≈ ถนนเรียบ) ----
+const isTM = l => !!l && l.env === "tm";
+const tmInc = l => Math.max(0, Math.min(15, parseFloat(l.incline) || 0));
+const tmF = l => { if (!isTM(l)) return 1; const i = tmInc(l); return i < 1 ? 1 + 0.025 * (1 - i) : 1 / (1 + 0.04 * (i - 1)); };   // คูณเวลา → เวลาเทียบข้างนอก
 const raceTimeOk = (T, r) => isTrail(r) ? T / ekm(r) >= 180 && T / ekm(r) <= 1800 : PACE_OK(T / r.km);
 const distLabel = km => { const o = DISTS.find(o => Math.abs(o.km - km) < 0.05); return o ? o.label : fmtKm(km) + " กม."; };
 const sameDist = (a, b) => Math.abs(a - b) / b < 0.03;
@@ -871,7 +875,7 @@ function analyze(i) {
   });
   // ---- ใช้ผลวิเคราะห์จากรูป / ข้อมูลรอบ / HR ปรับแผน ----
   const p = P(), ref = hrRef(p);
-  const hot = logs.filter(l => (l.type === "easy" || l.type === "long") && l.hrAvg && ref && l.hrAvg / ref > 0.8);
+  const hot = logs.filter(l => (l.type === "easy" || l.type === "long") && !isTM(l) && l.hrAvg && ref && l.hrAvg / ref > 0.8);
   if (hot.length >= 2) { res.easySlow = 12; res.notes.push({ lvl: "warn", t: `HR วันเบาสูงเกินโซน ${hot.length} ครั้ง (เกิน 80% ของ HR สูงสุด) → สัปดาห์นี้เพซ Easy/Long ช้าลง 12 วิ ให้หัวใจอยู่โซน 2–3` }); }
   const longs = logs.filter(l => l.type === "long" || (l.type === "easy" && +l.km >= 14));
   const tired = longs.map(l => { const ls = lapStats(l), sec = toSec(l.time), walk = l.walkSec && sec ? l.walkSec / sec : 0; return { l, fade: ls ? ls.fade : 0, walk }; }).find(x => x.fade > 0.08 || x.walk > 0.1);
@@ -946,8 +950,9 @@ function efforts(p, sinceDays = 90) {
   const since = addDays(TODAY, -sinceDays), out = [];
   (p.pbs || []).forEach(b => { if (+b.km && +b.time) out.push({ km: +b.km, sec: +b.time, date: b.date, label: `PB ${distLabel(+b.km)} ${fmtTime(b.time)}`, pb: true }); });
   p.logs.filter(l => l.date >= since && !steepLog(l)).forEach(l => {
-    if (+l.segKm >= 2 && l.segTime) out.push({ km: +l.segKm, sec: toSec(l.segTime), date: l.date, label: `ช่วงเร็ว ${l.segKm} กม. ${l.segTime}`, logId: l.id });
-    if (+l.km >= 3 && l.time && (l.type === "race" || l.type === "quality")) out.push({ km: +l.km, sec: toSec(l.time), date: l.date, label: `${TYPE_LABEL[l.type]} ${fmtKm(+l.km)} กม. ${l.time}`, logId: l.id });
+    const f = tmF(l), tg = isTM(l) ? " (ลู่วิ่ง)" : "";
+    if (+l.segKm >= 2 && l.segTime) out.push({ km: +l.segKm, sec: toSec(l.segTime) * f, date: l.date, label: `ช่วงเร็ว ${l.segKm} กม. ${l.segTime}${tg}`, logId: l.id });
+    if (+l.km >= 3 && l.time && (l.type === "race" || l.type === "quality")) out.push({ km: +l.km, sec: toSec(l.time) * f, date: l.date, label: `${TYPE_LABEL[l.type]} ${fmtKm(+l.km)} กม. ${l.time}${tg}`, logId: l.id });
   });
   out.forEach(e => e.v = vdot(e.km, e.sec));
   return out.filter(e => e.v > 15);
@@ -1041,7 +1046,7 @@ function predictRace(p, race) {
   const ref = hrRef(p), ev = [];
   runs.filter(l => l.date >= addDays(TODAY, -112) && +l.km >= race.km * 0.7 && toSec(l.time) && !steepLog(l)).forEach(l => {
     const hard = l.type === "race" || (l.hrAvg && ref && l.hrAvg / ref >= 0.85);
-    ev.push({ T: toSec(l.time) * Math.pow(race.km / +l.km, 1.06), w: l.type === "race" ? 1 : hard ? 0.9 : l.type === "long" ? 0.35 : 0.5, label: `${TYPE_LABEL[l.type]} ${fmtKm(+l.km)} กม. ${l.time} (${thDate(l.date)})` });
+    ev.push({ T: toSec(l.time) * tmF(l) * Math.pow(race.km / +l.km, 1.06), w: (l.type === "race" ? 1 : hard ? 0.9 : l.type === "long" ? 0.35 : 0.5) * (isTM(l) ? 0.7 : 1), label: `${TYPE_LABEL[l.type]} ${fmtKm(+l.km)} กม. ${l.time}${isTM(l) ? " ลู่วิ่ง" : ""} (${thDate(l.date)})` });
   });
   (p.pbs || []).filter(b => +b.km >= race.km * 0.7 && +b.time).forEach(b => {
     const age = b.date ? diffDays(b.date, TODAY) : 999;
@@ -1075,6 +1080,7 @@ function predict(p, race) {
 /* ---------- วิเคราะห์ผลหลังส่ง ---------- */
 // วิเคราะห์รอบ (lap) — ครึ่งแรก/ครึ่งหลัง, จุดที่เริ่มช้าลง, รอบเร็วสุด/ช้าสุด
 function lapStats(l) {
+  if (isTM(l)) return null;                                     // ลู่วิ่ง: เพซตามเครื่อง ไม่วิเคราะห์ครึ่งแรก/หลัง
   const laps = (l.laps || []).map(([km, sec], i) => ({ n: i + 1, km: +km, sec: +sec, pace: +sec / +km })).filter(x => x.km >= 0.5 && PACE_OK(x.pace));
   if (laps.length < 4) return null;
   const tot = laps.reduce((t, x) => t + x.km, 0), totSec = laps.reduce((t, x) => t + x.sec, 0);
@@ -1100,8 +1106,17 @@ const hrMaxEst = p => { const y = birthCE(p); return y > 1900 ? Math.round(208 -
 function analyzeLog(p, l) {
   const out = [], s = l.sessionKey ? allSessions().find(x => x.key === l.sessionKey) : null, v = s ? view(s) : null;
   const sec = toSec(l.time), pace = sec && +l.km ? sec / +l.km : 0;
-  const nr = mainRace(p), pc = nr ? racePaces(eqRace(nr)) : null, steep = steepLog(l);
+  const nr = mainRace(p), pc = nr ? racePaces(eqRace(nr)) : null, steep = steepLog(l), tm = isTM(l);
   let pbNew = null;
+  if (tm) {
+    const inc = tmInc(l), eq = pace ? pace * tmF(l) : 0;
+    out.push({ lvl: "info", t: `🏃‍♂️ ลู่วิ่ง ความชัน ${fmtKm(inc)}%${eq ? ` · เพซ ${fmtPace(pace)} เทียบวิ่งข้างนอกราว ${fmtPace(eq)}/กม.` : ""}${inc < 1 ? " — ตั้งความชัน 1% จะใกล้เคียงวิ่งถนนที่สุด" : ""}` });
+    if (l.src) out.push({ lvl: "info", t: "ระยะจากนาฬิกาบนลู่ (ไม่มี GPS) อาจคลาด 5–10% ถ้าต่างจากหน้าจอลู่ ให้แก้ระยะตามลู่ และปรับเทียบนาฬิกาครั้งหน้า" });
+    if (l.type === "long" && nr && diffDays(l.date, nr.date) <= 42) {
+      const lastL = runLogs(p).filter(x => x.type === "long" && x.date <= l.date).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+      if (lastL.filter(isTM).length >= 2) out.push({ lvl: "warn", t: `Long Run บนลู่ ${lastL.filter(isTM).length} ใน 3 ครั้งล่าสุด และใกล้วันแข่งแล้ว — ออกไปวิ่ง Long ข้างนอกบ้าง ให้ขาชินพื้น ทางโค้ง ลม และอากาศจริง${isTrail(nr) ? " (เทรลต้องฝึกลงเขาจริง)" : ""}` });
+    }
+  }
   if (+l.dplus > 0) out.push({ lvl: "info", t: `⛰️ ขึ้นสะสม ${fmtVert(l.dplus)} ม. (${Math.round(+l.dplus / Math.max(1, +l.km))} ม./กม.) · ระยะเทียบ ${fmtKm(logE(l))} กม.${sec ? ` · เฉลี่ย ${fmtPace(sec / logE(l))}/กม.เทียบ` : ""}${steep ? " — ผลเทรลไม่นำไปคิดความเร็วถนน/VO2max" : ""}` });
 
   if (l.pain) {
@@ -1117,8 +1132,9 @@ function analyzeLog(p, l) {
 
   const rg = v && v.range ? v.range : pc ? pc.ranges[l.type === "long" ? "long" : "easy"] : null;
   if ((l.type === "easy" || l.type === "long") && pace && rg && !steep) {
-    if (pace < rg[0] - 10) out.push({ lvl: "warn", t: `เพซ ${fmtPace(pace)}/กม. เร็วกว่าโซน ${l.type === "long" ? "Long" : "Easy"} (${rng(rg)}) — วันเบาควรเบาจริงเพื่อให้ฟื้นตัวทันวันหนัก` });
-    else out.push({ lvl: "ok", t: `เพซ ${fmtPace(pace)}/กม. อยู่ในโซนที่ควรเป็น` });
+    const pz = pace * tmF(l);
+    if (pz < rg[0] - 10) out.push({ lvl: "warn", t: `เพซ${tm ? "เทียบข้างนอก" : ""} ${fmtPace(pz)}/กม. เร็วกว่าโซน ${l.type === "long" ? "Long" : "Easy"} (${rng(rg)}) — วันเบาควรเบาจริงเพื่อให้ฟื้นตัวทันวันหนัก` });
+    else out.push({ lvl: "ok", t: `เพซ${tm ? "เทียบข้างนอก" : ""} ${fmtPace(pz)}/กม. อยู่ในโซนที่ควรเป็น` });
     if (+l.rpe >= 7) out.push({ lvl: "warn", t: `RPE ${l.rpe} สูงสำหรับวันเบา — อาจพักไม่พอ ร้อน หรือขาดน้ำ ลองนอนเพิ่มและวิ่งช่วงอากาศเย็นกว่า` });
   }
   if (l.type === "quality") {
@@ -1154,19 +1170,19 @@ function analyzeLog(p, l) {
     if (mx) {
       const r = l.hrAvg / mx, z = r < 0.6 ? 1 : r < 0.7 ? 2 : r < 0.8 ? 3 : r < 0.9 ? 4 : 5;
       const easyDay = l.type === "easy" || l.type === "long";
-      out.push({ lvl: easyDay && r > 0.8 ? "warn" : "info", t: `HR เฉลี่ย ${l.hrAvg} ≈ ${Math.round(r * 100)}% ของ HR สูงสุด${seen >= est ? "ที่เคยวัดได้" : "โดยประมาณ"} (${mx}) · โซน ${z}${easyDay && r > 0.8 ? " — สูงไปสำหรับวันเบา ลองชะลอให้อยู่โซน 2–3" : ""}${l.hrMax ? ` · สูงสุด ${l.hrMax}` : ""}` });
+      out.push({ lvl: easyDay && r > 0.8 && !tm ? "warn" : "info", t: `HR เฉลี่ย ${l.hrAvg} ≈ ${Math.round(r * 100)}% ของ HR สูงสุด${seen >= est ? "ที่เคยวัดได้" : "โดยประมาณ"} (${mx}) · โซน ${z}${easyDay && r > 0.8 ? (tm ? " — ในร่มอากาศไม่ถ่ายเท หัวใจสูงง่าย เปิดพัดลมจ่อตัว แล้วลดความเร็วลงเล็กน้อย" : " — สูงไปสำหรับวันเบา ลองชะลอให้อยู่โซน 2–3") : ""}${l.hrMax ? ` · สูงสุด ${l.hrMax}` : ""}` });
     } else out.push({ lvl: "info", t: `HR เฉลี่ย ${l.hrAvg}${l.hrMax ? ` · สูงสุด ${l.hrMax}` : ""} — ใส่ปีเกิดในโปรไฟล์เพื่อดูโซนหัวใจ` });
   }
 
   const ef = [];
-  if (+l.segKm >= 2 && l.segTime) ef.push(vdot(+l.segKm, toSec(l.segTime)));
-  if ((l.type === "race" || l.type === "quality") && +l.km >= 3 && sec) ef.push(vdot(+l.km, sec));
+  if (+l.segKm >= 2 && l.segTime) ef.push(vdot(+l.segKm, toSec(l.segTime) * tmF(l)));
+  if ((l.type === "race" || l.type === "quality") && +l.km >= 3 && sec) ef.push(vdot(+l.km, sec * tmF(l)));
   if (ef.length && !steep) {
     const vNow = Math.max(...ef), prevFit = fitnessCalc({ ...p, logs: p.logs.filter(x => x.id !== l.id) });
     const d = prevFit ? vNow - prevFit.v : 0;
     out.push({ lvl: d > 0.3 ? "gold" : "info", t: `VO2max จากรอบนี้ ≈ ${vNow.toFixed(1)}${prevFit ? (d > 0.3 ? ` สูงกว่าค่าเดิม ${prevFit.v.toFixed(1)} 🎉` : ` (ค่าดีที่สุดตอนนี้ ${prevFit.v.toFixed(1)})`) : ""}` });
   }
-  if (l.type === "race" && +l.km && sec && !steep) {
+  if (l.type === "race" && +l.km && sec && !steep && !tm) {
     const std = DISTS.find(d => sameDist(+l.km, d.km)), km = std ? std.km : +l.km;
     const old = (p.pbs || []).find(b => sameDist(+b.km, km));
     if (!old || sec < +old.time) {
@@ -1231,7 +1247,7 @@ function achievementsFor(p, l) {
     if (f) add("fin-" + f.lb, "fin", f.lb, `ปลดล็อกระยะ ${f.lb}!`, `วิ่งครบ ${f.lb} ในครั้งเดียวเป็นครั้งแรก${sec ? " ใช้เวลา " + fmtTime(sec) : ""}`);
   }
   // PB (คิดก่อนแอปอัปเดต PB)
-  if (l.type === "race" && sec && !steepLog(l)) {
+  if (l.type === "race" && sec && !steepLog(l) && !isTM(l)) {
     const std = DISTS.find(d => sameDist(km, d.km)), old = std && (p.pbs || []).find(b => sameDist(+b.km, std.km));
     if (std && old && sec < +old.time) add("pb-" + l.id, "pb", "PB", `PB ใหม่ ${distLabel(std.km)}! 🏆`, `${fmtTime(sec)} · เร็วขึ้น ${fmtTime(+old.time - sec)}`);
   }
@@ -1240,8 +1256,8 @@ function achievementsFor(p, l) {
     if (km > maxKm + 0.05 && !out.some(a => a.kind === "fin" && a.k.startsWith("fin-") && !a.k.startsWith("fin-race"))) add("far-" + l.id, "rec", "ไกลสุด", "ไกลที่สุดตั้งแต่เคยวิ่ง!", `${fmtKm(km)} กม. (เดิม ${fmtKm(maxKm)} กม.) — ความทนทานมาแล้ว`);
     const maxT = Math.max(0, ...prev.map(x => toSec(x.time) || 0));
     if (sec >= 3600 && sec > maxT + 60 && maxT) add("long-" + l.id, "rec", "นานสุด", "วิ่งนานที่สุดเท่าที่เคยมา!", `${durTH(sec)} บนขาตัวเอง (เดิม ${durTH(maxT)})`);
-    const f5 = prev.filter(x => +x.km >= 5 && toSec(x.time) && !steepLog(x)).map(x => toSec(x.time) / +x.km);
-    if (km >= 5 && sec && !steepLog(l) && f5.length >= 3 && sec / km < Math.min(...f5) - 1) add("fast-" + l.id, "rec", "เร็วสุด", "เพซเร็วที่สุดของการวิ่ง 5 กม.ขึ้นไป!", `${fmtPace(sec / km)}/กม. (เดิม ${fmtPace(Math.min(...f5))})`);
+    const f5 = prev.filter(x => +x.km >= 5 && toSec(x.time) && !steepLog(x) && !isTM(x)).map(x => toSec(x.time) / +x.km);
+    if (km >= 5 && sec && !steepLog(l) && !isTM(l) && f5.length >= 3 && sec / km < Math.min(...f5) - 1) add("fast-" + l.id, "rec", "เร็วสุด", "เพซเร็วที่สุดของการวิ่ง 5 กม.ขึ้นไป!", `${fmtPace(sec / km)}/กม. (เดิม ${fmtPace(Math.min(...f5))})`);
     const wk = w => { const s = mondayOf(w); return runLogs(p).filter(x => x.date >= s && x.date <= addDays(s, 6)).reduce((t, x) => t + (+x.km || 0), 0); };
     const weeks = [...new Set(prev.map(x => mondayOf(x.date)))].filter(s => s !== mondayOf(l.date));
     const bestPrev = Math.max(0, ...weeks.map(s => prev.filter(x => mondayOf(x.date) === s).reduce((t, x) => t + (+x.km || 0), 0)));
@@ -1625,7 +1641,7 @@ function renderStats() {
   const logs = [...p.logs].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
   const hist = logs.length ? logs.map(l => {
     const shoe = shoeById(l.shoe), sec = toSec(l.time), pace = sec && +l.km ? fmtPace(sec / l.km) + "/กม." : "";
-    return `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow"><div><span class="tag t-${l.type}">${TYPE_LABEL[l.type]}</span><b>${thDate(l.date)}</b> <span class="small mut">${TH_DAY_FULL[dow(l.date)]}</span>${l.pain ? ' <span class="chip bad">เจ็บ</span>' : ""}</div>
+    return `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow"><div><span class="tag t-${l.type}">${TYPE_LABEL[l.type]}</span><b>${thDate(l.date)}</b> <span class="small mut">${TH_DAY_FULL[dow(l.date)]}</span>${isTM(l) ? ' <span class="chip gray">🏃‍♂️ ลู่วิ่ง</span>' : ""}${l.pain ? ' <span class="chip bad">เจ็บ</span>' : ""}</div>
       <div class="small">${[+l.km ? fmtKm(+l.km) + " กม." : "", esc(l.time), pace, "RPE " + l.rpe].filter(Boolean).join(" · ")}</div>
       <div class="tiny mut">${esc(shoeShort(shoe))}${l.note ? " · " + esc(l.note) : ""}</div></div>
       <button class="del" data-act="delLog" data-id="${l.id}">ลบ</button></div>`;
@@ -2040,6 +2056,9 @@ function parseRunText(texts) {
     }
   }
   if (r.walkSec && r.walkSec < 60) delete r.walkSec;
+  const allTxt = lines.join(" ");
+  if (/treadmill|ลู่วิ่ง|indoor\s*run|วิ่งในร่ม|ในร่ม/i.test(allTxt)) r.tm = true;
+  else if (/\b(?:run|running)\b|วิ่ง(?:กลางแจ้ง|ออกกำลัง)|เส้นทาง|แผนที่/i.test(allTxt) && r.km) r.tm = false;
   // ขึ้นสะสม (Total Ascent / ระดับความสูงที่เพิ่มขึ้น)
   const ELV = /(\d{1,2}[,.]\d{3}|\d{1,4})\s*(?:m\b|ม\.?(?!\S*ก)|เมตร)/i;
   for (let i = 0; i < lines.length && !r.dplus; i++) {
@@ -2049,7 +2068,7 @@ function parseRunText(texts) {
   }
   return r;
 }
-const ocrSummary = r => [r.km ? `ระยะ <b>${(Math.round(r.km * 100) / 100).toLocaleString("th-TH")} กม.</b>` : "", r.timeSec ? `เวลา <b>${fmtTime(r.timeSec)}</b>` : "", r.km && r.timeSec ? `เพซ <b>${fmtPace(r.timeSec / r.km)}</b>` : "", r.fixed ? `⚠️ ${r.fixed} — ตรวจอีกครั้งได้ที่ "แก้ค่าที่อ่านได้เอง"` : "", r.hrAvg ? `HR <b>${r.hrAvg}${r.hrMax ? "/" + r.hrMax : ""}</b>` : "", r.walkSec ? `เดิน <b>${fmtTime(r.walkSec)}</b>` : "", r.dplus ? `⛰️ D+ <b>${fmtVert(r.dplus)} ม.</b>` : "", r.laps.length ? `<b>${r.laps.length}</b> รอบ` : "", r.date ? `วันที่ <b>${thDate(r.date)}</b>` : ""].filter(Boolean).map(x => `<span class="chip" style="font-weight:500">${x}</span>`).join(" ");
+const ocrSummary = r => [r.km ? `ระยะ <b>${(Math.round(r.km * 100) / 100).toLocaleString("th-TH")} กม.</b>` : "", r.timeSec ? `เวลา <b>${fmtTime(r.timeSec)}</b>` : "", r.km && r.timeSec ? `เพซ <b>${fmtPace(r.timeSec / r.km)}</b>` : "", r.fixed ? `⚠️ ${r.fixed} — ตรวจอีกครั้งได้ที่ "แก้ค่าที่อ่านได้เอง"` : "", r.hrAvg ? `HR <b>${r.hrAvg}${r.hrMax ? "/" + r.hrMax : ""}</b>` : "", r.walkSec ? `เดิน <b>${fmtTime(r.walkSec)}</b>` : "", r.dplus ? `⛰️ D+ <b>${fmtVert(r.dplus)} ม.</b>` : "", r.tm ? "🏃‍♂️ <b>ลู่วิ่ง</b>" : "", r.laps.length ? `<b>${r.laps.length}</b> รอบ` : "", r.date ? `วันที่ <b>${thDate(r.date)}</b>` : ""].filter(Boolean).map(x => `<span class="chip" style="font-weight:500">${x}</span>`).join(" ");
 
 function openLog(key) {
   const p = P();
@@ -2062,6 +2081,8 @@ function openLog(key) {
       <div class="ocr-grid"></div>
       <div class="ocr-status tiny"></div><div class="ocr-result"></div>
     </div>
+    <div class="seg envseg" style="margin:4px 0 12px"><label><input type="radio" name="env" value="out" checked><span>🌳 กลางแจ้ง</span></label><label><input type="radio" name="env" value="tm"><span>🏃‍♂️ ลู่วิ่งไฟฟ้า</span></label></div>
+    <label class="f tmOnly" hidden>ความชันลู่ (%) <span class="tiny mut">— แนะนำ 1% ให้ใกล้เคียงวิ่งถนน</span><input name="incline" inputmode="decimal" placeholder="1"></label>
     <label class="f">วันที่<input type="date" name="date" required></label>
     <label class="f">ตรงกับนัดซ้อมไหน<select name="sessionKey"></select></label>
     <div class="grid2">
@@ -2098,6 +2119,9 @@ function openLog(key) {
     const apply = () => { const s = allSessions().find(x => x.key === F.sessionKey.value); if (!s) return; const v = view(s); F.type.value = v.type; F.shoe.value = s.shoe || ""; if (!ocr) F.km.value = mode === "photo" ? "" : v.km || ""; };
     const s0 = key && allSessions().find(x => x.key === key);
     F.date.value = s0 ? s0.date : TODAY; fill(F.date.value, key);
+    const envUpd = () => { body.querySelector(".tmOnly").hidden = F.env.value !== "tm"; try { localStorage.setItem("kaowin.env", F.env.value); } catch (e) {} };
+    try { const le = localStorage.getItem("kaowin.env"); if (le === "tm") F.env.value = "tm"; } catch (e) {}
+    body.querySelectorAll("input[name=env]").forEach(x => x.addEventListener("change", envUpd)); envUpd();
     F.date.addEventListener("change", () => { F.date.classList.remove("need"); fill(F.date.value); });
     F.sessionKey.addEventListener("change", apply);
     F.rpe.addEventListener("input", () => body.querySelector(".rpeOut").textContent = F.rpe.value);
@@ -2157,6 +2181,7 @@ function openLog(key) {
           F.date.classList.toggle("need", !ocr.date);
           if (ocr.km) F.km.value = ocr.km; if (ocr.timeSec) F.time.value = fmtTime(ocr.timeSec);
           if (ocr.hrAvg) F.hrAvg.value = ocr.hrAvg; if (ocr.hrMax) F.hrMax.value = ocr.hrMax; if (ocr.dplus) F.dplus.value = ocr.dplus;
+          if (ocr.tm !== undefined) { F.env.value = ocr.tm ? "tm" : "out"; body.querySelector(".tmOnly").hidden = !ocr.tm; }
           const rc = sortedRaces(p).find(x => x.date === F.date.value && ocr.km && Math.abs(ocr.km - x.km) / x.km < 0.06);
           if (rc) F.type.value = "race";
           else if (!F.sessionKey.value && ocr.km) F.type.value = ocr.km >= 14 ? "long" : "easy";
@@ -2180,6 +2205,7 @@ function openLog(key) {
       const hA = parseInt(F.hrAvg.value), hM = parseInt(F.hrMax.value);
       if (hA >= 60 && hA <= 230) l.hrAvg = hA; if (hM >= 60 && hM <= 230) l.hrMax = hM;
       if (dp > 0 && dp < 20000) l.dplus = dp;
+      if (F.env.value === "tm") { l.env = "tm"; const inc = parseFloat(String(F.incline.value).replace(",", ".")); if (inc >= 0 && inc <= 15) l.incline = inc; }
       if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
       const to = addDays(l.date > TODAY ? l.date : TODAY, 14), snap0 = planSnap(l.date, to);
       p.logs.push(l); save(); render();
