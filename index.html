@@ -154,6 +154,15 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .tabs button.on{color:var(--pri-d);font-weight:700}
 .tabs svg{width:22px;height:22px}
 /* sheet + forms */
+.tipscroll{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:2px 0 6px}.tipscroll::-webkit-scrollbar{display:none}
+.tipbar{flex:0 0 100%;scroll-snap-align:start;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;font:inherit;font-size:13px;line-height:1.35;text-align:left;cursor:pointer;border:1px solid}
+.tipbar .ic{font-size:20px;flex:none}.tipbar .tx{flex:1;min-width:0}.tipbar .tx b{display:block;font-size:13.5px}.tipbar .go{flex:none;font-weight:700;opacity:.7}
+.tipbar.red{background:#fdecea;border-color:#f3c3bd;color:#8e2a20}.tipbar.amber{background:#fff6e0;border-color:#f0dcae;color:#7a5306}.tipbar.green{background:#e9f6ee;border-color:#c5e6d2;color:#0d5a3c}
+.tipdots{display:flex;gap:4px;justify-content:center;margin:0 0 12px}.tipdots i{width:5px;height:5px;border-radius:3px;background:#c9dcd0;transition:width .2s}.tipdots i.on{background:#0d5a3c;width:14px}
+.kb .sev{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700}.kb .sev.red{background:#fdecea;color:#b3261e}.kb .sev.amber{background:#fff6e0;color:#8a5a00}.kb .sev.green{background:#e9f6ee;color:#0d5a3c}
+.kb h4{margin:14px 0 6px;font-size:14px}.kb ul,.kb ol{margin:0 0 6px 18px;padding:0;font-size:13.5px;line-height:1.6}
+.callbtn{display:flex;align-items:center;justify-content:center;gap:8px;background:#e2453c;color:#fff!important;text-decoration:none;border-radius:14px;padding:12px;font-weight:800;font-size:16px;margin:12px 0 4px}
+.kbgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}.kbgrid button{border:1px solid var(--line);border-radius:12px;padding:9px 10px;font:inherit;font-size:12.5px;text-align:left;background:#fff;cursor:pointer;color:var(--ink)}.kbgrid button.red{border-left:4px solid #e2453c}.kbgrid button.amber{border-left:4px solid #e0a83a}.kbgrid button.green{border-left:4px solid #3aa06a}
 .achpop{position:fixed;inset:0;z-index:60;background:rgba(10,40,26,.55);display:flex;align-items:center;justify-content:center;padding:18px;animation:fadein .25s}
 .achpop.out{opacity:0;transition:opacity .25s}
 .achcard{position:relative;background:#fff;border-radius:26px;padding:20px 18px 16px;width:100%;max-width:400px;max-height:88vh;overflow:auto;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:popin .45s cubic-bezier(.2,1.4,.4,1)}
@@ -1280,6 +1289,115 @@ function badgesHtml(p) {
     <div style="margin-top:8px">${b.slice(0, 12).map(x => `<div class="item" style="cursor:default">${medalSVG(x.kind, x.medal, 30)}<div class="grow"><b class="small">${esc(x.title)}</b><div class="tiny mut">${thDateY(x.d)}</div></div></div>`).join("")}</div></div>`;
 }
 
+
+/* ---------- แถบความรู้ & คำเตือนนักวิ่ง (วันละ 1 เรื่อง แยกตามคน) ---------- */
+const TIPS = {
+  heat: { lvl: "red", ic: "🌡️", t: "ฮีทสโตรก (โรคลมแดด)", bar: "ร้อนแบบนี้ ระวังฮีทสโตรก", sub: "สับสน ตัวร้อนจัด หน้ามืด = หยุดทันที แตะดูวิธีช่วย", call: 1,
+    signs: ["สับสน พูดไม่รู้เรื่อง เดินเซ", "ตัวร้อนจัด ผิวแดง (เหงื่ออาจยังออกหรือหยุดก็ได้)", "หน้ามืด ปวดหัวรุนแรง คลื่นไส้ อาเจียน", "ล้มลง หมดสติ ชัก"],
+    now: ["หยุดวิ่ง พาเข้าที่ร่ม", "<b>โทร 1669</b> หรือเรียกหน่วยแพทย์สนาม", "ลดความร้อนให้เร็วที่สุด: ราดน้ำเย็น/น้ำแข็ง ประคบซอกคอ รักแร้ ขาหนีบ พัดลม", "รู้สึกตัวดีให้จิบน้ำ/เกลือแร่ ถ้าซึมห้ามป้อน", "ไม่หายใจ/ไม่ตอบสนอง → เริ่ม CPR และใช้ AED"],
+    prevent: ["วิ่งเช้ามืดหรือเย็น เลี่ยง 10:00–16:00", "ร้อนชื้นให้วิ่งช้าลง 20–40 วิ/กม. ดูหัวใจเป็นหลัก", "มีไข้ ท้องเสีย อดนอน = งดซ้อมหนัก"] },
+  heart: { lvl: "red", ic: "❤️", t: "สัญญาณอันตรายจากหัวใจ", bar: "เจ็บแน่นหน้าอก ใจสั่น = หยุดวิ่ง", sub: "อย่าฝืนวิ่งต่อแม้อาการดีขึ้น แตะดูวิธีรับมือ", call: 1,
+    signs: ["เจ็บ แน่น หรือบีบที่หน้าอก อาจร้าวไปแขน คอ กราม", "ใจสั่น เต้นผิดจังหวะ หรือเร็วผิดปกติขณะวิ่งเบา", "หอบเหนื่อยผิดปกติ หน้ามืด จะเป็นลม", "เพื่อนล้มหมดสติกะทันหัน"],
+    now: ["หยุดทันที นั่งหรือนอนพัก", "<b>โทร 1669</b> แจ้งตำแหน่งให้ชัด", "คนหมดสติไม่หายใจ: กดหน้าอกกลางอก 100–120 ครั้ง/นาที ลึก 5–6 ซม. และให้คนไปเอา AED", "อาการหายแล้วก็ไม่วิ่งต่อ ให้พบแพทย์ก่อนกลับมาซ้อม"],
+    prevent: ["อายุ 40+ มีโรคประจำตัว หรือมีญาติเสียชีวิตกะทันหัน ควรตรวจหัวใจก่อนซ้อมหนัก", "ป่วยเป็นไข้หรือเพิ่งหายจากไข้หวัด งดวิ่งหนัก 1–2 สัปดาห์", "วันงานจำจุดหน่วยแพทย์และ AED ไว้"] },
+  hypona: { lvl: "red", ic: "💧", t: "ดื่มน้ำเปล่ามากเกิน (โซเดียมต่ำ)", bar: "ดื่มน้ำเปล่ามากเกินก็อันตราย", sub: "วิ่งเกิน 1 ชม. ให้มีเกลือแร่ด้วย แตะดูอาการเตือน", call: 1,
+    signs: ["คลื่นไส้ ปวดหัว ท้องอืดน้ำ", "มือเท้าบวม แหวนหรือนาฬิกาคับขึ้น", "สับสน ซึม ชัก (อันตรายมาก)", "น้ำหนักหลังวิ่งมากกว่าก่อนวิ่ง"],
+    now: ["<b>หยุดดื่มน้ำเปล่าทันที</b> อย่าแก้ด้วยการดื่มเพิ่ม", "กินของเค็ม/เกลือแร่ได้ถ้ารู้สึกตัวดี", "สับสน ซึม ชัก → <b>โทร 1669</b> / หน่วยแพทย์ทันที"],
+    prevent: ["ดื่มตามความกระหาย ไม่ต้องดื่มทุกจุดให้น้ำ", "Long Run/แข่งเกิน 1 ชม. ใช้เครื่องดื่มเกลือแร่หรือเม็ดเกลือ", "ชั่งน้ำหนักก่อน-หลัง Long เพื่อรู้ว่าดื่มพอดีไหม"] },
+  rhabdo: { lvl: "red", ic: "🦵", t: "กล้ามเนื้อสลาย (Rhabdo)", bar: "ปัสสาวะสีโค้กหลังวิ่ง = ไปโรงพยาบาล", sub: "กล้ามเนื้อสลายอาจทำให้ไตวาย แตะดูอาการ", call: 0,
+    signs: ["ปัสสาวะสีน้ำตาลเข้ม สีโค้ก หรือสีชาเข้ม", "ปวดกล้ามเนื้อรุนแรงผิดปกติ บวม แข็ง", "อ่อนแรงมาก ปัสสาวะออกน้อย"],
+    now: ["<b>ไปโรงพยาบาลทันที</b> แจ้งว่าออกกำลังหนัก (ตรวจค่า CK และไต)", "ดื่มน้ำตามที่รู้สึกได้ งดออกกำลังกาย", "ไม่กินยาแก้ปวดกลุ่ม NSAIDs เอง"],
+    prevent: ["เพิ่มความหนักทีละน้อย โดยเฉพาะหลังหยุดวิ่งนาน", "ระวังวิ่งยาว/ลงเขาเยอะ + อากาศร้อน + ขาดน้ำ", "ไม่กินยาแก้ปวด NSAIDs ก่อนหรือระหว่างวิ่งยาว"] },
+  heatex: { lvl: "amber", ic: "🥵", t: "เพลียแดด (Heat exhaustion)", bar: "เหงื่อแตก อ่อนเพลีย คลื่นไส้ = พักก่อน", sub: "เพลียแดดอาจลามเป็นฮีทสโตรก แตะดูวิธีจัดการ", call: 1,
+    signs: ["เหงื่อออกมาก ตัวเย็นชื้น หน้าซีด", "อ่อนเพลีย เวียนหัว ปวดหัว คลื่นไส้", "หัวใจเต้นเร็วแม้เดินช้า ๆ"],
+    now: ["หยุดวิ่ง เข้าร่ม คลายเสื้อผ้า", "ประคบเย็น จิบเกลือแร่ทีละน้อย", "30 นาทีไม่ดีขึ้น หรือเริ่มสับสน → <b>โทร 1669</b>"],
+    prevent: ["ช่วงแรกของหน้าร้อนให้ร่างกายปรับตัว 1–2 สัปดาห์ (ซ้อมเบาลง)", "สวมหมวก เสื้อสีอ่อน ระบายอากาศดี", "ดู HR วันเบาอย่าให้เกินโซน 2–3"] },
+  cramp: { lvl: "amber", ic: "⚡", t: "ตะคริว & ขาดน้ำ", bar: "ตะคริวบ่อย? เช็กน้ำ เกลือแร่ และความเร็ว", sub: "ยืดค้าง นวดเบา ๆ แล้วเดินต่อ แตะดูวิธีป้องกัน", call: 0,
+    signs: ["กล้ามเนื้อน่อง/ต้นขาเกร็งกระตุก", "ปากแห้ง ปัสสาวะน้อยสีเข้ม", "เวียนหัวเมื่อลุกยืน"],
+    now: ["หยุด ยืดกล้ามเนื้อที่เป็นค้าง 20–30 วินาที", "นวดเบา ๆ จิบเกลือแร่", "หายแล้วเดิน/วิ่งช้า ๆ ต่อ ถ้าเป็นซ้ำให้ลดความเร็ว"],
+    prevent: ["ตะคริวช่วงท้ายมักมาจากออกตัวเร็วเกินและความทนทานไม่พอ", "ซ้อม Long Run สม่ำเสมอ และฝึกเติมเกลือแร่ทุก 30–45 นาที", "นอนพอ ไม่วิ่งหนักตอนร่างกายล้าสะสม"] },
+  bonk: { lvl: "amber", ic: "🍬", t: "น้ำตาลตก / หมดแรง (Bonk)", bar: "มือสั่น เหงื่อเย็น หน้ามืด = เติมน้ำตาล", sub: "เติมพลังงานก่อนหมด แตะดูวิธีเติม", call: 0,
+    signs: ["มือสั่น ใจสั่น เหงื่อเย็น", "หิวจัด หน้ามืด สมาธิหลุด ขาไม่มีแรงกะทันหัน", "หงุดหงิด สับสนเล็กน้อย"],
+    now: ["เดินช้าลง กินเจล/น้ำหวาน/ลูกอม (น้ำตาล 15–20 กรัม)", "รอ 10–15 นาที ดีขึ้นค่อยไปต่อช้า ๆ", "เป็นเบาหวานหรือไม่ดีขึ้น → หยุดและขอความช่วยเหลือ"],
+    prevent: ["กินมื้อเบา ๆ 1–2 ชม. ก่อน Long Run", "วิ่งเกิน 75 นาที เติมคาร์บ 30–60 กรัม/ชม. (เจล 1 ซองทุก 30–45 นาที)", "ซ้อมกินในซ้อมจริง อย่าลองของใหม่วันแข่ง"] },
+  injury: { lvl: "amber", ic: "🩹", t: "เจ็บแบบไหนต้องหยุด", bar: "เจ็บแปลบจุดเดิม = หยุด อย่าฝืน", sub: "แยกให้ออกระหว่างเมื่อยกับบาดเจ็บ แตะดูวิธีสังเกต", call: 0,
+    signs: ["เจ็บแปลบจุดเดียว กดแล้วเจ็บที่กระดูก (สงสัยกระดูกล้า)", "เจ็บจนต้องเปลี่ยนท่าวิ่ง หรือเดินกะเผลก", "บวม แดง ร้อน หรือเจ็บตอนพัก/กลางคืน", "เจ็บมากขึ้นเรื่อย ๆ ระหว่างวิ่ง"],
+    now: ["หยุดวิ่ง ประคบเย็น 15–20 นาที ยกสูง", "กดปุ่ม “มีอาการเจ็บ” ตอนส่งผลซ้อม แอปจะปรับแผนให้ทันที", "2–3 วันไม่ดีขึ้น หรือเดินแล้วเจ็บ → พบแพทย์/นักกายภาพ"],
+    prevent: ["เพิ่มระยะไม่เกินราว 10%/สัปดาห์ และมีสัปดาห์ลดโหลด", "เล่นเวทขา 2 ครั้ง/สัปดาห์", "เปลี่ยนรองเท้าเมื่อครบอายุ"] },
+  sick: { lvl: "amber", ic: "🤒", t: "ป่วยอยู่ ควรวิ่งไหม", bar: "มีไข้ = งดวิ่ง ไม่ใช่วิ่งไล่ไข้", sub: "ใช้กฎ “เหนือคอ / ใต้คอ” แตะดูวิธีตัดสินใจ", call: 0,
+    signs: ["มีไข้ ปวดเมื่อยทั้งตัว", "ไอลงคอ เจ็บหน้าอก หายใจไม่อิ่ม", "ท้องเสีย อาเจียน"],
+    now: ["อาการเหนือคอ (คัดจมูก เจ็บคอเล็กน้อย) วิ่งเบา ๆ ได้ ถ้าไม่แย่ลง", "อาการใต้คอ หรือมีไข้ → พักจนหาย", "หายไข้แล้วกลับมาเบา ๆ 3–5 วันก่อนซ้อมหนัก"],
+    prevent: ["นอนให้พอ 7–9 ชม. ช่วงซ้อมหนัก", "ล้างมือ เลี่ยงที่แออัดช่วงใกล้แข่ง"] },
+  trail: { lvl: "amber", ic: "⛰️", t: "ความปลอดภัยบนเทรล", bar: "ขึ้นเขาคนเดียว? แจ้งเส้นทางคนรู้ใจก่อน", sub: "อุปกรณ์จำเป็นที่ช่วยชีวิตได้ แตะดูเช็กลิสต์", call: 1,
+    signs: ["หลงทาง แบตใกล้หมด ฟ้ามืดเร็ว", "ฝน ฟ้าคะนอง ทางลื่น", "ล้มแล้วข้อเท้าพลิก เดินไม่ไหว"],
+    now: ["หยุด ตั้งสติ ย้อนกลับไปจุดที่รู้จักล่าสุด", "อยู่กับที่ให้คนหาเจอง่าย ใช้นกหวีด 3 ครั้ง", "มีสัญญาณ → <b>โทร 1669</b> หรือแจ้งเจ้าหน้าที่อุทยาน ส่งพิกัด"],
+    prevent: ["บอกเส้นทางและเวลากลับให้คนรู้ใจ", "พกน้ำ ไฟฉายคาดหัว นกหวีด ผ้าห่มฉุกเฉิน แบตสำรอง โหลดแผนที่ออฟไลน์", "ลงเขาก้าวสั้นถี่ มองทางข้างหน้า 2–3 ก้าว"] },
+  hot: { lvl: "green", ic: "☀️", t: "วิ่งในอากาศร้อนชื้น", bar: "อากาศร้อน วิ่งช้าลงไม่ใช่ฟิตลดลง", sub: "เพซช้าลง 20–40 วิ/กม. เป็นเรื่องปกติ แตะดูเคล็ดลับ", call: 0,
+    signs: ["ความชื้นสูงทำให้เหงื่อระเหยยาก ตัวร้อนเร็ว", "HR สูงกว่าปกติที่เพซเดิม"],
+    now: ["วิ่งตามความเหนื่อย/หัวใจ ไม่ไล่เพซ", "ราดน้ำที่หัวและคอ ใส่หมวกระบายอากาศ", "ย้าย Long Run ไปเช้ามืด"],
+    prevent: ["ปรับตัวกับอากาศร้อน 10–14 วัน", "ดื่มน้ำ + เกลือแร่ตั้งแต่ก่อนออกวิ่ง"] },
+  fuel: { lvl: "green", ic: "🧃", t: "เติมน้ำ เกลือแร่ เจล ใน Long Run", bar: "Long Run วันนี้/พรุ่งนี้ — ซ้อมกินด้วย", sub: "เจลทุก 30–45 นาที เกลือแร่ตามกระหาย แตะดูแผน", call: 0,
+    signs: ["วิ่งเกิน 75 นาที ไกลกว่า 15 กม. ควรเติมพลังงาน", "เหงื่อเค็ม เสื้อมีคราบขาว = เสียเกลือเยอะ"],
+    now: ["ก่อนวิ่ง 1–2 ชม. กินคาร์บเบา ๆ (ขนมปัง กล้วย)", "ระหว่างวิ่ง เจล 1 ซองทุก 30–45 นาที พร้อมจิบน้ำ", "ใช้เกลือแร่ทุกชั่วโมง ดื่มตามกระหาย", "หลังวิ่ง 30–60 นาที กินคาร์บ + โปรตีน"],
+    prevent: ["ซ้อมยี่ห้อเจล/เกลือแร่เดียวกับวันแข่ง", "อย่าลองของใหม่วันแข่ง"] },
+  raceday: { lvl: "green", ic: "🏁", t: "เช็กลิสต์ก่อนวันแข่ง", bar: "ใกล้วันแข่งแล้ว! เช็กลิสต์ให้ครบ", sub: "BIB รองเท้าที่ใส่ซ้อมแล้ว เจล นอนเร็ว แตะดูเช็กลิสต์", call: 0,
+    signs: ["2–3 วันก่อนแข่ง: ซ้อมเบาตามแผน นอนให้พอ", "คืนก่อนแข่งตื่นเต้นนอนน้อยได้ ไม่เป็นไร"],
+    now: ["เตรียมของคืนก่อน: BIB เข็มกลัด รองเท้า/ถุงเท้าที่ใส่ซ้อมแล้ว เจล วาสลีน", "มื้อเช้าที่คุ้นเคย 2–3 ชม. ก่อนปล่อยตัว", "ออกตัวช้ากว่าเพซเป้า 5–10 วิในช่วงแรก", "รู้จุดให้น้ำ จุดแพทย์ และ AED ในงาน"],
+    prevent: ["ไม่ใส่รองเท้า/ชุดใหม่วันแข่ง", "ร้อนจัดวันงาน ปรับเป้าให้ช้าลง ปลอดภัยไว้ก่อน"] },
+  recovery: { lvl: "green", ic: "🛌", t: "พักฟื้นหลังแข่ง", bar: "เพิ่งแข่งเสร็จ — พักให้เป็นงาน", sub: "ฟื้นตัว 1 วันต่อ 1 ไมล์ที่แข่ง แตะดูวิธีพักฟื้น", call: 0,
+    signs: ["ขาตึง ปวดเมื่อย 2–3 วันหลังแข่งเป็นเรื่องปกติ", "นอนหลับยาก HR ตอนตื่นสูงกว่าปกติ = ยังไม่ฟื้น"],
+    now: ["2–3 วันแรกเดินเบา ๆ ยืดเหยียด ไม่วิ่งหนัก", "กินโปรตีนและคาร์บให้พอ ดื่มน้ำ", "แอปจะวางสัปดาห์ฟื้นตัวให้อัตโนมัติ"],
+    prevent: ["หลัง Half พักวิ่งหนัก ~1–2 สัปดาห์ หลัง Full ~3 สัปดาห์"] },
+  easy: { lvl: "green", ic: "🐢", t: "วิ่งช้า คือวิ่งถูก", bar: "วันเบาต้องเบาจริง ถึงจะเร็วขึ้น", sub: "80% ของการซ้อมควรเป็นเพซที่คุยได้ แตะดูเหตุผล", call: 0,
+    signs: ["วิ่งแล้วพูดเป็นประโยคได้ = Easy ถูกโซน", "วันเบาหอบจนพูดไม่ได้ = เร็วเกิน"],
+    now: ["วิ่งตามช่วงเพซ Easy ในแอป ร้อนให้ช้ากว่านี้ได้", "เดินสลับวิ่งได้ ไม่ผิด"],
+    prevent: ["ความทนทานมาจากเวลาบนขาที่สม่ำเสมอ ไม่ใช่วิ่งเร็วทุกวัน", "เก็บแรงไว้สำหรับวัน Quality"] }
+};
+const TIP_ROT = ["heat", "heart", "fuel", "hypona", "injury", "easy", "heart", "cramp", "bonk", "heat", "rhabdo", "sick", "hot", "heatex"];   // raceday/recovery ขึ้นเฉพาะช่วงแข่ง
+const dayNo = d => Math.floor(Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)) / 864e5);
+function tipsFor(p) {
+  const out = [], push = id => { if (TIPS[id] && !out.includes(id)) out.push(id); }, dn = dayNo(TODAY), odd = dn % 2;
+  const seed = [...String(p.id || p.name || "")].reduce((t, c) => t + c.charCodeAt(0), 0);
+  // ---- เหตุพิเศษของคนนี้ ----
+  if (PAIN) push("injury");
+  const up = sortedRaces(p).find(r => r.date >= TODAY && diffDays(TODAY, r.date) <= 3);
+  if (up) push("raceday");
+  const past = sortedRaces(p).filter(r => r.date < TODAY && diffDays(r.date, TODAY) <= 3).pop() || runLogs(p).find(l => l.type === "race" && l.date < TODAY && diffDays(l.date, TODAY) <= 3);
+  if (past) push("recovery");
+  const longSoon = allSessions().find(s => (s.date === TODAY || s.date === addDays(TODAY, 1)) && view(s).type === "long");
+  const mr = mainRace(p);
+  if (longSoon) { if (mr && isTrail(mr) && odd) push("trail"); else if ((view(longSoon).km || 0) >= 18 && odd) push("hypona"); else push("fuel"); }
+  const ref = hrRef(p), recent = runLogs(p).filter(l => l.date >= addDays(TODAY, -3));
+  if (recent.some(l => (l.type === "easy" || l.type === "long") && l.hrAvg && ref && l.hrAvg / ref >= 0.88)) push("heatex");
+  if (recent.some(l => (l.walkSec && toSec(l.time) && l.walkSec / toSec(l.time) > 0.1) || /ตะคริว/.test(l.note || ""))) push("cramp");
+  const mo = +TODAY.slice(5, 7); if (mo >= 3 && mo <= 5) push(odd ? "heat" : "hot");
+  if (p.level === "beginner" && p.startedOn && diffDays(p.startedOn, TODAY) <= 21) push(odd ? "heart" : "easy");
+  if (mr && isTrail(mr) && dn % 5 === 0) push("trail");
+  // ---- ไม่มีเหตุพิเศษ: วนวันละเรื่อง (แต่ละคนเริ่มคนละจุด) ----
+  for (let k = 0; out.length < 5 && k < TIP_ROT.length; k++) push(TIP_ROT[(dn + seed + k) % TIP_ROT.length]);
+  return out;
+}
+function tipBarHtml(p) {
+  const ids = tipsFor(p); if (!ids.length) return "";
+  return `<div class="tipscroll" aria-label="ความรู้และคำเตือนนักวิ่ง">${ids.map(id => { const t = TIPS[id]; return `<button class="tipbar ${t.lvl}" data-act="tip" data-id="${id}"><span class="ic">${t.ic}</span><span class="tx"><b>${t.bar}</b>${t.sub}</span><span class="go">›</span></button>`; }).join("")}</div>
+    <div class="tipdots">${ids.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("")}</div>`;
+}
+function openTip(id) {
+  const t = TIPS[id]; if (!t) return;
+  const lv = { red: "🚨 อันตรายถึงชีวิต", amber: "⚠️ ต้องระวัง", green: "💡 ความรู้" }[t.lvl];
+  openSheet(`${t.ic} ${t.t}`, `<div class="kb"><span class="sev ${t.lvl}">${lv}</span>
+    <h4>${t.lvl === "green" ? "ควรรู้" : "อาการเตือน"}</h4><ul>${t.signs.map(x => `<li>${x}</li>`).join("")}</ul>
+    <h4>${t.lvl === "green" ? "ทำอย่างไร" : "ทำทันที"}</h4><ol>${t.now.map(x => `<li>${x}</li>`).join("")}</ol>
+    ${t.call ? `<a class="callbtn" href="tel:1669">📞 โทร 1669 (เจ็บป่วยฉุกเฉิน)</a>` : ""}
+    <h4>ป้องกัน</h4><ul>${t.prevent.map(x => `<li>${x}</li>`).join("")}</ul>
+    <h4>หัวข้ออื่น</h4><div class="kbgrid">${Object.entries(TIPS).filter(([k]) => k !== id).map(([k, x]) => `<button data-act="tip" data-id="${k}" class="${x.lvl}"><b>${x.ic} ${x.t}</b></button>`).join("")}</div>
+    <p class="tiny mut" style="margin:12px 2px 4px">ข้อมูลปฐมพยาบาลทั่วไป ไม่ใช่คำแนะนำทางการแพทย์ · อาการรุนแรงหรือไม่แน่ใจ โทร 1669 ทันที</p></div>`);
+}
+document.addEventListener("scroll", e => {
+  const s = e.target; if (!s.classList || !s.classList.contains("tipscroll")) return;
+  const i = Math.round(s.scrollLeft / s.clientWidth), dots = s.nextElementSibling; if (dots) [...dots.children].forEach((d, k) => d.classList.toggle("on", k === i));
+}, true);
+
 function showAnalysis(id) {
   const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
   const r = analyzeLog(p, l), sec = toSec(l.time);
@@ -1361,7 +1479,7 @@ function renderWelcome() {
 function renderHome() {
   const p = P(), races = sortedRaces(p), nr = mainRace(p);
   if (!p.onboarded) return renderWelcome();
-  if (!nr) return installBanner() + `<div class="card empty"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:0 auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><p>เพิ่มรายการแข่งพร้อมเป้าหมาย แอปจะสร้างตารางซ้อมให้อัตโนมัติ</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
+  if (!nr) return installBanner() + tipBarHtml(p) + `<div class="card empty"><img src="${LOGO_ICON}" alt="" style="width:72px;height:72px;margin:0 auto 8px;display:block"><div class="mid">ยินดีต้อนรับสู่ ${APP_NAME}</div><p>เพิ่มรายการแข่งพร้อมเป้าหมาย แอปจะสร้างตารางซ้อมให้อัตโนมัติ</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
   const pr = isTrail(nr) ? null : predict(p, nr), w = curWeek(), wi = w ? w.i : -1;
   const next = allSessions().find(s => s.date >= TODAY && s.type !== "rest" && status(s) !== "done");
   const blockWeeks = W.filter(x => x.race.id === nr.id), bi = w ? blockWeeks.indexOf(w) : -1;
@@ -1403,7 +1521,7 @@ function renderHome() {
   const weekKm = w ? w.sessions.filter(s => RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0) : 0;
   const weekGot = w ? sumKm(runLogs(p), w.start, w.end) : 0;
   const vertGot = w ? runLogs(p).filter(l => l.date >= w.start && l.date <= w.end).reduce((t, l) => t + (+l.dplus || 0), 0) : 0;
-  return installBanner() + `
+  return installBanner() + tipBarHtml(p) + `
   <div class="card hero">
     <div class="row"><span><span class="chip pink">${esc(raceShort(nr))}</span> <span class="chip">${PRIO[prioOf(p, nr)].icon} ${PRIO[prioOf(p, nr)].label}</span>${agChip(p, nr) ? ` <span class="chip ag">🏅 ${esc(agChip(p, nr))}</span>` : ""}</span><span class="tiny mut">${thDateY(nr.date)}</span></div>
     <div style="font-weight:600;margin-top:8px">${esc(nr.name)}</div>
@@ -2305,6 +2423,7 @@ document.addEventListener("click", e => {
   if (act === "installHide") { try { localStorage.setItem("kaowin.installHide", "1"); } catch (e) {} render(); toast("ติดตั้งได้ภายหลังที่แท็บ “ฉัน”"); }
   if (act === "openLog") openLog(el.dataset.key);
   if (act === "session") openSession(el.dataset.key);
+  if (act === "tip") openTip(id);
   if (act === "gymSet") { const k = el.dataset.key, i = +el.dataset.i, j = +el.dataset.j; p.gymDone = p.gymDone || {}; const d = p.gymDone[k] = p.gymDone[k] || {};
     d[i] = (d[i] || 0) === j + 1 ? j : j + 1; save();
     el.parentElement.querySelectorAll(".setdot").forEach((b, x) => { b.classList.toggle("on", x < d[i]); b.textContent = x < d[i] ? "✓" : x + 1; });
