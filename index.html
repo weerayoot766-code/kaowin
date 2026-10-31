@@ -64,7 +64,8 @@ h3{font-size:15px;margin:0 0 8px}
 .box{background:var(--soft2);border-radius:12px;padding:10px;text-align:center}
 .box b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
 .chip{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--soft);color:var(--pri-d);white-space:nowrap}
-.chip.warn{background:var(--warn-bg);color:var(--warn)} .chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.pink{background:#f9e1ea;color:#9c2f5a} .chip.gray{background:#eef1ee;color:var(--mut)} .chip.gold{background:#fbf0cc;color:#8a6a06} .chip.brown{background:#f3ead9;color:#7a5a24}
+.chip.warn{background:var(--warn-bg);color:var(--warn)} .chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.pink{background:#f9e1ea;color:#9c2f5a} .chip.gray{background:#eef1ee;color:var(--mut)} .chip.gold{background:#fbf0cc;color:#8a6a06} .chip.brown{background:#f3ead9;color:#7a5a24} .chip.ag{background:#e8f1fb;color:#2b5d8a}
+.agbox{background:#eef5fc;border:1px solid #d3e3f3;border-radius:12px;padding:8px 12px;font-size:13px;margin-top:6px;line-height:1.5}.agbox b{color:#1f4f7a}
 .note{border-radius:12px;padding:10px 12px;font-size:13.5px;margin-top:8px;background:var(--ok-bg);color:#1f5a33}
 .note.warn{background:var(--warn-bg);color:#6e4a08} .note.bad{background:var(--bad-bg);color:#7a2a22} .note.info{background:#eef3fb;color:#2a4a7a} .note.gold{background:#fbf0cc;color:#6b5205}
 .bar{height:8px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:6px}
@@ -517,6 +518,36 @@ const effortTime = (V, E) => E <= 42.195 ? vdotTime(V, E) : vdotTime(V, 42.195) 
 const trailPot = (V, r) => effortTime(V, ekm(r)) * techF(r) * 1.05;
 const logE = l => +l.km + (+l.dplus || 0) / 100;
 const steepLog = l => +l.dplus > +l.km * 10;                                              // ชันเกิน 10 ม./กม. = ผลเทรล ไม่ใช้คิดความเร็วถนน
+// ---- รุ่นอายุ (แบบงานวิ่งไทย: อายุ = ปีที่แข่ง − ปีเกิด) ----
+const birthCE = p => { let y = parseInt(p && p.birthYear); if (y > 2400) y -= 543; return y > 1900 && y < 2100 ? y : 0; };   // รับได้ทั้ง ค.ศ. และ พ.ศ.
+const ageIn = (p, date) => { const y = birthCE(p); return y ? +String(date || TODAY).slice(0, 4) - y : 0; };
+const AG_SYS = { auto: "อัตโนมัติ (ช่วง 10 ปี ตามระยะ)", y5: "ช่วง 5 ปี (งานใหญ่)", open: "ไม่แบ่งรุ่น (Open / Fun run)", custom: "กำหนดเองตามประกาศงาน" };
+function agBrackets(r) {
+  const sys = (r && r.ag) || "auto"; if (sys === "open") return null;
+  if (sys === "custom" && r.agCustom) {
+    const out = [];
+    String(r.agCustom).split(/[,\n/|]+/).forEach(t => { t = t.trim(); let m;
+      if ((m = t.match(/(\d+)\s*[-–~]\s*(\d+)/))) out.push([+m[1], +m[2]]);
+      else if ((m = t.match(/(\d+)\s*(?:\+|ปีขึ้นไป|ขึ้นไป|up)/i))) out.push([+m[1], Infinity]);
+      else if ((m = t.match(/(?:ไม่เกิน|<=|≤)\s*(\d+)/))) out.push([0, +m[1]]);
+      else if ((m = t.match(/(?:ต่ำกว่า|<|under)\s*(\d+)/i))) out.push([0, +m[1] - 1]); });
+    if (out.length) return out.sort((a, b) => a[0] - b[0]);
+  }
+  if (sys === "y5") return [[0, 19], ...[20, 25, 30, 35, 40, 45, 50, 55, 60, 65].map(a => [a, a + 4]), [70, Infinity]];
+  const short = (isTrail(r) ? ekm(r) : +r.km) <= 15;
+  return short ? [[0, 15], [16, 29], [30, 39], [40, 49], [50, 59], [60, Infinity]] : [[18, 29], [30, 39], [40, 49], [50, 59], [60, Infinity]];
+}
+const agLabel = ([a, b]) => b === Infinity ? `${a} ปีขึ้นไป` : a === 0 ? `ไม่เกิน ${b} ปี` : `${a}–${b} ปี`;
+function ageGroup(p, r) {
+  const age = ageIn(p, r && r.date), sx = p.sex === "m" ? "ชาย" : p.sex === "f" ? "หญิง" : "";
+  if (!age) return null;
+  const br = agBrackets(r);
+  if (!br) return { age, sx, label: "Open (ไม่แบ่งรุ่น)", short: "Open" };
+  const g = br.find(([a, b]) => age >= a && age <= b) || (age < br[0][0] ? null : br[br.length - 1]);
+  if (!g) return { age, sx, label: `อายุยังไม่ถึงเกณฑ์ (รุ่นแรกเริ่ม ${br[0][0]} ปี)`, short: "ต่ำกว่าเกณฑ์", under: true };
+  return { age, sx, g, label: `${sx ? sx + " " : ""}${agLabel(g)}`, short: `${sx ? sx + " " : ""}${g[1] === Infinity ? g[0] + "+" : g[0] === 0 ? "≤" + g[1] : g[0] + "–" + g[1]}` };
+}
+const agChip = (p, r) => { const a = ageGroup(p, r); return a ? `รุ่น ${a.short}` : ""; };
 const raceTimeOk = (T, r) => isTrail(r) ? T / ekm(r) >= 180 && T / ekm(r) <= 1800 : PACE_OK(T / r.km);
 const distLabel = km => { const o = DISTS.find(o => Math.abs(o.km - km) < 0.05); return o ? o.label : fmtKm(km) + " กม."; };
 const sameDist = (a, b) => Math.abs(a - b) / b < 0.03;
@@ -842,7 +873,7 @@ function analyze(i) {
   return res;
 }
 // HR สูงสุดอ้างอิง: ค่าที่วัดได้สูงสุด หรือสูตรจากอายุ แล้วแต่ค่าไหนสูงกว่า
-const hrRef = p => { const y = parseInt(p.birthYear), est = y > 1900 ? Math.round(208 - 0.7 * (+TODAY.slice(0, 4) - y)) : 0, seen = Math.max(0, ...p.logs.map(x => +x.hrMax || 0)); return Math.max(est, seen) || 0; };
+const hrRef = p => { const y = birthCE(p), est = y > 1900 ? Math.round(208 - 0.7 * (+TODAY.slice(0, 4) - y)) : 0, seen = Math.max(0, ...p.logs.map(x => +x.hrMax || 0)); return Math.max(est, seen) || 0; };
 function view(s) {
   const w = W[s.wi], a = A[s.wi] || { factor: 1 }, rg = s.range || (w && w.pc.ranges[s.pace]);
   const v = { type: s.type, km: s.km, detail: s.detail, pace: rg ? rng(rg) : "", range: rg, adjusted: false };
@@ -1044,7 +1075,7 @@ function lapStats(l) {
   const avg = laps.reduce((t, x) => t + x.sec, 0) / tot;
   return { laps, p1, p2, fade, dropAt, fast, slow, avg, base, partial };
 }
-const hrMaxEst = p => { const y = parseInt(p.birthYear); return y > 1900 ? Math.round(208 - 0.7 * (+TODAY.slice(0, 4) - y)) : 0; };
+const hrMaxEst = p => { const y = birthCE(p); return y > 1900 ? Math.round(208 - 0.7 * (+TODAY.slice(0, 4) - y)) : 0; };
 function analyzeLog(p, l) {
   const out = [], s = l.sessionKey ? allSessions().find(x => x.key === l.sessionKey) : null, v = s ? view(s) : null;
   const sec = toSec(l.time), pace = sec && +l.km ? sec / +l.km : 0;
@@ -1278,7 +1309,7 @@ function renderHome() {
   const vertGot = w ? runLogs(p).filter(l => l.date >= w.start && l.date <= w.end).reduce((t, l) => t + (+l.dplus || 0), 0) : 0;
   return installBanner() + `
   <div class="card hero">
-    <div class="row"><span><span class="chip pink">${esc(raceShort(nr))}</span> <span class="chip">${PRIO[prioOf(p, nr)].icon} ${PRIO[prioOf(p, nr)].label}</span></span><span class="tiny mut">${thDateY(nr.date)}</span></div>
+    <div class="row"><span><span class="chip pink">${esc(raceShort(nr))}</span> <span class="chip">${PRIO[prioOf(p, nr)].icon} ${PRIO[prioOf(p, nr)].label}</span>${agChip(p, nr) ? ` <span class="chip ag">🏅 ${esc(agChip(p, nr))}</span>` : ""}</span><span class="tiny mut">${thDateY(nr.date)}</span></div>
     <div style="font-weight:600;margin-top:8px">${esc(nr.name)}</div>
     <div class="big">${fmtTime(nr.target)}</div>
     <div class="mut small">${isTrail(nr) ? esc(targetSub(nr)) + ` · ${TCAT_TH[rcat(nr)]}` : `เพซเป้าหมาย ${fmtPace(nr.target / nr.km)}/กม.`}</div>
@@ -1299,7 +1330,7 @@ function renderHome() {
     ${noteHtml(A[wi])}
     <div style="margin-top:8px">${w.sessions.map(s => sessRow(s, next && s.key === next.key)).join("")}</div>
   </div>` : ""}
-  ${others.length ? `<div class="card"><h3>รายการแข่งอื่น ๆ</h3>${others.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}"><span class="chip pink">${esc(raceShort(r))}</span><div class="grow"><b>${PRIO[prioOf(p, r)].icon} ${esc(r.name)}</b> <span class="tiny mut">${PRIO[prioOf(p, r)].label}</span><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${esc(targetSub(r))}</div></div></div>`).join("")}</div>` : ""}`;
+  ${others.length ? `<div class="card"><h3>รายการแข่งอื่น ๆ</h3>${others.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}"><span class="chip pink">${esc(raceShort(r))}</span><div class="grow"><b>${PRIO[prioOf(p, r)].icon} ${esc(r.name)}</b> <span class="tiny mut">${PRIO[prioOf(p, r)].label}</span><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${esc(targetSub(r))}${agChip(p, r) ? " · 🏅 " + esc(agChip(p, r)) : ""}</div></div></div>`).join("")}</div>` : ""}`;
 }
 
 function renderPlan() {
@@ -1560,7 +1591,9 @@ function renderProfile() {
   return `
   <div class="card hero" style="display:flex;gap:14px;align-items:center">
     <button data-act="photo" style="position:relative;border:0;padding:0;background:none;cursor:pointer;flex:none" aria-label="เปลี่ยนรูปโปรไฟล์">${avatarHtml(p, 68, 22)}<span style="position:absolute;right:-4px;bottom:-4px;width:26px;height:26px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;font-size:13px">📷</span></button>
-    <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:700">${esc(p.name)}</div><div class="small mut">${LEVELS[p.level] || ""} · ${fmtKm(sumKm(runLogs(p)))} กม. สะสม</div>${p.photo ? `<button class="linkbtn" data-act="photoDel" style="font-size:12px;color:var(--mut)">ลบรูป</button>` : ""}</div>
+    <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:700">${esc(p.name)}</div><div class="small mut">${LEVELS[p.level] || ""} · ${fmtKm(sumKm(runLogs(p)))} กม. สะสม</div>${(() => { const age = ageIn(p, TODAY), y = +TODAY.slice(0, 4); if (!age) return `<div class="tiny mut">ใส่เพศและปีเกิดด้านล่าง เพื่อดูรุ่นอายุที่ลงแข่ง</div>`;
+      const g10 = ageGroup(p, { km: 21, date: TODAY }), g5 = ageGroup(p, { km: 21, date: TODAY, ag: "y5" });
+      return `<div class="agbox">🏅 อายุ ${age} ปี (นับปีเกิด ${y + 543}) · รุ่น <b>${esc(g10.label)}</b><span class="tiny mut"> · ช่วง 5 ปี: ${esc(g5.short)}</span></div>`; })()}${p.photo ? `<button class="linkbtn" data-act="photoDel" style="font-size:12px;color:var(--mut)">ลบรูป</button>` : ""}</div>
     <button data-act="vo2Form" style="text-align:right;border:0;background:none;padding:0;cursor:pointer"><div class="mid">${fit ? fit.v.toFixed(1) : "—"}</div><div class="tiny mut">VO2max${fit && fit.manual ? " ⌚" : ""} ✎</div></button>
   </div>
 
@@ -1573,7 +1606,7 @@ function renderProfile() {
     <label class="f">ชื่อ<input name="name" value="${esc(p.name)}" required></label>
     <div class="grid2">
       <label class="f">เพศ<select name="sex"><option value="">—</option><option value="m" ${p.sex === "m" ? "selected" : ""}>ชาย</option><option value="f" ${p.sex === "f" ? "selected" : ""}>หญิง</option></select></label>
-      <label class="f">ปีเกิด (ค.ศ.)<input name="birthYear" inputmode="numeric" value="${esc(p.birthYear)}" placeholder="1990"></label>
+      <label class="f">ปีเกิด (ค.ศ. หรือ พ.ศ.)<input name="birthYear" inputmode="numeric" value="${esc(p.birthYear)}" placeholder="1990 หรือ 2533"></label>
       <label class="f">น้ำหนัก (กก.)<input name="weightKg" inputmode="decimal" value="${esc(p.weightKg)}"></label>
       <label class="f">ระดับ<select name="level">${Object.entries(LEVELS).map(([k, v]) => `<option value="${k}" ${p.level === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
     </div>
@@ -1588,7 +1621,7 @@ function renderProfile() {
   <div class="row" style="margin:22px 0 10px"><h2 style="margin:0">รายการแข่ง</h2><button class="btn ghost sm" data-act="raceForm">＋ เพิ่ม</button></div>
   <div class="card">${races.length ? races.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}">
       <span class="chip ${r.date < TODAY ? "gray" : "pink"}">${esc(raceShort(r))}</span>
-      <div class="grow"><b>${PRIO[prioOf(p, r)].icon} ${esc(r.name)}</b> <span class="tiny mut">${PRIO[prioOf(p, r)].label}</span><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${esc(targetSub(r))}${r.date < TODAY ? " · ผ่านแล้ว" : ""}</div></div><span class="mut">›</span></div>`).join("")
+      <div class="grow"><b>${PRIO[prioOf(p, r)].icon} ${esc(r.name)}</b> <span class="tiny mut">${PRIO[prioOf(p, r)].label}</span><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${esc(targetSub(r))}${r.date < TODAY ? " · ผ่านแล้ว" : ""}</div>${agChip(p, r) ? `<span class="chip ag">🏅 ${esc(agChip(p, r))}</span>` : ""}</div><span class="mut">›</span></div>`).join("")
     : `<div class="mut small">ยังไม่มีรายการแข่ง</div>`}</div>
 
   <div class="card" style="text-align:center;padding:14px"><img src="${LOGO_WORDMARK}" alt="KAOWIN" style="height:30px">${sloganHtml()}</div>
@@ -2058,6 +2091,9 @@ function raceForm(id) {
     <div class="flabel">ความสำคัญ</div>
     <div class="seg">${Object.entries(PRIO).map(([k, v]) => `<label><input type="radio" name="prio" value="${k}" ${(r ? prioOf(p, r) : defPrio) === k ? "checked" : ""}><span>${v.icon} ${v.label.split(" /")[0]}</span></label>`).join("")}</div>
     <div class="hint prioHint" style="margin-top:-6px"></div>
+    <label class="f">รุ่นอายุ<select name="ag">${Object.entries(AG_SYS).map(([k, v]) => `<option value="${k}" ${((r && r.ag) || "auto") === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+    <label class="f agCustom" ${r && r.ag === "custom" ? "" : "hidden"}>รุ่นตามประกาศงาน (คั่นด้วย ,)<input name="agCustom" value="${r ? esc(r.agCustom || "") : ""}" placeholder="เช่น ไม่เกิน 19, 20-29, 30-39, 40-49, 50+"></label>
+    <div class="agPrev"></div>
     <div class="modeBox" ${isTrail(r) ? "hidden" : ""}><div class="flabel">ตั้งเป้าเป็น</div>
     <div class="seg"><label><input type="radio" name="mode" value="pace" ${!r || r.mode !== "time" ? "checked" : ""}><span>เพซ (นาที/กม.)</span></label><label><input type="radio" name="mode" value="time" ${r && r.mode === "time" ? "checked" : ""}><span>เวลาจบ</span></label></div></div>
     <label class="f"><span class="tlabel">เพซเป้าหมาย</span><input name="target" inputmode="decimal" autocomplete="off" value="${r ? (r.mode === "time" ? fmtTime(r.target) : fmtPace(r.target / r.km)) : ""}" placeholder="5:00" required></label>
@@ -2092,6 +2128,10 @@ function raceForm(id) {
         : tr ? `= ${durTH(T)} · เฉลี่ย ${fmtPace(T / d)}/กม.` + (fit ? ` · ศักยภาพตอนนี้ราว ${fmtTime(Math.round(trailPot(fit.v, ro) / 60) * 60)}` : "")
         : `= ${pace ? "เวลาจบ " + fmtTime(T) + " (" + durTH(T) + ")" : "เพซ " + fmtPace(T / d) + "/กม. (" + durTH(T) + ")"}` + (fit ? ` · ศักยภาพตอนนี้ ${fmtTime(vdotTime(fit.v, d))}` : "");
       body.querySelector(".prioHint").textContent = PRIO[F.prio.value].desc;
+      body.querySelector(".agCustom").hidden = F.ag.value !== "custom";
+      const agr = { ...ro, date: F.date.value || TODAY, ag: F.ag.value, agCustom: F.agCustom.value }, ag = ageGroup(p, agr), ag0 = ageGroup(p, { ...agr, date: TODAY });
+      body.querySelector(".agPrev").innerHTML = !birthCE(p) || !p.sex ? `<div class="note info" style="margin-top:-4px">ใส่เพศและปีเกิดในแท็บ “ฉัน” แอปจะบอกรุ่นอายุที่คุณลงแข่งให้</div>`
+        : ag ? `<div class="agbox" style="margin:-4px 0 12px">🏅 ปี ${+agr.date.slice(0, 4) + 543} อายุ ${ag.age} ปี (${+agr.date.slice(0, 4) + 543} − ${birthCE(p) + 543}) → <b>${esc(ag.label)}</b>${ag0 && ag0.label !== ag.label ? `<div class="tiny mut">ปีนี้ยังอยู่รุ่น ${esc(ag0.label)} · ปีแข่งขึ้นรุ่นใหม่แล้ว</div>` : ""}<div class="tiny mut">รุ่นของงาน: ${agBrackets(agr) ? agBrackets(agr).map(agLabel).join(" · ") : "ไม่แบ่งรุ่น"} — เช็กประกาศงานอีกครั้ง บางงานแบ่งต่างกัน</div></div>` : "";
       const ch = T && d && !bad && F.date.value ? checkHtml(raceCheck(p, { ...ro, target: T, date: F.date.value, prio: F.prio.value })) : "", box = body.querySelector(".checks");
       if (box.dataset.h !== ch) { box.innerHTML = ch; box.dataset.h = ch; }
     };
@@ -2119,7 +2159,7 @@ function raceForm(id) {
       if (!d) return toast("ใส่ระยะก่อนนะ"); if (!T) return toast("ใส่เป้าหมาย เช่น 5:00");
       const ro = robj();
       if (!raceTimeOk(T, ro)) return toast("เป้าหมายดูไม่สมเหตุสมผล ตรวจรูปแบบเวลาอีกครั้ง");
-      const data = { name: F.name.value.trim(), date: F.date.value, km: d, target: Math.round(T), mode: mode(), prio: F.prio.value, terrain: ro.terrain, dplus: ro.dplus, tech: ro.tech };
+      const data = { name: F.name.value.trim(), date: F.date.value, km: d, target: Math.round(T), mode: mode(), prio: F.prio.value, terrain: ro.terrain, dplus: ro.dplus, tech: ro.tech, ag: F.ag.value, agCustom: F.agCustom.value.trim() };
       // มีงานหลักได้หลายงาน แต่ถ้าตั้งงานนี้เป็นหลัก ให้งานอื่นที่ยังไม่ได้ตั้งค่าคงสถานะเดิมไว้
       p.races.forEach(x => { if (!x.prio && x !== r) x.prio = prioOf(p, x); });
       if (r) Object.assign(r, data); else p.races.push({ id: uid(), ...data });
