@@ -146,7 +146,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .btn.sm{padding:7px 12px;font-size:13.5px;border-radius:10px}
 .btn.block{width:100%}
 .btns{display:grid;gap:10px;margin-top:6px}
-.fab{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:7;border-radius:999px;padding:13px 18px;box-shadow:0 8px 20px rgba(42,114,67,.28)}
+.fab{border-radius:999px;padding:13px 18px;box-shadow:0 8px 20px rgba(42,114,67,.28)}
 /* tabs */
 .tabs{position:fixed;bottom:0;left:0;right:0;z-index:6;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tabs-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
@@ -201,6 +201,126 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .cx-mebar{position:sticky;bottom:0;margin:10px 0 0;border-radius:18px;background:#0d5a3c;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 -6px 20px rgba(0,0,0,.15)}
 .cx-mebar .no{font-family:Outfit,sans-serif;font-size:22px;font-weight:800;color:#c8f560}.cx-mebar small{opacity:.8}
 .cx-an{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}.cx-an div{background:linear-gradient(90deg,#0d5a3c,#1f8a5b);color:#fff;border-radius:12px;padding:8px 12px;font-size:13px;cursor:pointer}
+body.lv-on{overflow:hidden}
+#live{position:fixed;inset:0;z-index:60;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+#live.hidden{display:none}
+.fabs{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:7;display:flex;gap:8px;align-items:center}
+.fab-live{border-radius:999px;padding:13px 16px;background:#14231a;color:#d9f99d;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.lv-setup{max-width:560px;margin:0 auto;padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
+.lv-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:18px}
+.lv-x{background:none;border:0;color:var(--mut);font:inherit;font-size:14px;cursor:pointer;padding:6px}
+.lv-warn{background:linear-gradient(180deg,#fff4ea,#ffe9d9);border:2px solid #f0a060;border-radius:18px;padding:14px 16px;color:#5a2d0c}
+.lv-warn>b{font-size:17px;color:#c2410c}
+.lv-warn ul{margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6}
+.lv-ack{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0;font-weight:600;cursor:pointer}
+.lv-ack input{width:22px;height:22px;accent-color:var(--pri);flex:none}
+.lv-plan{background:#f0f9e8;border:1px solid #cfe8b8;border-radius:14px;padding:10px 12px;font-size:13.5px;color:#2b4a1d;margin-bottom:10px}
+.lv-lab{font-weight:700;margin:6px 0}
+.lv-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.lv-chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+.lv-chip.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700}
+.lv-row .lv-chip{padding:6px 11px;font-size:13px}
+.lv-row .lv-chip.on{background:#d9f99d;border-color:#bef264;color:#1a2e05}
+.lv-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.lv-ct{font-weight:700;margin-bottom:4px}
+.lv-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.lv-row:last-of-type{border-bottom:0}
+.lv-row>span{color:var(--mut);flex:1 1 auto;min-width:0}
+.lv-row>div{flex:none;max-width:72%;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center}
+.lv-in{width:62px;padding:7px 8px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:15px;text-align:center;background:var(--bg);color:var(--ink)}
+.lv-in.w{width:80px}
+.lv-sel{padding:7px 8px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14px;background:var(--bg);color:var(--ink)}
+.lv-stp{display:flex;align-items:center;gap:12px}
+.lv-stp b{min-width:56px;text-align:center;font-size:16px}
+.lv-stp button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--soft2);font-size:18px;cursor:pointer;color:var(--ink)}
+.lv-test{margin-top:8px;border:1px dashed var(--line);background:none;border-radius:10px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.lv-sq{display:flex;gap:10px;align-items:center;padding:4px 0;font-size:14px}
+.lv-sq i{width:10px;height:10px;border-radius:50%;flex:none}
+.lv-sq i.b{background:#3b82f6}.lv-sq i.o{background:#f08a35}.lv-sq i.g{background:#22a35a}
+.lv-go{display:block;width:100%;margin:14px 0 8px;border:0;border-radius:22px;padding:18px;font:inherit;font-size:22px;font-weight:800;color:#14231a;background:linear-gradient(180deg,#d9f99d,#a3e635);box-shadow:0 10px 24px rgba(132,204,22,.35);cursor:pointer}
+.lv-go:disabled{opacity:.45;box-shadow:none;cursor:not-allowed}
+.lv-gps{text-align:center;font-size:13px;color:var(--mut)}
+.lv-gps .ok{color:#22a35a}.lv-gps .wait{color:#d97706}.lv-gps .bad{color:var(--bad)}
+/* ระหว่างวิ่ง (จอมืด) */
+.lv-run{min-height:100%;background:#0b130e;color:#eef5ef;padding:10px 16px calc(24px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;position:relative;box-sizing:border-box}
+#live:has(.lv-run){background:#0b130e}
+.lv-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#cfe3d4;padding:4px 2px 8px}
+#lvBars{display:inline-flex;align-items:flex-end;gap:2px}
+#lvBars i{display:inline-block;width:4px;background:#334;border-radius:1px}
+#lvBars i.on{background:#bef264}
+#lvBars em{color:#f87171;font-style:normal;margin-left:3px}
+.lv-lock{border:1px solid #3c5a1d;background:#16240f;color:#d9f99d;border-radius:12px;padding:7px 12px;font-size:12.5px;text-align:center}
+.lv-pill{width:max-content;max-width:100%;margin:12px auto 4px;border-radius:999px;padding:6px 16px;font-weight:700;font-size:15px}
+.lv-pill.o{background:#f08a35;color:#2a1302}.lv-pill.b{background:#1e3a5f;color:#bfdbfe}.lv-pill.bl{background:#3b82f6;color:#fff}.lv-pill.g{background:#166534;color:#dcfce7}
+.lv-big{text-align:center;margin:14px 0 10px}
+.lv-big b{display:block;font-size:min(30vw,132px);line-height:1;font-weight:800;letter-spacing:-3px;font-variant-numeric:tabular-nums}
+.lv-big span{font-size:15px;color:#cfe3d4}
+.lv-grid{display:grid;grid-template-columns:1fr 1fr;background:#121d16;border-radius:18px;overflow:hidden;margin:8px 0}
+.lv-grid>div{text-align:center;padding:12px 6px;border:0 solid #1f2d24;border-right-width:1px;border-bottom-width:1px}
+.lv-grid>div:nth-child(2n){border-right-width:0}
+.lv-grid b{display:block;font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15}
+.lv-grid b.hl{color:#d9f99d}.lv-grid b.slow,.lv-grid b.fast{color:#f59e5b}
+.lv-grid span{font-size:12.5px;color:#9fb6a6}
+.lv-ringw{position:relative;width:min(70vw,280px);margin:6px auto}
+.lv-ringw svg{width:100%;display:block}
+.lv-ringw circle{fill:none;stroke-width:16;stroke-linecap:round;transition:stroke-dashoffset .9s linear}
+.lv-ringw circle.bg{stroke:#1f2b23}
+.lv-ringc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.lv-ringc b{font-size:min(17vw,76px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.lv-ringc span{font-size:13px;color:#cfe3d4;margin-top:4px}
+.lv-zone{background:#121d16;border-radius:14px;padding:10px 14px;margin:8px 0}
+.lv-zt{display:flex;justify-content:space-between;font-size:13.5px}
+.lv-zt b.ok{color:#bef264}.lv-zt b.slow,.lv-zt b.fast{color:#f59e5b}
+.lv-bar{position:relative;height:9px;border-radius:9px;margin:9px 0 4px}
+.lv-bar i{position:absolute;top:-5px;width:6px;height:19px;margin-left:-3px;border-radius:3px;background:#fff;box-shadow:0 0 0 2px #0b130e;transition:left .8s}
+.lv-zl{display:flex;justify-content:space-between;font-size:11px;color:#8aa293}
+.lv-info{text-align:center;font-size:13.5px;color:#cfe3d4;margin:8px 0}
+.lv-next{display:flex;justify-content:space-between;background:#121d16;border-radius:14px;padding:11px 14px;margin:8px 0;font-size:14px}
+.lv-next span{color:#9fb6a6}
+.lv-rep{background:#121d16;border-radius:14px;padding:10px 14px;margin:8px 0}
+.lv-rr{display:flex;justify-content:space-between;font-size:16px;margin:4px 0}
+.lv-rep .ok,.lv-reps .ok{color:#22a35a}.lv-rep .warn,.lv-reps .warn{color:#e07b2a}
+.lv-rep b.ok{color:#bef264}
+.lv-dots{display:flex;justify-content:center;gap:6px;margin:10px 0}
+.lv-dots i{width:26px;height:7px;border-radius:5px;background:#2b3a30}
+.lv-dots i.d{background:#bef264}.lv-dots i.c{background:#fff}
+.lv-said{background:#121d16;border-radius:12px;padding:9px 12px;font-size:13px;color:#cfe3d4;margin:8px 0;min-height:18px}
+.lv-said:empty{display:none}
+.lv-al{display:flex;gap:12px;align-items:center;background:#f08a35;color:#2a1302;border-radius:18px;padding:12px 16px;margin:8px 0;box-shadow:0 8px 28px rgba(240,138,53,.35)}
+.lv-al.hidden{display:none}
+.lv-al>span{font-size:28px}.lv-al b{font-size:19px}
+.lv-ctl{display:flex;justify-content:center;gap:22px;margin:16px 0 4px}
+.lv-b{width:84px;height:84px;border-radius:50%;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font:inherit;cursor:pointer;position:relative;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.lv-b b{font-size:22px;line-height:1}.lv-b span{font-size:11px;margin-top:4px;position:relative}
+.lv-b.y{background:#d9f99d;color:#14231a}
+.lv-b.s{background:#1e3a5f;color:#dbeafe}
+.lv-b.k{background:#26332b;color:#fff;border:2px solid #3a4a40}
+.lv-b.k i{position:absolute;left:0;bottom:0;width:100%;height:0;background:#e5484d;transition:height .15s}
+.lv-b.k.holding i{height:100%;transition:height 1.2s linear}
+.lv-b.k b,.lv-b.k span{position:relative;z-index:1}
+.lv-pz{text-align:center;color:#fbbf24;font-size:14px;margin-top:6px}
+.lv-run.paused .lv-big b,.lv-run.paused .lv-ringc b{opacity:.55}
+.lv-gap{position:absolute;inset:0;background:rgba(5,10,7,.7);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding-top:22vh;z-index:3}
+.lv-gap>div{background:#e5484d;color:#fff;border-radius:22px;padding:18px;margin:0 14px;text-align:center;box-shadow:0 14px 40px rgba(229,72,77,.4)}
+.lv-gap b{font-size:19px}.lv-gap p{margin:8px 0 14px;font-size:14px;line-height:1.5}
+.lv-gap button{width:100%;border:0;border-radius:14px;padding:12px;font:inherit;font-weight:800;font-size:16px;color:#e5484d;background:#fff;cursor:pointer}
+.lv-cd{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh}
+.lv-cdn{font-size:180px;font-weight:800;color:#d9f99d;line-height:1}
+.lv-cdl{color:#cfe3d4;font-size:18px}
+/* สรุป */
+.lv-sum{max-width:560px;margin:0 auto;padding:0 16px calc(24px + env(safe-area-inset-bottom))}
+.lv-sh{background:linear-gradient(160deg,#1f6b3f,#14532d);color:#fff;border-radius:0 0 26px 26px;margin:0 -16px 12px;padding:18px 20px 16px}
+.lv-sh .tiny{color:#cdeed8}
+.lv-shk{font-size:16px}.lv-shk b{font-size:64px;font-weight:800;letter-spacing:-2px;margin-right:6px}
+.lv-shg{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin-top:6px}
+.lv-shg b{display:block;font-size:24px}.lv-shg span{font-size:12px;color:#cdeed8}
+.lv-route{width:100%;display:block}
+.lv-reps>div{display:grid;grid-template-columns:1.1fr 1fr 1fr 1.2fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.lv-reps>div:last-child{border:0}
+.lv-spl>div{display:grid;grid-template-columns:22px 1fr 48px;gap:10px;align-items:center;padding:5px 0;font-size:14px}
+.lv-spl i{height:8px;background:var(--soft2);border-radius:6px;overflow:hidden}
+.lv-spl em{display:block;height:100%;background:var(--pri);border-radius:6px}
+.lv-spl b{text-align:right}
 .achpop{position:fixed;inset:0;z-index:60;background:rgba(10,40,26,.55);display:flex;align-items:center;justify-content:center;padding:18px;animation:fadein .25s}
 .achpop.out{opacity:0;transition:opacity .25s}
 .achcard{position:relative;background:#fff;border-radius:26px;padding:20px 18px 16px;width:100%;max-width:400px;max-height:88vh;overflow:auto;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:popin .45s cubic-bezier(.2,1.4,.4,1)}
@@ -311,7 +431,8 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
   <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์</span>
 </div></footer>
 
-<button class="btn fab" data-act="openLog" id="fab">＋ ส่งผลซ้อม</button>
+<div class="fabs" id="fab"><button class="btn fab-live" data-act="live">▶ วิ่งสด</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
+<div id="live" class="hidden"></div>
 
 <nav class="tabs"><div class="tabs-in">
   <button data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>ภาพรวม</button>
@@ -1614,6 +1735,553 @@ function chMonthEnd(p) {
   return out;
 }
 
+/* ---------- บันทึกผลซ้อม (ใช้ร่วม: ฟอร์มส่งผล + วิ่งสด) ---------- */
+function commitLog(p, l) {
+  const to = addDays(l.date > TODAY ? l.date : TODAY, 14), snap0 = planSnap(l.date, to);
+  p.logs.push(l); save(); render(); track("first-log");
+  l.planDiff = planDiff(snap0, planSnap(l.date, to));
+  const ach = achievementsFor(p, l);
+  if (ach.length) { p.badges = p.badges || []; ach.forEach(a => { if (!p.badges.some(x => x.k === a.k)) p.badges.push({ k: a.k, kind: a.kind, medal: String(a.medal), title: a.title, d: l.date, logId: l.id }); }); l.ach = ach; }
+  save();
+  if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else { showAnalysis(l.id); if (ach.length) setTimeout(() => showAch(ach, l), 300); }
+  if (joinedRooms(p, l.date.slice(0, 7)).length) { const before = Object.fromEntries(joinedRooms(p).map(r => [r, ((p.chCache || {})[r] || {}).rank || 0]));
+    chSync(p, { lobby: false, after: () => document.querySelectorAll(".cx-rk").forEach(s => { const r = s.dataset.room, n = ((p.chCache || {})[r] || {}).rank, o = before[r]; if (n) s.textContent = o && o !== n ? ` · อันดับ ${o} → ${n}${n < o ? " 🎉" : ""}` : ` · อันดับ #${n}`; }) }); }
+}
+/* ---------- โหมดวิ่งสด: จับ GPS ในมือถือ + โปรแกรมซ้อมวันนี้ + เสียงพูดไทย ---------- */
+const LV_KEY = "kaowin.live";
+const LV = { al: 0.3, mn: 6, now: () => Date.now(), st: null, cfg: null, plan0: null, watch: null, timer: null, wake: null, fix: null, gpsErr: "", test: false, said: [], lastTick: 0, hiddenAt: 0, bat: null, ack: false, out: null, gapShow: 0, drawn: "", hold: null };
+const LV_T = { free: "วิ่งอิสระ", easy: "Easy", long: "Long", tempo: "Tempo", interval: "Interval" };
+const lvHav = (a, b) => { const r = Math.PI / 180, dLa = (b[0] - a[0]) * r, dLo = (b[1] - a[1]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLo / 2) ** 2; return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(h))); };
+const lvPS = s => { s = Math.round(s); const m = Math.floor(s / 60), x = s % 60; return `${m} นาที${x ? " " + x : ""}`; };          // เพซสำหรับพูด
+const lvDS = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return [h ? h + " ชั่วโมง" : "", m ? m + " นาที" : "", x ? x + " วินาที" : ""].filter(Boolean).join(" ") || "0 วินาที"; };
+const lvDist = m => m >= 1000 ? `${+(m / 1000).toFixed(m % 1000 ? 1 : 0)} กิโลเมตร` : `${Math.round(m)} เมตร`;
+const lvDistS = m => m >= 1000 ? `${+(m / 1000).toFixed(2)} กม.` : `${Math.round(m)} ม.`;
+const lvEl = () => { const st = LV.st; return st ? (st.act + (st.segAt ? LV.now() - st.segAt : 0)) / 1000 : 0; };
+const lvClock = ms => { const d = new Date(ms); return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+
+function lvRanges() {
+  try { const m = mondayOf(TODAY), w = W.find(w => w.sessions.some(s => s.date >= m && s.date <= addDays(m, 6))) || W[0]; return (w && w.pc && w.pc.ranges) || null; } catch (e) { return null; }
+}
+function lvToday(key) {
+  try {
+    const ss = allSessions(), ok = s => s && RUN_TYPES.includes(view(s).type) && view(s).type !== "race";
+    const s = key ? ss.find(x => x.key === key) : ss.find(x => x.date === TODAY && ok(x));
+    return ok(s) ? s : null;
+  } catch (e) { return null; }
+}
+const lvZone = (R, k) => R && R[k] ? [Math.round(R[k][0]), Math.round(R[k][1])] : [0, 0];
+// ค่าตั้งต้นจากนัดซ้อมวันนี้ — อ่านรายละเอียดเช่น "6×400 ม." "Tempo 20 นาที" "8×1 นาที เร็ว / 1 นาที เบา"
+function lvDefaults(s) {
+  const c = { type: "free", goalKm: 0, lo: 0, hi: 0, reps: 6, by: "m", repM: 400, repSec: 60, restSec: 180, restMode: "walk", wu: 600, cd: 600, tempoMin: 20, alerts: true, tol: 10, announce: "km", key: null, shoe: "", plan: "", date: TODAY };
+  if (!s) return c;
+  const v = view(s), z = v.range ? [Math.round(v.range[0]), Math.round(v.range[1])] : [0, 0];
+  Object.assign(c, { key: s.key, shoe: s.shoe || "", date: s.date, plan: `${TYPE_LABEL[v.type]} · ${v.detail}${v.pace ? ` @ ${v.pace}` : ""}` });
+  if (v.type === "easy" || v.type === "long") Object.assign(c, { type: v.type, goalKm: v.km || 0, lo: z[0], hi: z[1] });
+  else if (v.type === "quality") {
+    const d = String(v.detail || ""), mP = /Tempo\s*(\d+)\s*นาที/i.exec(d), mD = /(\d+)\s*[×x]\s*([\d.]+)\s*(กม|ม)\./.exec(d),
+      mT = /(\d+)\s*[×x]\s*(\d+)\s*(วิ|นาที)/.exec(d), mR = /\/\s*(\d+)\s*นาที/.exec(d);
+    if (mP) Object.assign(c, { type: "tempo", tempoMin: +mP[1], lo: z[0], hi: z[1] });
+    else if (mD) { const m = Math.round(+mD[2] * (mD[3] === "กม" ? 1000 : 1)); Object.assign(c, { type: "interval", reps: +mD[1], by: "m", repM: m, restSec: 180, restMode: m >= 1000 ? "jog" : "walk", lo: z[0], hi: z[1] }); }
+    else if (mT) { const sec = +mT[2] * (mT[3] === "นาที" ? 60 : 1); Object.assign(c, { type: "interval", reps: +mT[1], by: "s", repSec: sec, restSec: mR ? +mR[1] * 60 : Math.max(60, sec), restMode: "jog", lo: z[0], hi: z[1] }); }
+    else Object.assign(c, { type: "free", goalKm: v.km || 0, lo: z[0], hi: z[1] });
+  }
+  return c;
+}
+function lvSteps(c) {
+  const S = [], z = { lo: c.lo || 0, hi: c.hi || 0 };
+  if (c.type === "interval" || c.type === "tempo") {
+    if (c.wu) S.push({ k: "wu", dur: c.wu });
+    if (c.type === "tempo") S.push({ k: "work", dur: c.tempoMin * 60, rep: 1, of: 1, ...z });
+    else for (let i = 1; i <= c.reps; i++) {
+      S.push({ k: "work", dist: c.by === "m" ? c.repM : 0, dur: c.by === "s" ? c.repSec : 0, rep: i, of: c.reps, ...z });
+      if (i < c.reps && c.restSec) S.push({ k: "rest", dur: c.restSec, rep: i, mode: c.restMode });
+    }
+    if (c.cd) S.push({ k: "cd", dur: c.cd });
+    S.push({ k: "over" });
+  } else S.push({ k: "run", goal: Math.round((c.goalKm || 0) * 1000), ...z });
+  return S;
+}
+function lvEst(c) {          // เวลารวมโดยประมาณ (วินาที)
+  const pc = c.lo && c.hi ? (c.lo + c.hi) / 2 : 360;
+  if (c.type === "tempo") return c.wu + c.cd + c.tempoMin * 60;
+  if (c.type === "interval") return c.wu + c.cd + c.reps * (c.by === "m" ? c.repM / 1000 * pc : c.repSec) + (c.reps - 1) * c.restSec;
+  return c.goalKm ? c.goalKm * pc : 0;
+}
+
+/* ---- เสียง ---- */
+let lvVoiceObj = null;
+function lvVoice() {
+  if (lvVoiceObj) return lvVoiceObj;
+  try { const vs = speechSynthesis.getVoices(); lvVoiceObj = vs.find(v => /^th/i.test(v.lang)) || null; } catch (e) {}
+  return lvVoiceObj;
+}
+function lvSay(t, urgent) {
+  LV.said.push(t);
+  const el = document.getElementById("lvSaid"); if (el) el.textContent = "🔊 “" + t + "”";
+  if (LV.cfg && LV.cfg.mute) return;
+  try {
+    if (!window.speechSynthesis) return;
+    if (urgent) speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t); u.lang = "th-TH"; u.rate = 1.02; const v = lvVoice(); if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+const lvBuzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+/* ---- GPS / กันจอดับ ---- */
+function lvGps(on) {
+  if (LV.test) return;
+  if (on && LV.watch == null && navigator.geolocation) LV.watch = navigator.geolocation.watchPosition(lvOnPos, e => { LV.gpsErr = e.code === 1 ? "denied" : "weak"; lvGpsUI(); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+  if (!on && LV.watch != null) { try { navigator.geolocation.clearWatch(LV.watch); } catch (e) {} LV.watch = null; }
+}
+async function lvWake() {
+  try { if ("wakeLock" in navigator && !LV.wake && document.visibilityState === "visible") { LV.wake = await navigator.wakeLock.request("screen"); LV.wake.addEventListener("release", () => { LV.wake = null; }); } } catch (e) {}
+}
+function lvUnwake() { try { LV.wake && LV.wake.release(); } catch (e) {} LV.wake = null; }
+function lvOnPos(pos) {
+  const c = pos.coords, now = LV.now(), P1 = [c.latitude, c.longitude];
+  LV.gpsErr = ""; LV.fix = { acc: Math.round(c.accuracy || 99), at: now, ll: P1 };
+  const st = LV.st;
+  if (!st || st.done) { lvGpsUI(); return; }
+  if (!(c.accuracy <= 35)) return;                                   // แม่นยำไม่พอ ข้าม
+  const sm = st.sm && now - st.sm[2] < 15000 ? [st.sm[0] + LV.al * (P1[0] - st.sm[0]), st.sm[1] + LV.al * (P1[1] - st.sm[1])] : P1;   // ทำให้เรียบ ลดจุดสั่น
+  st.sm = [sm[0], sm[1], now]; P1[0] = sm[0]; P1[1] = sm[1];
+  if (!st.last || !st.segAt) { st.last = [P1[0], P1[1], now]; st.bad = 0; if (!st.pts.length) st.pts.push([+P1[0].toFixed(5), +P1[1].toFixed(5), Math.round(lvEl())]); return; }
+  const dd = lvHav(st.last, P1), dt = Math.max(0.5, (now - st.last[2]) / 1000);
+  if (dd < Math.max(LV.mn, c.accuracy * 0.5)) return;                 // ยังขยับไม่พอ — กันจุดสั่นนับระยะเกิน
+  if (dd / dt > 9) { if (++st.bad >= 4) { st.last = [P1[0], P1[1], now]; st.bad = 0; } return; }   // กระโดดผิดปกติ
+  st.bad = 0; st.d += dd; st.last = [P1[0], P1[1], now];
+  const lp = st.pts[st.pts.length - 1];
+  if (!lp || lvHav(lp, P1) >= 8) st.pts.push([+P1[0].toFixed(5), +P1[1].toFixed(5), Math.round(lvEl())]);
+  lvProgress();
+}
+function lvGpsUI() {
+  const f = LV.fix, fresh = f && LV.now() - f.at < 12000;
+  const el = document.getElementById("lvGpsLine");
+  if (el) el.innerHTML = LV.gpsErr === "denied" ? `<span class="bad">✕ ไม่ได้รับอนุญาตใช้ตำแหน่ง — เปิด Location ให้${isIOS ? " Safari" : "เบราว์เซอร์"}ในการตั้งค่าเครื่อง แล้วเปิดหน้านี้ใหม่</span>`
+    : fresh ? `<span class="ok">●</span> จับสัญญาณ GPS ได้แล้ว (แม่นยำ ±${f.acc} ม.)` : `<span class="wait">◌</span> กำลังหาสัญญาณ GPS… ออกไปที่โล่งสักครู่`;
+  const b = document.getElementById("lvBars");
+  if (b) { const n = !fresh ? 0 : f.acc <= 10 ? 4 : f.acc <= 20 ? 3 : f.acc <= 35 ? 2 : 1; b.innerHTML = `GPS ${[1, 2, 3, 4].map(i => `<i class="${i <= n ? "on" : ""}" style="height:${4 + i * 3}px"></i>`).join("")}${n ? "" : ' <em>อ่อน</em>'}`; }
+}
+
+/* ---- เครื่องยนต์ ---- */
+function lvPace() {               // เพซช่วง ~20 วิล่าสุด (วินาที/กม.)  Infinity = หยุดอยู่
+  const st = LV.st, h = st.hist, t = lvEl(); if (!h.length) return 0;
+  let i = 0; while (i < h.length - 1 && t - h[i][0] > 20) i++;
+  const dt = t - h[i][0], dd = st.d - h[i][1];
+  if (dt < 8) return 0;
+  return dd < 10 ? Infinity : dt / dd * 1000;
+}
+function lvStart() {
+  const c = LV.cfg, now = LV.now();
+  LV.st = { v: 1, cfg: c, steps: lvSteps(c), si: 0, t0: now, act: 0, segAt: now, d: 0, last: null, bad: 0, pts: [], hist: [[0, 0]], splits: [], reps: [], gaps: [], ss: { t: 0, d: 0 }, sd: {}, al: {}, done: false };
+  const f = LV.fix; if (f && now - f.at < 8000 && f.acc <= 35) { LV.st.last = [f.ll[0], f.ll[1], now]; LV.st.pts.push([+f.ll[0].toFixed(5), +f.ll[1].toFixed(5), 0]); }
+  LV.out = null; LV.gapShow = 0; LV.said = LV.said.slice(-3);
+  lvSay(lvStepMsg(LV.st.steps[0]));
+  lvWake(); lvLoop(true); lvPersist(); lvRunUI(); track("live-start");
+}
+function lvLoop(on) { clearInterval(LV.timer); LV.timer = null; LV.lastTick = LV.now(); if (on && !LV.test) LV.timer = setInterval(lvTick, 1000); }
+function lvTick() {
+  const st = LV.st; if (!st || st.done) return;
+  const now = LV.now();
+  if (LV.lastTick && now - LV.lastTick > 10000 && st.segAt) lvGap(now - LV.lastTick);
+  LV.lastTick = now;
+  if (st.segAt) { const t = lvEl(); st.hist.push([t, st.d]); while (st.hist.length > 2 && t - st.hist[0][0] > 40) st.hist.shift(); lvProgress(); }
+  if (now - (st.savedAt || 0) >= 10000) lvPersist();
+  lvUpd();
+}
+function lvGap(ms) {
+  const st = LV.st, now = LV.now(), g = st.gaps[st.gaps.length - 1];
+  if (g && now - g.end < 3000) g.sec = Math.max(g.sec, Math.round(ms / 1000));
+  else st.gaps.push({ at: Math.round(lvEl() - ms / 1000), sec: Math.round(ms / 1000), end: now });
+  LV.gapShow = st.gaps[st.gaps.length - 1].sec;
+  lvSay("สัญญาณขาดหายไปช่วงหนึ่ง เปิดแอปค้างไว้ อย่าล็อกจอนะ", true); lvBuzz([300, 120, 300]);
+  lvRunUI();
+}
+function lvProgress() {
+  const st = LV.st; if (!st || st.done || !st.segAt) return;
+  const c = st.cfg, s = st.steps[st.si]; if (!s) return;
+  const t = lvEl(), sdist = st.d - st.ss.d, stt = t - st.ss.t, sd = st.sd;
+  while (st.d >= (st.splits.length + 1) * 1000) {                    // แยกรายกิโล
+    const sec = Math.round(t - st.splits.reduce((a, b) => a + b, 0)); st.splits.push(sec);
+    if (c.announce === "km" && !["work", "rest"].includes(s.k)) lvSay(`${st.splits.length} กิโลเมตร. เวลา ${lvDS(t)}. เพซกิโลนี้ ${lvPS(sec)}`);
+  }
+  const nx = st.steps[st.si + 1];
+  if (s.k === "work") {
+    if (s.dist) { const left = s.dist - sdist; if (s.dist >= 400 && left <= 100 && !sd.h) { sd.h = 1; lvSay("อีก 100 เมตร"); } if (left <= 0) return lvNext(); }
+    else {
+      const left = s.dur - stt;
+      if (s.dur >= 600 && stt >= s.dur / 2 && !sd.half && sdist > 100) { sd.half = 1; lvSay(`ครึ่งทางแล้ว เพซเฉลี่ย ${lvPS(stt / sdist * 1000)}`); }
+      if (s.dur >= 300 && left <= 60 && !sd.m1) { sd.m1 = 1; lvSay("อีก 1 นาที"); }
+      if (left <= 0) return lvNext();
+    }
+  } else if (s.dur) {
+    const left = s.dur - stt, toWork = nx && nx.k === "work";
+    if (s.dur > 20 && left <= 10.5 && left > 4 && !sd.c10) { sd.c10 = 1; lvSay(toWork ? "อีก 10 วินาที เตรียมตัว" : "อีก 10 วินาที"); }
+    if (toWork) [3, 2, 1].forEach(n => { if (left <= n + 0.4 && left > n - 0.6 && !sd["c" + n]) { sd["c" + n] = 1; lvSay(String(n)); lvBuzz(80); } });
+    if (left <= 0) return lvNext();
+  } else if (s.k === "run" && s.goal && st.d >= s.goal && !sd.goal) {
+    sd.goal = 1; lvBuzz([200, 100, 200]); lvSay(`ครบ ${lvDist(s.goal)} ตามเป้าแล้ว เยี่ยมมาก! วิ่งต่อได้ หรือกดค้างปุ่มหยุดเพื่อจบ`);
+  }
+  lvAlert(s, t, stt);
+}
+function lvStepMsg(s) {
+  if (!s) return "";
+  const z = s.lo ? ` เพซ ${lvPS(s.lo)} ถึง ${lvPS(s.hi)}` : "";
+  if (s.k === "wu") return `วอร์มอัพ จ็อกเบา ๆ ${lvDS(s.dur)}`;
+  if (s.k === "work") return s.of > 1 ? `ไป! เที่ยวที่ ${s.rep}. วิ่ง ${s.dist ? lvDist(s.dist) : lvDS(s.dur)}${z}` : `เริ่ม Tempo ${lvDS(s.dur)}${z}`;
+  if (s.k === "rest") return `${s.mode === "walk" ? "เดินพัก" : "จ็อกเบา ๆ พัก"} ${lvDS(s.dur)}`;
+  if (s.k === "cd") return `คูลดาวน์ จ็อกเบา ๆ ${lvDS(s.dur)}`;
+  if (s.k === "over") return "จบโปรแกรมแล้ว เยี่ยมมาก! เดินคูลดาวน์ต่อได้ หรือกดค้างปุ่มหยุดเพื่อจบ";
+  return s.goal ? `เริ่มวิ่ง เป้าวันนี้ ${lvDist(s.goal)}${z}` : "เริ่มจับเวลาแล้ว";
+}
+function lvNext() {
+  const st = LV.st, s = st.steps[st.si]; if (!s || s.k === "run" || s.k === "over") return;
+  const t = lvEl(), sdist = st.d - st.ss.d, stt = t - st.ss.t; let msg = "";
+  if (s.k === "work" && sdist >= 30) {
+    const pc = stt / sdist * 1000, tol = st.cfg.tol || 10;
+    st.reps.push({ n: s.rep, of: s.of, m: Math.round(sdist), sec: Math.round(stt), pace: Math.round(pc), ok: s.lo ? (pc <= s.hi + tol && pc >= s.lo - tol ? 1 : pc > s.hi ? -1 : 2) : 0, lo: s.lo, hi: s.hi });
+    msg = (s.of > 1 ? `จบเที่ยวที่ ${s.rep}. ` : "จบช่วง Tempo. ") + `${s.dist ? lvDS(stt) : lvDist(sdist)}. เพซ ${lvPS(pc)}. `;
+  }
+  st.si++; st.ss = { t, d: st.d }; st.sd = {}; st.al = {}; LV.out = null;
+  lvBuzz(st.steps[st.si] && st.steps[st.si].k === "work" ? [250, 80, 250] : 200);
+  lvSay(msg + lvStepMsg(st.steps[st.si]), true);
+  lvPersist(); lvRunUI();
+}
+function lvAlert(s, t, stt) {
+  const st = LV.st, c = st.cfg;
+  if (!c.alerts || !s.lo || !(s.k === "work" || s.k === "run")) { LV.out = null; return; }
+  const p = lvPace();
+  if (!p || p === Infinity || stt < 20) { LV.out = null; if (p === Infinity) st.al.dir = null; return; }
+  const tol = c.tol || 10, dir = p > s.hi + tol + (s.k === "run" ? 10 : 0) ? "slow" : p < s.lo - tol ? "fast" : null;
+  LV.out = dir ? { dir, by: Math.round(dir === "slow" ? p - s.hi : s.lo - p), p } : null;
+  if (!dir) { st.al.dir = null; return; }
+  if (st.al.dir !== dir) { st.al.dir = dir; st.al.since = t; }
+  if (t - st.al.since >= 15 && t - (st.al.last ?? -1e9) >= 45) {
+    st.al.last = t; lvBuzz([150, 80, 150]);
+    lvSay(dir === "slow" ? `ช้ากว่าเป้า ${LV.out.by} วินาที. เพซตอนนี้ ${lvPS(p)}. เร่งขึ้นอีกนิด` : s.k === "run" ? `เร็วเกินโซน ${LV.out.by} วินาที. ผ่อนลงหน่อย เก็บแรงไว้` : `เร็วกว่าเป้า ${LV.out.by} วินาที. ผ่อนลงนิดนึง`, true);
+  }
+}
+function lvPause() {
+  const st = LV.st, now = LV.now(); if (!st || st.done) return;
+  if (st.segAt) { st.act += now - st.segAt; st.segAt = null; lvSay("หยุดชั่วคราว", true); }
+  else { st.segAt = now; LV.lastTick = now; lvWake(); lvGps(true); lvLoop(true); lvSay("วิ่งต่อ", true); }
+  lvPersist(); lvRunUI();
+}
+function lvPersist() { const st = LV.st; if (!st) return; st.savedAt = LV.now(); try { localStorage.setItem(LV_KEY, JSON.stringify(st)); } catch (e) {} }
+function lvFinish() {
+  const st = LV.st; if (!st) return;
+  if (!st.done) {
+    if (st.segAt) { st.act += LV.now() - st.segAt; st.segAt = null; }
+    st.done = true; lvSay(`จบการวิ่ง ${lvDist(st.d)} เก่งมาก!`, true);
+  }
+  lvGps(false); lvLoop(false); lvUnwake(); lvPersist(); lvSummary();
+}
+
+/* ---- เปิด/ปิด ---- */
+function lvOpen() { $("#live").classList.remove("hidden"); document.body.classList.add("lv-on"); }
+function lvHide() { $("#live").classList.add("hidden"); document.body.classList.remove("lv-on"); }
+function lvDiscard() { try { localStorage.removeItem(LV_KEY); } catch (e) {} LV.st = null; lvGps(false); lvLoop(false); lvUnwake(); lvHide(); }
+function openLive(key) {
+  if (LV.st) { lvOpen(); return LV.st.done ? lvSummary() : lvRunUI(); }
+  if (!navigator.geolocation && !LV.test) return toast("เครื่อง/เบราว์เซอร์นี้ใช้ GPS ไม่ได้");
+  LV.plan0 = lvDefaults(lvToday(key)); LV.cfg = { ...LV.plan0 }; LV.ack = false;
+  lvOpen(); lvSetup(); lvGps(true); track("live-open");
+  try { navigator.getBattery && navigator.getBattery().then(b => { LV.bat = b; }); } catch (e) {}
+  try { window.speechSynthesis && speechSynthesis.getVoices(); } catch (e) {}
+}
+function lvRecover() {
+  let st = null; try { st = JSON.parse(localStorage.getItem(LV_KEY) || "null"); } catch (e) {}
+  if (!st || !st.steps) return;
+  if (LV.now() - (st.savedAt || 0) > 12 * 3600e3) { try { localStorage.removeItem(LV_KEY); } catch (e) {} return; }
+  if (st.segAt) { st.act += (st.savedAt || st.segAt) - st.segAt; st.segAt = null; }
+  LV.st = st; LV.cfg = st.cfg;
+  if (st.done) return openSheet("มีผลวิ่งสดที่ยังไม่บันทึก", `<p class="small">วิ่งไป <b>${(st.d / 1000).toFixed(2)} กม.</b> · ${fmtTime(st.act / 1000)} เมื่อ ${lvClock(st.t0)} น.</p><div class="btns"><button class="btn" data-act="lvEnd">ดูสรุปและบันทึก</button><button class="btn line" data-act="lvDrop">ทิ้ง</button></div>`);
+  openSheet("มีการวิ่งสดค้างอยู่", `<p class="small">แอปถูกปิดระหว่างวิ่ง — บันทึกไว้ถึง <b>${(st.d / 1000).toFixed(2)} กม.</b> · ${fmtTime(st.act / 1000)} (ล่าสุด ${lvClock(st.savedAt)} น.)</p>
+    <div class="btns"><button class="btn" data-act="lvResume">▶ วิ่งต่อ</button><button class="btn ghost" data-act="lvEnd">จบและบันทึก</button><button class="btn line" data-act="lvDrop">ทิ้ง</button></div>`);
+}
+
+/* ---- หน้าตั้งค่า ---- */
+function lvSeqHtml() {
+  const c = LV.cfg, z = c.lo ? ` @ ${fmtPace(c.lo)}–${fmtPace(c.hi)}` : "", est = lvEst(c), out = [];
+  const li = (cl, t) => out.push(`<div class="lv-sq"><i class="${cl}"></i><span>${t}</span></div>`);
+  if (c.type === "interval" || c.type === "tempo") {
+    if (c.wu) li("b", `วอร์มอัพ <b>${fmtTime(c.wu)}</b> จ็อกเบา`);
+    if (c.type === "tempo") li("o", `Tempo <b>${c.tempoMin} นาที</b>${z}`);
+    else li("o", `<b>${c.by === "m" ? lvDistS(c.repM) : fmtTime(c.repSec) + " นาที"} × ${c.reps}</b>${z}${c.reps > 1 && c.restSec ? ` · พัก${c.restMode === "walk" ? "เดิน" : "จ็อก"} ${fmtTime(c.restSec)}` : ""}`);
+    if (c.cd) li("b", `คูลดาวน์ <b>${fmtTime(c.cd)}</b>`);
+  } else li("g", c.goalKm ? `วิ่ง <b>${fmtKm(c.goalKm)} กม.</b>${z}` : `วิ่งอิสระ ไม่จำกัดระยะ${z}`);
+  return `${out.join("")}${est ? `<div class="tiny mut" style="margin-top:6px">รวมประมาณ ${fmtDur(est)}</div>` : ""}`;
+}
+function lvSetup() {
+  const c = LV.cfg;
+  const chip = (k, v, lab) => `<button type="button" class="lv-chip${String(c[k]) === String(v) ? " on" : ""}" data-lv="set" data-k="${k}" data-v="${v}">${lab}</button>`;
+  const stp = (k, lab) => `<div class="lv-stp"><button type="button" data-lv="inc" data-k="${k}" data-d="-1">−</button><b>${lab}</b><button type="button" data-lv="inc" data-k="${k}" data-d="1">+</button></div>`;
+  const row = (l, r) => `<div class="lv-row"><span>${l}</span><div>${r}</div></div>`;
+  const paceIn = `<input class="lv-in" data-lv="pace" data-k="lo" value="${c.lo ? fmtPace(c.lo) : ""}" placeholder="—" inputmode="decimal"> – <input class="lv-in" data-lv="pace" data-k="hi" value="${c.hi ? fmtPace(c.hi) : ""}" placeholder="—" inputmode="decimal"> <span class="tiny mut">/กม.</span>`;
+  const sel = k => `<select class="lv-sel" data-lv="sel" data-k="${k}">${[0, 300, 600, 900, 1200].map(s => `<option value="${s}" ${c[k] === s ? "selected" : ""}>${s ? s / 60 + " นาที" : "ไม่มี"}</option>`).join("")}</select>`;
+  const goal = `<input class="lv-in w" data-lv="num" data-k="goalKm" value="${c.goalKm || ""}" placeholder="ไม่ตั้ง" inputmode="decimal"> <span class="tiny mut">กม.</span>`;
+  let f = "";
+  if (c.type === "free" || c.type === "easy" || c.type === "long") f = `<div class="lv-ct">${c.type === "free" ? "🏃 วิ่งอิสระ" : "🎯 " + LV_T[c.type]}</div>${row("เป้าระยะ", goal)}${row("โซนเพซ", paceIn)}`;
+  else if (c.type === "tempo") f = `<div class="lv-ct">🔥 Tempo</div>${row("ช่วง Tempo", stp("tempoMin", c.tempoMin + " นาที"))}${row("เป้าเพซ", paceIn)}${row("วอร์มอัพ", sel("wu"))}${row("คูลดาวน์", sel("cd"))}`;
+  else f = `<div class="lv-ct">⚡ Interval</div>${row("จำนวนเที่ยว", stp("reps", c.reps))}
+    ${row("กำหนดเที่ยวเร็วเป็น", chip("by", "m", "ระยะ") + chip("by", "s", "เวลา"))}
+    ${c.by === "m" ? row("ระยะต่อเที่ยว", [200, 400, 800, 1000, 1600].map(m => chip("repM", m, m >= 1000 ? +(m / 1000) + "K" : m)).join("")) : row("เวลาต่อเที่ยว", [30, 60, 120, 180, 300].map(s => chip("repSec", s, s < 60 ? s + " วิ" : s / 60 + " น.")).join(""))}
+    ${row("เป้าเพซช่วงเร็ว", paceIn)}
+    ${row("พักระหว่างเที่ยว", chip("restMode", "walk", "🚶 เดิน") + chip("restMode", "jog", "จ็อก"))}
+    ${row("เวลาพัก", stp("restSec", fmtTime(c.restSec)))}
+    ${row("วอร์มอัพ", sel("wu"))}${row("คูลดาวน์", sel("cd"))}`;
+  $("#live").innerHTML = `<div class="lv-setup">
+    <div class="lv-hd"><b>🏃 โหมดวิ่งสด</b><button type="button" class="lv-x" data-lv="close">ปิด ✕</button></div>
+    <div class="lv-warn"><b>⚠️ อ่านก่อนเริ่มวิ่ง</b><ul>
+      <li><b>เปิดแอปค้างไว้ตลอด ห้ามล็อกจอ</b> — ถ้าจอดับหรือล็อก GPS จะหยุดนับระยะ</li>
+      <li><b>ห้ามสลับไปแอปอื่น</b> (เปลี่ยนเพลงให้ใช้ปุ่มหูฟัง / ศูนย์ควบคุม)</li>
+      <li>แอปจะ<b>กันจอดับให้เอง</b>ระหว่างวิ่ง — กินแบตราว 15–25% ต่อชั่วโมง</li>
+      <li>เปิดเสียงมือถือ/ใส่หูฟัง แอปจะพูดบอกเป็นภาษาไทย · แนะนำใส่ปลอกแขน และชาร์จแบตให้เกิน 40%</li></ul></div>
+    <label class="lv-ack"><input type="checkbox" data-lv="ack" ${LV.ack ? "checked" : ""}><span>เข้าใจแล้ว จะเปิดแอปค้างไว้ตลอดที่วิ่ง</span></label>
+    ${c.plan ? `<div class="lv-plan">📋 ตามแผน${c.date === TODAY ? "วันนี้" : " " + thDate(c.date)}: <b>${esc(c.plan)}</b> — ตั้งค่าให้แล้ว แก้ได้</div>` : `<div class="lv-plan">วันนี้ไม่มีนัดวิ่งในแผน — เลือกแบบที่อยากวิ่งได้เลย</div>`}
+    <div class="lv-lab">ประเภท</div><div class="lv-chips">${["free", "easy", "long", "tempo", "interval"].map(t => chip("type", t, (t === "free" ? "🏃 " : "") + LV_T[t])).join("")}</div>
+    <div class="lv-card">${f}</div>
+    <div class="lv-card"><div class="lv-ct">🔊 เสียงและการเตือน</div>
+      ${row("เตือนเมื่อช้า/เร็วกว่าเป้า", chip("alerts", true, "เปิด") + chip("alerts", false, "ปิด"))}
+      ${c.alerts ? row("ยอมให้คลาดได้", [5, 10, 15].map(n => chip("tol", n, "±" + n + " วิ")).join("")) : ""}
+      ${row("บอกระยะ/เพซ", chip("announce", "km", "ทุก 1 กม.") + chip("announce", "off", "เฉพาะจุดสำคัญ"))}
+      <button type="button" class="lv-test" data-lv="voice">🔊 ทดสอบเสียง</button>
+      ${c.alerts && !c.lo ? `<div class="tiny mut" style="margin-top:6px">ยังไม่ได้ใส่โซนเพซ — จะไม่มีเสียงเตือนเพซ</div>` : ""}</div>
+    <div class="lv-card"><div class="lv-ct">ลำดับวันนี้</div><div id="lvSeq">${lvSeqHtml()}</div></div>
+    <button type="button" class="lv-go" data-lv="start" ${LV.ack ? "" : "disabled"}>▶ เริ่มวิ่ง</button>
+    <div class="lv-gps" id="lvGpsLine"></div>
+    <div class="tiny mut" style="text-align:center;margin-top:6px">${isIOS ? "iPhone: ไม่มีการสั่นเตือน ใช้เสียงแทน · " : ""}ระยะจาก GPS มือถือคลาดได้ราว ±2–5%</div>
+  </div>`;
+  lvGpsUI();
+}
+function lvSet(k, v) {
+  const c = LV.cfg, R = lvRanges();
+  if (k === "type") {
+    if (LV.plan0 && v === LV.plan0.type) Object.assign(c, LV.plan0);
+    else { c.type = v; const z = lvZone(R, { easy: "easy", long: "long", tempo: "tempo", interval: c.by === "m" && c.repM >= 1000 ? "p10" : "p5" }[v]); c.lo = z[0]; c.hi = z[1]; if (v === "free" || v === "interval" || v === "tempo") c.goalKm = v === "free" ? 0 : c.goalKm; }
+  } else if (k === "alerts") c.alerts = v === "true";
+  else c[k] = /^\d+$/.test(v) ? +v : v;
+  lvSetup();
+}
+function lvInc(k, d) {
+  const c = LV.cfg, lim = { reps: [1, 30, 1], tempoMin: [5, 90, 5], restSec: [0, 600, 15] }[k];
+  c[k] = Math.max(lim[0], Math.min(lim[1], c[k] + d * lim[2])); lvSetup();
+}
+function lvCountdown() {
+  if (!LV.ack) return toast("ติ๊ก “เข้าใจแล้ว” ก่อนนะ");
+  if (LV.cfg.lo && LV.cfg.hi && LV.cfg.lo > LV.cfg.hi) { const t = LV.cfg.lo; LV.cfg.lo = LV.cfg.hi; LV.cfg.hi = t; }
+  lvSay("พร้อมนะ 3. 2. 1. ไป!", true);          // แตะปุ่ม = ปลดล็อกเสียงบน iPhone
+  if (LV.test) return lvStart();
+  let n = 3; $("#live").innerHTML = `<div class="lv-run lv-cd"><div class="lv-cdn">${n}</div><div class="lv-cdl">เตรียมตัว…</div></div>`;
+  const iv = setInterval(() => { n--; if (n > 0) { const e = document.querySelector(".lv-cdn"); if (e) e.textContent = n; } else { clearInterval(iv); lvStart(); } }, 1000);
+}
+
+/* ---- หน้าระหว่างวิ่ง ---- */
+const LV_RING = 2 * Math.PI * 96;
+function lvZoneHtml(s) {
+  if (!s || !s.lo) return "";
+  const a = s.hi + 40, b = s.lo - 40, g1 = Math.round(40 / (a - b) * 100), g2 = Math.round((s.hi - s.lo + 40) / (a - b) * 100);
+  return `<div class="lv-zone"><div class="lv-zt"><span>${s.k === "run" ? "โซน" : "เป้า"} ${fmtPace(s.lo)}–${fmtPace(s.hi)}</span><b id="lvZs"></b></div>
+    <div class="lv-bar" style="background:linear-gradient(90deg,#3b82f6 0 ${g1}%,#22a35a ${g1}% ${g2}%,#f08a35 ${g2}% 100%)" data-a="${a}" data-b="${b}"><i id="lvMk"></i></div>
+    <div class="lv-zl"><span>ช้าไป</span><span>พอดี</span><span>เร็วไป</span></div></div>`;
+}
+function lvDots(st) {
+  const ws = st.steps.filter(s => s.k === "work"); if (ws.length < 2) return "";
+  const cur = st.steps[st.si], done = st.reps.length;
+  return `<div class="lv-dots">${ws.map((w, i) => `<i class="${i < done ? "d" : cur && cur.k === "work" && cur.rep === i + 1 ? "c" : ""}"></i>`).join("")}</div>`;
+}
+function lvRunUI() {
+  const st = LV.st; if (!st) return;
+  if (st.done) return lvSummary();
+  const c = st.cfg, s = st.steps[st.si], nx = st.steps[st.si + 1], paused = !st.segAt;
+  LV.drawn = st.si + ":" + (LV.gapShow ? "g" : "") + (paused ? "p" : "");
+  const top = `<div class="lv-top"><span id="lvBars"></span><span id="lvBat"></span><span>${c.type === "interval" ? `${c.by === "m" ? lvDistS(c.repM) : fmtTime(c.repSec)}×${c.reps}` : c.type === "tempo" ? `Tempo ${c.tempoMin} นาที` : LV_T[c.type] + (c.goalKm ? " " + fmtKm(c.goalKm) + " กม." : "")}</span></div>
+    <div class="lv-lock">🔒 อย่าล็อกจอ · อย่าสลับแอป — กันจอดับเปิดอยู่</div>`;
+  const nextTxt = !nx ? "" : nx.k === "work" ? `⚡ เที่ยวที่ ${nx.rep} · ${nx.dist ? lvDistS(nx.dist) : fmtTime(nx.dur)}` : nx.k === "rest" ? `${nx.mode === "walk" ? "🚶 เดินพัก" : "จ็อกพัก"} ${fmtTime(nx.dur)}` : nx.k === "cd" ? `🧊 คูลดาวน์ ${fmtTime(nx.dur)}` : nx.k === "over" ? "✓ จบโปรแกรม" : "";
+  const next = nextTxt ? `<div class="lv-next"><span>ถัดไป</span><b>${nextTxt}</b></div>` : "";
+  const cell = (id, lab, cls = "") => `<div><b id="${id}" class="${cls}">–</b><span>${lab}</span></div>`;
+  const ring = color => `<div class="lv-ringw"><svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="96" class="bg"/><circle id="lvRing" cx="110" cy="110" r="96" style="stroke:${color}" stroke-dasharray="${LV_RING}" stroke-dashoffset="0" transform="rotate(-90 110 110)"/></svg><div class="lv-ringc"><b id="lvBig">–</b><span id="lvBigL"></span></div></div>`;
+  let pill = "", body = "";
+  if (s.k === "run" || s.k === "over") {
+    pill = s.k === "over" ? `<div class="lv-pill g">✓ จบโปรแกรมแล้ว · วิ่ง/เดินต่อได้</div>` : "";
+    body = `<div class="lv-big"><b id="lvBig">0.00</b><span>กิโลเมตร</span></div>
+      <div class="lv-grid">${cell("lvA", "เวลา")}${cell("lvB", "เพซตอนนี้ /กม.", "hl")}${cell("lvC", "เพซเฉลี่ย")}${cell("lvD", "กม. ล่าสุด")}</div>${lvZoneHtml(s)}<div class="lv-info" id="lvInfo"></div>`;
+  } else if (s.k === "wu" || s.k === "cd") {
+    pill = `<div class="lv-pill b">${s.k === "wu" ? "🔥 วอร์มอัพ · จ็อกเบา" : "🧊 คูลดาวน์ · จ็อกเบา"}</div>`;
+    body = `<div class="lv-big"><b id="lvBig">–</b><span>เวลาที่เหลือ</span></div><div class="lv-grid">${cell("lvA", "ระยะรวม กม.")}${cell("lvB", "เพซตอนนี้ /กม.", "hl")}</div>${next}`;
+  } else if (s.k === "work") {
+    pill = `<div class="lv-pill o">${s.of > 1 ? `⚡ เที่ยวที่ ${s.rep} / ${s.of} · วิ่งเร็ว` : `🔥 Tempo <span id="lvMin"></span>`}</div>`;
+    body = s.dist ? `${ring("#f08a35")}<div class="lv-grid">${cell("lvB", "เพซตอนนี้ /กม.", "hl")}${cell("lvA", "เวลาเที่ยวนี้")}</div>${lvZoneHtml(s)}${next}${lvDots(st)}`
+      : `<div class="lv-big"><b id="lvBig">–</b><span>เวลาที่เหลือ</span></div><div class="lv-grid">${cell("lvB", "เพซตอนนี้ /กม.", "hl")}${cell("lvC", "เพซเฉลี่ยช่วงนี้")}</div>${lvZoneHtml(s)}${next}${lvDots(st)}`;
+  } else if (s.k === "rest") {
+    const r = st.reps[st.reps.length - 1];
+    pill = `<div class="lv-pill bl">${s.mode === "walk" ? "🚶" : "🏃"} พักหลังเที่ยวที่ ${s.rep} · ${s.mode === "walk" ? "เดิน" : "จ็อกเบา"}</div>`;
+    body = `${ring("#3b82f6")}${r ? `<div class="lv-rep"><div class="tiny">ผลเที่ยวที่ ${r.n}</div><div class="lv-rr"><span>${lvDistS(r.m)} · <b>${fmtTime(r.sec)}</b></span><span>เพซ <b class="${r.ok === 1 ? "ok" : r.ok ? "warn" : ""}">${fmtPace(r.pace)}</b>${r.ok === 1 ? " ✓" : ""}</span></div>
+      ${st.reps.length > 1 ? `<div class="tiny mut">${st.reps.map(x => `เที่ยว ${x.n}: ${fmtTime(x.sec)}`).join(" · ")}</div>` : ""}</div>` : ""}${next}${lvDots(st)}`;
+  }
+  const skip = ["wu", "rest", "cd", "work"].includes(s.k);
+  $("#live").innerHTML = `<div class="lv-run${paused ? " paused" : ""}">${top}${pill}
+    <div class="lv-al hidden" id="lvAl"></div>${body}
+    <div class="lv-said" id="lvSaid">${LV.said.length ? "🔊 “" + esc(LV.said[LV.said.length - 1]) + "”" : ""}</div>
+    <div class="lv-ctl">
+      <button type="button" class="lv-b y" data-lv="pause"><b>${paused ? "▶" : "❚❚"}</b><span>${paused ? "วิ่งต่อ" : "พัก"}</span></button>
+      ${skip ? `<button type="button" class="lv-b s" data-lv="skip"><b>⏭</b><span>${s.k === "rest" ? "ข้ามพัก" : "ข้าม"}</span></button>` : ""}
+      <button type="button" class="lv-b k" id="lvStop"><b>■</b><span>กดค้างเพื่อจบ</span><i></i></button>
+    </div>
+    ${paused ? `<div class="lv-pz">หยุดชั่วคราว — เวลาไม่เดิน</div>` : ""}
+    ${LV.gapShow ? `<div class="lv-gap"><div><b>📡 สัญญาณ GPS ขาดหาย ${LV.gapShow} วินาที</b><p>ดูเหมือนจอถูกล็อกหรือสลับแอป ระยะช่วงนั้นคิดเป็นเส้นตรง อาจขาดไปบ้าง — เปิดแอปค้างไว้นะ</p><button type="button" data-lv="gapok">วิ่งต่อ</button></div></div>` : ""}
+  </div>`;
+  lvGpsUI(); lvUpd();
+}
+function lvUpd() {
+  const st = LV.st; if (!st || st.done || !document.getElementById("lvBig")) return;
+  const key = st.si + ":" + (LV.gapShow ? "g" : "") + (!st.segAt ? "p" : "");
+  if (key !== LV.drawn) return lvRunUI();
+  const s = st.steps[st.si], t = lvEl(), stt = t - st.ss.t, sdist = st.d - st.ss.d, p = lvPace();
+  const set = (id, v, cls) => { const e = document.getElementById(id); if (e) { e.textContent = v; if (cls !== undefined) e.className = cls; } };
+  const pTxt = !p ? "–" : p === Infinity || p > 1200 ? "0:00" : fmtPace(p);
+  const out = LV.out;
+  set("lvB", pTxt, "hl" + (out ? (out.dir === "slow" ? " slow" : " fast") : ""));
+  if (s.k === "run" || s.k === "over") {
+    set("lvBig", (st.d / 1000).toFixed(2)); set("lvA", fmtTime(t)); set("lvC", st.d > 50 ? fmtPace(t / st.d * 1000) : "–");
+    set("lvD", st.splits.length ? fmtPace(st.splits[st.splits.length - 1]) : "–");
+    const dl = document.querySelector(".lv-grid div:nth-child(4) span"); if (dl) dl.textContent = st.splits.length ? `กม. ที่ ${st.splits.length}` : "กม. ล่าสุด";
+    if (s.goal) { const left = s.goal - st.d, avg = st.d > 200 ? t / st.d : 0; set("lvInfo", left > 0 ? `อีก ${(left / 1000).toFixed(2)} กม. ถึงเป้า ${fmtKm(s.goal / 1000)} กม.${avg ? ` · คาดว่าเสร็จ ${lvClock(LV.now() + left * avg * 1000)}` : ""}` : `✓ ครบเป้า ${fmtKm(s.goal / 1000)} กม. แล้ว`); }
+  } else if (s.k === "wu" || s.k === "cd") { set("lvBig", fmtTime(Math.max(0, s.dur - stt))); set("lvA", (st.d / 1000).toFixed(2)); }
+  else if (s.k === "work") {
+    if (s.dist) { set("lvBig", Math.max(0, Math.round(s.dist - sdist))); set("lvBigL", "เมตรที่เหลือ"); set("lvA", fmtTime(stt)); lvRingSet(Math.min(1, sdist / s.dist)); }
+    else { set("lvBig", fmtTime(Math.max(0, s.dur - stt))); set("lvC", sdist > 30 ? fmtPace(stt / sdist * 1000) : "–"); if (s.of === 1) set("lvMin", `· นาทีที่ ${Math.min(Math.floor(stt / 60) + 1, s.dur / 60)} / ${s.dur / 60}`); }
+  } else if (s.k === "rest") { set("lvBig", fmtTime(Math.max(0, s.dur - stt))); set("lvBigL", "เวลาพักที่เหลือ"); lvRingSet(Math.max(0, 1 - stt / s.dur)); }
+  // แถบโซน
+  const bar = document.querySelector(".lv-bar"), mk = document.getElementById("lvMk");
+  if (bar && mk) {
+    const a = +bar.dataset.a, b = +bar.dataset.b, ok = p && p !== Infinity;
+    mk.style.left = ok ? Math.max(0, Math.min(100, (a - p) / (a - b) * 100)) + "%" : "0%"; mk.style.opacity = ok ? 1 : 0.3;
+    set("lvZs", !ok ? "" : out ? (out.dir === "slow" ? "ช้าไป" : "เร็วไป") : "✓ อยู่ในโซน", out ? (out.dir === "slow" ? "slow" : "fast") : "ok");
+  }
+  const al = document.getElementById("lvAl");
+  if (al) {
+    const show = out && st.al.since !== undefined && t - st.al.since >= 15;
+    al.classList.toggle("hidden", !show);
+    if (show) al.innerHTML = `<span>🔊</span><div><b>${out.dir === "slow" ? `ช้ากว่าเป้า ${out.by} วิ` : `เร็วกว่าเป้า ${out.by} วิ`}</b><div>เพซ ${fmtPace(out.p)} · เป้า ${fmtPace(s.lo)}–${fmtPace(s.hi)} — ${out.dir === "slow" ? "เร่งขึ้นอีกนิด!" : "ผ่อนลงหน่อย"}</div></div>`;
+  }
+  const bt = document.getElementById("lvBat"); if (bt && LV.bat) bt.textContent = "🔋 " + Math.round(LV.bat.level * 100) + "%";
+  lvGpsUI();
+}
+function lvRingSet(frac) { const r = document.getElementById("lvRing"); if (r) r.setAttribute("stroke-dashoffset", String(LV_RING * (1 - frac))); }
+
+/* ---- หน้าสรุป + บันทึก ---- */
+function lvRouteSvg(pts) {
+  if (!pts || pts.length < 2) return "";
+  const la = pts.map(p => p[0]), lo = pts.map(p => p[1]), k = Math.cos(la[0] * Math.PI / 180);
+  const x0 = Math.min(...lo), x1 = Math.max(...lo), y0 = Math.min(...la), y1 = Math.max(...la);
+  const w = Math.max((x1 - x0) * k, 1e-6), h = Math.max(y1 - y0, 1e-6), S = Math.min(300 / w, 150 / h);
+  const X = p => 20 + ((p[1] - x0) * k * S) + (300 - w * S) / 2, Y = p => 15 + (y1 - p[0]) * S + (150 - h * S) / 2;
+  const d = pts.map((p, i) => (i ? "L" : "M") + X(p).toFixed(1) + " " + Y(p).toFixed(1)).join("");
+  const a = pts[0], b = pts[pts.length - 1];
+  return `<svg viewBox="0 0 340 180" class="lv-route"><path d="${d}" fill="none" stroke="var(--pri)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${X(a)}" cy="${Y(a)}" r="6" fill="#22a35a" stroke="#fff" stroke-width="2"/><circle cx="${X(b)}" cy="${Y(b)}" r="6" fill="#e5484d" stroke="#fff" stroke-width="2"/></svg>`;
+}
+function lvSummary() {
+  const st = LV.st, c = st.cfg, p = P(), t = st.act / 1000, km = st.d / 1000, avg = km > 0.05 ? t / km : 0;
+  const best = st.splits.length ? Math.min(...st.splits) : 0, date = ds(new Date(st.t0));
+  const type = c.type === "interval" || c.type === "tempo" ? "quality" : c.type === "long" || km >= 14 ? "long" : "easy";
+  const maxS = Math.max(...st.splits, 1), minS = Math.min(...st.splits, maxS);
+  const gs = st.gaps.reduce((a, g) => a + g.sec, 0);
+  const shoes = (p.shoes || []).filter(x => !x.retired);
+  const shoe = c.shoe || (shoes[0] && shoes[0].id) || "";
+  const rpe0 = type === "quality" ? 7 : type === "long" ? 6 : 4;
+  $("#live").innerHTML = `<div class="lv-sum">
+    <div class="lv-sh"><div class="tiny">วิ่งเสร็จแล้ว 🎉 · ${TH_DAY_FULL[dow(date)]} ${thDate(date)} ${lvClock(st.t0)}</div>
+      <div class="lv-shk"><b>${km.toFixed(2)}</b> กม.</div>
+      <div class="lv-shg"><div><b>${fmtTime(t)}</b><span>เวลา</span></div><div><b>${avg ? fmtPace(avg) : "–"}</b><span>เพซเฉลี่ย</span></div><div><b>${best ? fmtPace(best) : "–"}</b><span>กม.เร็วสุด</span></div></div></div>
+    ${st.pts.length > 1 ? `<div class="card" style="padding:6px">${lvRouteSvg(st.pts)}</div>` : ""}
+    ${st.gaps.length ? `<div class="note warn">📡 สัญญาณขาด ${st.gaps.length} ครั้ง (รวม ${gs} วิ) — ระยะช่วงนั้นคิดเป็นเส้นตรง อาจขาดไปเล็กน้อย</div>` : ""}
+    ${st.reps.length ? `<div class="flabel">ผล${c.type === "tempo" ? " Tempo" : "รายเที่ยว"}</div><div class="card lv-reps">${st.reps.map(r => `<div><span>${r.of > 1 ? "เที่ยว " + r.n : "Tempo"}</span><span>${lvDistS(r.m)}</span><b>${fmtTime(r.sec)}</b><span class="${r.ok === 1 ? "ok" : r.ok ? "warn" : ""}">${fmtPace(r.pace)}${r.ok === 1 ? " ✓" : r.ok === -1 ? " ช้า" : r.ok === 2 ? " เร็ว" : ""}</span></div>`).join("")}</div>` : ""}
+    ${st.splits.length ? `<div class="flabel">เพซรายกิโล</div><div class="card lv-spl">${st.splits.map((s, i) => `<div><span>${i + 1}</span><i><em style="width:${Math.round(35 + 65 * (maxS - s) / Math.max(1, maxS - minS))}%"></em></i><b>${fmtPace(s)}</b></div>`).join("")}</div>` : ""}
+    <form id="lvForm">
+      <div class="grid2"><label class="f">ประเภท<select name="type">${["easy", "long", "quality"].map(x => `<option value="${x}" ${x === type ? "selected" : ""}>${TYPE_LABEL[x]}</option>`).join("")}</select></label>
+        <label class="f">รองเท้า<select name="shoe"><option value="">—</option>${shoes.map(x => `<option value="${x.id}" ${x.id === shoe ? "selected" : ""}>${esc(shoeShort(x))}</option>`).join("")}</select></label></div>
+      <label class="f">ความเหนื่อย (RPE 1–10): <b class="rpeOut">${rpe0}</b><input type="range" min="1" max="10" name="rpe" value="${rpe0}"></label>
+      <label class="inline"><input type="checkbox" name="pain" style="accent-color:var(--bad)"> มีอาการเจ็บ / ตึงผิดปกติ</label>
+      <div class="painLvl" hidden><div class="seg">${[1, 2, 3].map(k => `<label><input type="radio" name="painLvl" value="${k}" ${k === 2 ? "checked" : ""}><span>${PAIN_LABEL[k]}</span></label>`).join("")}</div></div>
+      <label class="f">โน้ต<textarea name="note" placeholder="อากาศ เส้นทาง น้ำ/เจล ฯลฯ"></textarea></label>
+      <button class="btn block" type="submit">💾 บันทึกเป็นผลซ้อม (${TYPE_LABEL[type]} · ${thDate(date)})</button>
+      <div class="tiny mut" style="text-align:center;margin:8px 0">บันทึกแล้วแอปจะวิเคราะห์ ปรับแผน และนับเข้าชาเลนจ์ให้</div>
+      <button type="button" class="linkbtn" data-lv="discard" style="display:block;margin:6px auto 20px;color:var(--bad)">ทิ้งผลนี้</button>
+    </form></div>`;
+  const F = $("#lvForm").elements;
+  F.rpe.addEventListener("input", () => { $("#lvForm .rpeOut").textContent = F.rpe.value; });
+  F.pain.addEventListener("change", () => { $("#lvForm .painLvl").hidden = !F.pain.checked; });
+  F.type.addEventListener("change", () => { $("#lvForm button[type=submit]").textContent = `💾 บันทึกเป็นผลซ้อม (${TYPE_LABEL[F.type.value]} · ${thDate(date)})`; });
+  $("#lvForm").addEventListener("submit", e => { e.preventDefault(); lvSave(F); });
+  $("#live").scrollTop = 0;
+}
+function lvSave(F) {
+  const st = LV.st, c = st.cfg, p = P(), km = Math.round(st.d / 10) / 100, t = Math.round(st.act / 1000);
+  if (km < 0.2) return toast("ระยะสั้นเกินไปที่จะบันทึก (ต่ำกว่า 0.2 กม.)");
+  const date = ds(new Date(st.t0));
+  const sk = c.key && allSessions().some(x => x.key === c.key && x.date === date) ? c.key : null;
+  const l = { id: Date.now(), date, sessionKey: sk, type: F.type.value, km, time: fmtTime(t), segKm: 0, segTime: "", rpe: +F.rpe.value, pain: F.pain.checked,
+    painLvl: F.pain.checked ? +(([...F.painLvl].find(r => r.checked) || {}).value || 2) : undefined, shoe: F.shoe.value, note: F.note.value.trim(), env: "out", src: "วิ่งสด", movingSec: t };
+  const laps = st.splits.map(s => [1, s]), rest = st.d - st.splits.length * 1000;
+  if (rest >= 50 && st.splits.length) laps.push([Math.round(rest) / 1000, Math.round(t - st.splits.reduce((a, b) => a + b, 0))]);
+  if (laps.length >= 2) l.laps = laps;
+  if (st.splits.length) l.bestPace = Math.min(...st.splits);
+  if (st.reps.length) {
+    l.reps = st.reps.map(r => [r.m, r.sec]);
+    const tp = c.type === "tempo" && st.reps[0];
+    if (tp && tp.m >= 2000) { l.segKm = Math.round(tp.m / 10) / 100; l.segTime = fmtTime(tp.sec); }
+    if (!l.note) l.note = c.type === "tempo" ? `Tempo ${lvDistS(st.reps[0].m)} ใน ${fmtTime(st.reps[0].sec)}` : `${c.by === "m" ? lvDistS(c.repM) : fmtTime(c.repSec)}×${st.reps.length}: ${st.reps.map(r => fmtTime(r.sec)).join(" · ")}`;
+  }
+  if (st.gaps.length) l.gpsGaps = st.gaps.length;
+  try { localStorage.removeItem(LV_KEY); } catch (e) {}
+  LV.st = null; lvHide(); track("live-save");
+  commitLog(p, l);
+}
+
+/* ---- ปุ่ม/อีเวนต์ในหน้าวิ่งสด ---- */
+function lvBind() {
+  const root = $("#live");
+  root.addEventListener("click", e => {
+    const b = e.target.closest("[data-lv]"); if (!b) return;
+    const a = b.dataset.lv;
+    if (a === "close") { lvGps(false); LV.st = null; lvHide(); }
+    else if (a === "set") lvSet(b.dataset.k, b.dataset.v);
+    else if (a === "inc") lvInc(b.dataset.k, +b.dataset.d);
+    else if (a === "voice") lvSay("สวัสดีครับ เสียงดังชัดไหม ถ้าได้ยินแบบนี้ พร้อมวิ่งแล้ว", true);
+    else if (a === "start") lvCountdown();
+    else if (a === "pause") lvPause();
+    else if (a === "skip") lvNext();
+    else if (a === "gapok") { LV.gapShow = 0; lvWake(); lvRunUI(); }
+    else if (a === "discard") { if (confirm("ทิ้งผลวิ่งนี้? (ลบแล้วกู้คืนไม่ได้)")) lvDiscard(); }
+  });
+  root.addEventListener("change", e => {
+    const el = e.target, a = el.dataset.lv; if (!a) return;
+    const c = LV.cfg;
+    if (a === "ack") { LV.ack = el.checked; const g = root.querySelector(".lv-go"); if (g) g.disabled = !el.checked; return; }
+    if (a === "pace") { const v = parsePace(el.value); c[el.dataset.k] = PACE_OK(v) ? v : 0; el.value = c[el.dataset.k] ? fmtPace(c[el.dataset.k]) : ""; }
+    if (a === "num") { const v = parseFloat(String(el.value).replace(",", ".")); c[el.dataset.k] = v > 0 && v < 300 ? v : 0; }
+    if (a === "sel") c[el.dataset.k] = +el.value;
+    const q = $("#lvSeq"); if (q) q.innerHTML = lvSeqHtml();
+  });
+  const end = () => { if (LV.hold) { clearTimeout(LV.hold); LV.hold = null; } const s = $("#lvStop"); if (s) s.classList.remove("holding"); };
+  root.addEventListener("pointerdown", e => {
+    const s = e.target.closest("#lvStop"); if (!s) return;
+    e.preventDefault(); s.classList.add("holding");
+    LV.hold = setTimeout(() => { LV.hold = null; lvBuzz(120); lvFinish(); }, 1200);
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev => root.addEventListener(ev, end, true));
+  root.addEventListener("contextmenu", e => { if (e.target.closest("#lvStop")) e.preventDefault(); });
+  document.addEventListener("visibilitychange", () => {
+    const st = LV.st; if (!st || st.done) return;
+    if (document.hidden) { LV.hiddenAt = LV.now(); lvPersist(); return; }
+    const g = LV.hiddenAt ? LV.now() - LV.hiddenAt : 0; LV.hiddenAt = 0;
+    if (st.segAt) { if (g > 10000) lvGap(g); LV.lastTick = LV.now(); lvWake(); }
+  });
+  window.addEventListener("pagehide", () => { if (LV.st && !LV.st.done) lvPersist(); });
+}
+
 function showAnalysis(id) {
   const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
   const r = analyzeLog(p, l), sec = toSec(l.time);
@@ -2105,6 +2773,7 @@ function openSession(key) {
     ${s.type === "gym" && v.type === "gym" ? gymHtml(s, v.detail) : ""}
     ${logs.length ? `<div class="flabel">ผลที่ส่งแล้ว</div><div class="card" style="padding:4px 14px">${logs.map(l => `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow small">${fmtKm(+l.km)} กม. ${esc(l.time)} · RPE ${l.rpe}</div><span class="linkbtn">ดูวิเคราะห์ ›</span></div>`).join("")}</div>` : ""}
     <div class="btns">
+      ${s.date === TODAY && RUN_TYPES.includes(v.type) && v.type !== "race" ? `<button class="btn" style="background:#14231a;color:#d9f99d" data-act="live" data-key="${s.key}">▶ วิ่งสดตามนัดนี้</button>` : ""}
       ${s.type !== "rest" ? `<button class="btn" data-act="openLog" data-key="${s.key}">ส่งผลซ้อม</button>` : ""}
       ${s.type !== "gym" ? `<button class="btn ghost" data-act="editSession" data-key="${s.key}">แก้นัดนี้</button>` : ""}
       ${s.edited ? `<button class="btn line" data-act="resetSession" data-date="${s.date}">คืนค่าตามแผนเดิม</button>` : ""}
@@ -2400,15 +3069,7 @@ function openLog(key) {
       if (dp > 0 && dp < 20000) l.dplus = dp;
       if (F.env.value === "tm") { l.env = "tm"; const inc = parseFloat(String(F.incline.value).replace(",", ".")); if (inc >= 0 && inc <= 15) l.incline = inc; }
       if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
-      const to = addDays(l.date > TODAY ? l.date : TODAY, 14), snap0 = planSnap(l.date, to);
-      p.logs.push(l); save(); render(); track("first-log");
-      l.planDiff = planDiff(snap0, planSnap(l.date, to));
-      const ach = achievementsFor(p, l);
-      if (ach.length) { p.badges = p.badges || []; ach.forEach(a => { if (!p.badges.some(x => x.k === a.k)) p.badges.push({ k: a.k, kind: a.kind, medal: String(a.medal), title: a.title, d: l.date, logId: l.id }); }); l.ach = ach; }
-      save();
-      if (l.type === "gym") { closeSheet(); toast("บันทึกเวทแล้ว"); } else { showAnalysis(l.id); if (ach.length) setTimeout(() => showAch(ach, l), 300); }
-      if (joinedRooms(p, l.date.slice(0, 7)).length) { const before = Object.fromEntries(joinedRooms(p).map(r => [r, ((p.chCache || {})[r] || {}).rank || 0]));
-        chSync(p, { lobby: false, after: () => document.querySelectorAll(".cx-rk").forEach(s => { const r = s.dataset.room, n = ((p.chCache || {})[r] || {}).rank, o = before[r]; if (n) s.textContent = o && o !== n ? ` · อันดับ ${o} → ${n}${n < o ? " 🎉" : ""}` : ` · อันดับ #${n}`; }) }); }
+      commitLog(p, l);
     });
   });
 }
@@ -2654,6 +3315,10 @@ document.addEventListener("click", e => {
   if (act === "openLog") openLog(el.dataset.key);
   if (act === "session") openSession(el.dataset.key);
   if (act === "tip") openTip(id);
+  if (act === "live") { closeSheet(); openLive(el.dataset.key); }
+  if (act === "lvResume" && LV.st) { closeSheet(); lvOpen(); lvGps(true); LV.st.segAt = LV.now(); lvWake(); lvLoop(true); lvSay("วิ่งต่อ", true); lvRunUI(); }
+  if (act === "lvEnd" && LV.st) { closeSheet(); lvOpen(); lvFinish(); }
+  if (act === "lvDrop" && confirm("ทิ้งการวิ่งที่ค้างอยู่?")) { closeSheet(); lvDiscard(); }
   if (act === "chJoin") { e.stopPropagation(); chJoinSheet(id); return; }
   if (act === "chBoard") { e.stopPropagation(); chBoardSheet(id); return; }
   if (act === "goChallenge") { tab = "challenge"; render(); window.scrollTo(0, 0); chSync(P()); }
@@ -2786,6 +3451,7 @@ function track(name) {
   setTimeout(() => { try { history.pushState(null, "", base + "e/" + name); setTimeout(() => history.replaceState(null, "", back), 400); } catch (e) {} }, 2500);
 }
 if (isStandalone()) track("installed");
+lvBind(); setTimeout(lvRecover, 600);
 try { const m = location.hash.match(/admin=([^&]+)/); if (m) { localStorage.setItem("kaowin.admin", decodeURIComponent(m[1])); history.replaceState(null, "", location.pathname); } } catch (e) {}
 setTimeout(() => { const p = P(); const me = chMonthEnd(p); if (me.length) showAch(me, null); if (CH_API) chSync(p); }, 1200);
 if (DB.profiles.some(p => p.onboarded)) track("active-user");
