@@ -2505,6 +2505,7 @@ async function shareCard(id) {
     <div class="flabel">แบบ (${SC_T.length} แบบ)</div><div class="sc-tpl">${SC_T.map(([v, n]) => `<button type="button" data-sck="t" data-scv="${v}" class="${SC.t === v ? "on" : ""}">${n}</button>`).join("")}</div>
     <div class="flabel">สีตัวอักษร</div>${seg("col", [["w", "⚪ ขาว"], ["k", "⚫ ดำ"], ["g", "🟢 เขียวมะนาว"]])}
     ${clear ? "" : `<div class="flabel">ขนาด</div>${seg("r", [["45", "โพสต์ 4:5"], ["916", "สตอรี่ / TikTok 9:16"]])}`}
+    ${!toSec(l.time) ? `<div class="note warn" style="margin:0 0 10px">ผลนี้ยังไม่มี<b>เวลา</b> รูปเลยขึ้นแต่ระยะ — ใส่เวลารวมตรงนี้ได้เลย<div class="row" style="gap:8px;margin-top:8px"><input class="lv-in w" data-sctime placeholder="48:00" inputmode="decimal" style="flex:1"><button type="button" class="btn" data-sctimeok style="padding:8px 14px">ใส่เวลา</button></div></div>` : ""}
     ${l.route && l.route.length > 1 ? `<label class="inline"><input type="checkbox" data-scroute ${SC.route ? "checked" : ""}> แสดงเส้นทาง</label>` : ""}
     <button type="button" class="btn block" data-scsave style="margin-top:6px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
     <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div></div>`, body => {
@@ -2513,6 +2514,8 @@ async function shareCard(id) {
     try { Promise.all(["800 100px Outfit", "700 60px Outfit", "600 30px 'IBM Plex Sans Thai'", "500 30px 'IBM Plex Sans Thai'", "800 30px 'IBM Plex Sans Thai'"].map(f => document.fonts.load(f, "0กม"))).then(draw, draw); } catch (e) {}
     draw(); if (scLogoImg && !scLogoImg.complete) scLogoImg.onload = draw;
     body.querySelector("#scBox").addEventListener("click", e => {
+      if (e.target.closest("[data-sctimeok]")) { const v = parseDuration(body.querySelector("[data-sctime]").value, +l.km); if (!v || (+l.km && !PACE_OK(v / l.km))) return toast("เวลาดูแปลก ๆ พิมพ์ เช่น 48:00 หรือ 1:05:30");
+        l.time = fmtTime(v); save(); render(); toast("ใส่เวลาแล้ว"); return shareCard(id); }
       const b = e.target.closest("[data-sck],[data-scpick],[data-scsave]"); if (!b) return;
       if (b.dataset.sck) { SC[b.dataset.sck] = b.dataset.scv; if (b.dataset.sck === "bg" && SC.bg === "none" && SC.r !== "916") SC.r = "916"; const y = $(".panel").scrollTop; shareCard(id); $(".panel").scrollTop = y; return; }
       if (b.hasAttribute("data-scpick")) {
@@ -3123,14 +3126,23 @@ function parseRunText(texts) {
   const T3 = /\b(\d{1,2}):(\d{2}):(\d{2})\b/, T2 = /\b(\d{1,3}):(\d{2})\b/;
   const t3 = s => { const m = s.match(T3); return m ? +m[1] * 3600 + +m[2] * 60 + +m[3] : 0; };
   const tAny = s => t3(s) || (s.match(T2) ? +s.match(T2)[1] * 60 + +s.match(T2)[2] : 0);
-  const byLabel = (re, any) => { for (let i = 0; i < lines.length; i++) if (re.test(lines[i])) { const v = (any ? tAny : t3)(lines[i].replace(re, " ")); if (v) return v; const pv = i ? (any ? tAny : t3)(lines[i - 1]) : 0; if (pv) return pv; } return 0; };
+  // เวลาทั้งหมดในบรรทัด (ไม่นับเพซ x:xx /กม.) เรียงซ้าย→ขวา
+  const timesIn = (s, any) => { const out = [], re = /\b(\d{1,2}):(\d{2}):(\d{2})\b|\b(\d{1,3}):(\d{2})\b(?!\s*\/\s*(?:km|กม))/gi; let m; while ((m = re.exec(s))) { if (m[1]) out.push(+m[1] * 3600 + +m[2] * 60 + +m[3]); else if (any) out.push(+m[4] * 60 + +m[5]); } return out; };
+  // ป้ายอยู่คอลัมน์ขวาไหม (เช่น Strava: "เวลาเคลื่อนที่  เพซเฉลี่ย" แล้วค่าอยู่บรรทัดถัดไป)
+  const colOf = (s, re) => { const m = s.match(re); return m && /[ก-๙a-z]/i.test(s.slice(0, m.index)) ? 1 : 0; };
+  const byLabel = (re, any) => { for (let i = 0; i < lines.length; i++) if (re.test(lines[i])) {
+    const v = timesIn(lines[i].replace(re, " "), any)[0]; if (v) return v;
+    const col = colOf(lines[i], re);
+    for (const j of [i - 1, i + 1]) { const ts = lines[j] ? timesIn(lines[j], any) : []; if (ts.length) return ts[Math.min(col, ts.length - 1)]; }
+  } return 0; };
   // ระยะ
   const kms = []; lines.forEach(s => { const re = /(\d{1,3}[.,]\d{1,2})\s*(?:กม\.?|km\b)(?!\s*\/\s*h)/gi; let m; while ((m = re.exec(s))) { const v = parseFloat(m[1].replace(",", ".")); if (v > 0.2 && v <= 300) kms.push(v); } });
   if (kms.length) r.km = Math.max(...kms);
   // เวลา
-  r.timeSec = byLabel(/เวลารวม|total time|^time\b|elapsed/i, true);
+  r.timeSec = byLabel(/เวลารวม|เวลาที่ผ่านไป|เวลาทั้งหมด|total time|^time\b|elapsed/i, true);
   if (!r.timeSec) { const cnt = {}; lines.forEach(s => { const v = t3(s); if (v) cnt[v] = (cnt[v] || 0) + 1; }); const best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]; if (best) r.timeSec = +best[0]; }
-  r.movingSec = byLabel(/เวลาที่เคลื่อนไหว|moving time/i, true);
+  r.movingSec = byLabel(/เวลา(?:ที่)?เคลื่อน(?:ไหว|ที่)|moving time/i, true);
+  if (!r.timeSec && r.movingSec) r.timeSec = r.movingSec;            // Strava แสดงแค่เวลาเคลื่อนที่
   r.walkSec = byLabel(/เวลาเดิน|walk(ing)? time/i, true);
   // หัวใจ
   const hrs = []; lines.forEach(s => { const re = /(\d{2,3})\s*(?:bpm|ppm|opm|[๐-๙]{2}ท\S?)/gi; let m; const row = []; while ((m = re.exec(s))) { const v = +m[1]; if (v >= 60 && v <= 230) row.push(v); } if (row.length) hrs.push(row); });
@@ -3153,11 +3165,14 @@ function parseRunText(texts) {
   // เพซเฉลี่ยที่แอปนาฬิกาบอกมา (ใช้ตรวจระยะ/เวลา)
   const PACE = /\b(\d{1,2}):(\d{2})\s*\/\s*(?:km|กม)/i, paceOf = s => { const m = s.match(PACE); return m ? +m[1] * 60 + +m[2] : 0; };
   for (let i = 0; i < lines.length && !r.paceAvg; i++) {
-    const s = lines[i]; if (!/เพซเฉลี่ย|avg\.? pace|average pace/i.test(s) || /ดีที่สุด|best|เคลื่อน|moving|grade|ปรับ/i.test(s)) continue;
-    const v = paceOf(s) || (i ? paceOf(lines[i - 1]) : 0) || (lines[i + 1] ? paceOf(lines[i + 1]) : 0);
+    const s = lines[i], LB = /เพซเฉลี่ย|avg\.? pace|average pace/i; if (!LB.test(s) || /ดีที่สุด|best|เพซ\S{0,8}เคลื่อน|moving pace|grade adj|ปรับตาม/i.test(s)) continue;
+    const col = colOf(s, LB), pick = t => { const a = []; const re = new RegExp(PACE.source, "gi"); let m; while (t && (m = re.exec(t))) a.push(+m[1] * 60 + +m[2]); return a; };
+    const pv = pick(lines[i - 1]), nx = pick(lines[i + 1]);
+    const v = paceOf(s.replace(LB, " ")) || (pv.length ? pv[Math.min(col, pv.length - 1)] : 0) || (nx.length ? nx[Math.min(col, nx.length - 1)] : 0);
     if (PACE_OK(v)) r.paceAvg = v;
   }
   if (!r.paceAvg) { const cnt = {}; lines.forEach(s => { const re = new RegExp(PACE.source, "gi"); let m; while ((m = re.exec(s))) { const v = +m[1] * 60 + +m[2]; if (PACE_OK(v)) cnt[v] = (cnt[v] || 0) + 1; } }); const b = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]; if (b && b[1] >= 2) r.paceAvg = +b[0]; }
+  if (!r.timeSec && r.km && r.paceAvg) { r.timeSec = Math.round(r.km * r.paceAvg); r.timeEst = true; }   // ไม่เจอเวลา: คำนวณจากระยะ × เพซเฉลี่ย
   // ตรวจไขว้: ระยะ × เพซ ต้องได้เวลา — ถ้าไม่ตรง เลือกตัวเลขระยะที่ตรงกว่า
   if (r.timeSec && r.paceAvg) {
     const want = r.timeSec / r.paceAvg, near = v => Math.abs(v - want) / want;
@@ -3177,7 +3192,7 @@ function parseRunText(texts) {
   // ขึ้นสะสม (Total Ascent / ระดับความสูงที่เพิ่มขึ้น)
   const ELV = /(\d{1,2}[,.]\d{3}|\d{1,4})\s*(?:m\b|ม\.?(?!\S*ก)|เมตร)/i;
   for (let i = 0; i < lines.length && !r.dplus; i++) {
-    if (!/ascent|elev(?:ation)?\.?\s*gain|ไต่|ความสูง.{0,15}(?:เพิ่ม|ขึ้น)|ขึ้นสะสม|ขึ้นทั้งหมด/i.test(lines[i])) continue;
+    if (!/ascent|elev(?:ation)?\.?\s*gain|ไต่|ความสูง.{0,15}(?:เพิ่ม|ขึ้น)|ความสูงสะสม|ขึ้นสะสม|ขึ้นทั้งหมด/i.test(lines[i])) continue;
     const m = lines[i].match(ELV) || (lines[i + 1] || "").match(ELV) || (lines[i - 1] || "").match(ELV);
     if (m) { const v = parseInt(m[1].replace(/[,.]/g, "")); if (v > 0 && v < 15000) r.dplus = v; }
   }
@@ -3302,7 +3317,8 @@ function openLog(key) {
           else if (!F.sessionKey.value && ocr.km) F.type.value = ocr.km >= 14 ? "long" : "easy";
           ["km", "time", "hrAvg", "hrMax", "dplus", "date"].forEach(n => { if (F[n].value) F[n].classList.add("ocr-filled"); });
           st.innerHTML = "";
-          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>${ocr.date ? "" : `<div class="note warn" style="margin-top:8px">📅 ไม่พบวันที่ในรูป — ตอนนี้ใส่เป็น<b>วันนี้</b>ไว้ ถ้าเป็นผลวันก่อน เลือก “วันที่” ด้านล่างให้ถูกก่อนกดบันทึก</div>`}`;
+          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>${ocr.date ? "" : `<div class="note warn" style="margin-top:8px">📅 ไม่พบวันที่ในรูป — ตอนนี้ใส่เป็น<b>วันนี้</b>ไว้ ถ้าเป็นผลวันก่อน เลือก “วันที่” ด้านล่างให้ถูกก่อนกดบันทึก</div>`}${ocr.km && !ocr.timeSec ? `<div class="note warn" style="margin-top:8px">⏱ อ่าน<b>เวลา</b>จากรูปไม่ได้ — พิมพ์เวลารวมในช่อง “เวลารวม” ด้านล่าง (เช่น 48:00) ไม่งั้นจะไม่มีเพซและรูปแชร์จะขึ้นแต่ระยะ</div>` : ocr.timeEst ? `<div class="note info" style="margin-top:8px">⏱ ไม่เห็นเวลาในรูป เลยคำนวณจากระยะ × เพซเฉลี่ย = <b>${fmtTime(ocr.timeSec)}</b> ตรวจอีกทีนะ</div>` : ""}`;
+          if (ocr.km && !ocr.timeSec) { const eb = body.querySelector("[data-edit-nums]"); if (eb && !editNums) eb.click(); F.time.classList.add("need"); }
         } catch (err) { st.innerHTML = ""; res.innerHTML = `<div class="note bad">${esc(err.message || "อ่านภาพไม่สำเร็จ")} — สลับไป “กรอกเอง” ได้</div>`; }
     };
     form.addEventListener("submit", e => {
