@@ -182,7 +182,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .cx-lc{position:relative;overflow:hidden;border-radius:20px;padding:14px 12px 12px;color:#fff;min-height:150px;display:flex;flex-direction:column;box-shadow:0 10px 24px rgba(0,0,0,.12);cursor:pointer}
 .cx-em{font-size:30px}.cx-n{font-weight:800;font-size:15px;line-height:1.25;margin-top:6px}.cx-m{font-size:11.5px;opacity:.85;margin-top:2px}
 .cx-ft{margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding-top:10px}
-.cx-av{display:flex}.cx-av i{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.9);margin-left:-6px;display:grid;place-items:center;font-style:normal;font-size:9px;color:#333;font-weight:700}.cx-av i:first-child{margin-left:0}
+.cx-avck{display:flex;align-items:center;gap:8px}.cx-avck img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none}
+.cx-av{display:flex}.cx-av i{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.9);margin-left:-7px;display:grid;place-items:center;font-style:normal;font-size:11px;color:#333;font-weight:700}.cx-av i:first-child{margin-left:0}
 .cx-jbtn{background:#fff;color:#0d5a3c;font:inherit;font-weight:800;font-size:12.5px;border-radius:999px;padding:6px 12px;border:0;cursor:pointer}.cx-jbtn.on{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4)}
 .cx-g1{background:linear-gradient(150deg,#1f8a5b,#0b4d34)}.cx-g2{background:linear-gradient(150deg,#3b7dd8,#1d3f8a)}.cx-g3{background:linear-gradient(150deg,#f08a3c,#c2410c)}.cx-g4{background:linear-gradient(150deg,#8a6a3a,#4a3418)}
 .cx-podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:8px 0 0}
@@ -1662,11 +1663,11 @@ function chHomeHtml(p) {
 function chLobbyHtml(p) {
   if (!CH_API) return `<div class="card" style="text-align:center"><div style="font-size:30px">🔥</div><b>ชาเลนจ์ออนไลน์กำลังจะเปิด</b><div class="tiny mut">ห้องประจำเดือนที่ทุกคนเข้าร่วมได้ด้วยปุ่มเดียว</div></div>`;
   const m = curMonth(), L = p.chLobby && p.chLobby.month === m ? p.chLobby.rooms : {};
-  const av = names => (names || []).slice(0, 3).map((n, i) => `<i style="background:${["#e8f5ec", "#e3edfa", "#fde9dc"][i]}">${esc(String(n).slice(0, 1))}</i>`).join("");
+  const av = (names, avs) => (names || []).slice(0, 3).map((n, i) => avOk((avs || [])[i]) ? `<i style="background:#ddd url('${avs[i]}') center/cover"></i>` : `<i style="background:${["#e8f5ec", "#e3edfa", "#fde9dc"][i]}">${esc(String(n).slice(0, 1))}</i>`).join("");
   return `<div class="cx-sech"><h2>🔥 ชาเลนจ์เดือน${monthTH(m)}</h2><span>เหลือ ${monthLeft()} วัน</span></div>
     <div class="cx-lob">${CROOMS.map(r => { const room = m + ":" + r.k, j = !!(p.chJoined || {})[room], info = L[r.k] || { n: 0, names: [] };
       return `<div class="cx-lc ${r.g}" data-act="${j ? "chBoard" : "chJoin"}" data-id="${room}"><div class="cx-em">${r.em}</div><div class="cx-n">${r.full.replace(" ในเดือนนี้", "<br>ในเดือนนี้").replace("ครั้งในเดือนนี้", "ครั้ง<br>ในเดือนนี้")}</div><div class="cx-m">${r.sub}</div>
-        <div class="cx-ft"><div class="cx-av">${av(info.names)}</div><button class="cx-jbtn ${j ? "on" : ""}" data-act="${j ? "chBoard" : "chJoin"}" data-id="${room}">${j ? "✓ เข้าแล้ว" : "เข้าร่วม"}</button></div><div class="cx-m" style="margin-top:4px">${info.n ? info.n.toLocaleString("th-TH") + " คน" : "เป็นคนแรก!"}</div></div>`; }).join("")}</div>
+        <div class="cx-ft"><div class="cx-av">${av(info.names, info.avs)}</div><button class="cx-jbtn ${j ? "on" : ""}" data-act="${j ? "chBoard" : "chJoin"}" data-id="${room}">${j ? "✓ เข้าแล้ว" : "เข้าร่วม"}</button></div><div class="cx-m" style="margin-top:4px">${info.n ? info.n.toLocaleString("th-TH") + " คน" : "เป็นคนแรก!"}</div></div>`; }).join("")}</div>
     ${chHeroHtml(p, "ห้องที่เข้าร่วม") ? `<div style="height:14px"></div>${chHeroHtml(p, "ห้องที่เข้าร่วม")}` : ""}
     <div class="tiny mut" style="text-align:center;margin:8px 0 18px">ส่งขึ้นตารางแค่ชื่อเล่น + ยอดรวมของห้อง ไม่ส่งเวลา เพซ หัวใจ หรือข้อมูลสุขภาพ</div>`;
 }
@@ -1676,19 +1677,31 @@ function chJoinSheet(room) {
     <p class="small mut" style="margin-top:0">${d.sub} · เดือน${monthTH(room)} · ยอดคิดจากผลซ้อมที่ส่งในเดือนนี้อัตโนมัติ (รวมที่ส่งไปแล้ว)</p>
     <label class="f">ชื่อที่จะแสดงในตาราง<input name="name" maxlength="20" value="${esc(p.chName || p.name || "")}" required></label>
     <label class="inline"><input type="checkbox" name="showAg" ${canAg ? "checked" : "disabled"}> แสดงเพศและรุ่นอายุ (${canAg ? `${p.sex === "m" ? "ชาย" : "หญิง"} ${agText(agCode(p))}` : "ใส่เพศ/ปีเกิดในแท็บ ฉัน ก่อน"}) เพื่อจัดอันดับในรุ่น</label>
-    <div class="note info" style="margin:10px 0">ส่งขึ้นไปแค่ชื่อเล่น${canAg ? " เพศ รุ่นอายุ" : ""} และยอดรวมของห้องนี้ ออกจากห้องได้ทุกเมื่อ ยอดจะถูกลบ</div>
+    <label class="inline cx-avck">${p.photo ? `<img src="${p.photo}" alt="">` : ""}<input type="checkbox" name="showAv" ${p.photo ? (p.chAv === false ? "" : "checked") : "disabled"}> ${p.photo ? "แสดงรูปโปรไฟล์ในตาราง (ย่อเป็นรูปเล็ก)" : "แสดงรูปโปรไฟล์ — ใส่รูปในแท็บ ฉัน ก่อน"}</label>
+    <div class="note info" style="margin:10px 0">ส่งขึ้นไปแค่ชื่อเล่น${canAg ? " เพศ รุ่นอายุ" : ""}${p.photo ? " รูปโปรไฟล์ (ถ้าเลือก)" : ""} และยอดรวมของห้องนี้ ออกจากห้องได้ทุกเมื่อ ยอดจะถูกลบ</div>
     <button class="btn block" type="submit">เข้าร่วมเลย</button></form>`, body => {
     body.querySelector("#cjForm").addEventListener("submit", async e => {
       e.preventDefault(); const F = e.target.elements, btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "กำลังเข้าร่วม…";
       try {
         const id = chIdent(p), name = F.name.value.trim().slice(0, 20) || "นักวิ่ง", sh = F.showAg.checked;
         await chApi("/join", { uid: id.uid, key: id.key, room, name, sex: sh ? p.sex : "", ag: sh ? agCode(p) : "" });
-        p.chName = name; p.chJoined = p.chJoined || {}; p.chJoined[room] = { at: TODAY, showAg: sh }; save(); track("challenge-join");
+        p.chName = name; p.chJoined = p.chJoined || {}; p.chJoined[room] = { at: TODAY, showAg: sh }; p.chAv = !!(p.photo && F.showAv.checked); save(); track("challenge-join");
+        await chAvPush(p);
         closeSheet(); toast("เข้าร่วมแล้ว! 🎉"); render(); chSync(p, { after: () => chBoardSheet(room) });
       } catch (err) { btn.disabled = false; btn.textContent = "เข้าร่วมเลย"; toast(err.message === "name" ? "ชื่อนี้ใช้ไม่ได้ ลองชื่ออื่น" : "เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง"); }
     });
   });
 }
+const avOk = s => /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/.test(s || "");
+// รูปโปรไฟล์ย่อ 96×96 สำหรับตารางชาเลนจ์ (~4 KB)
+function chAvSmall(src) { return new Promise(ok => { if (!src) return ok(""); const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = c.height = 96; const g = c.getContext("2d"), s = Math.min(im.width, im.height);
+  g.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, 96, 96); let d = c.toDataURL("image/jpeg", 0.78); if (d.length > 15000) d = c.toDataURL("image/jpeg", 0.55); ok(d); }; im.onerror = () => ok(""); im.src = src; }); }
+async function chAvPush(p) {
+  if (!CH_API || !p.chId) return;
+  try { const av = p.chAv && p.photo ? await chAvSmall(p.photo) : ""; await chApi("/avatar", { uid: p.chId.uid, key: p.chId.key, av }); } catch (e) { console.warn("[KAOWIN] avatar", e.message); }
+}
+// วงกลมรูป/ตัวอักษรในตาราง
+const chAva = (r, cls, st = "") => avOk(r.av) ? `<span class="${cls}" style="background:#ddd url('${r.av}') center/cover;${st}"></span>` : `<span class="${cls}" style="background:${avc(r.name)};${st}">${esc(String(r.name).slice(0, 1))}</span>`;
 const AVC = ["#1f8a5b", "#3b7dd8", "#f08a3c", "#8a6a3a", "#c9497a", "#6a5acd", "#2f8a86"];
 const avc = s => AVC[[...String(s)].reduce((t, c) => t + c.charCodeAt(0), 0) % AVC.length];
 async function chBoardSheet(room, f = "all") {
@@ -1701,16 +1714,19 @@ async function chBoardSheet(room, f = "all") {
   bind();
   let b; try { b = await chApi(`/board?room=${encodeURIComponent(room)}&uid=${id.uid}&f=${f}`); } catch (e) { $("#sheetBody").innerHTML = head + `<div class="note warn">โหลดตารางไม่ได้ — ${esc(e.message)}</div>`; bind(); return; }
   const unit = d.unit, tgt = d.target, all = [...b.top], ids = new Set(all.map(r => r.rank));
-  const row = r => `<div class="cx-lr ${r.me ? "me" : ""}"><span class="no">${r.rank}</span><span class="a" style="background:${avc(r.name)}">${esc(String(r.name).slice(0, 1))}</span><span class="nm"><b>${esc(r.name)}${r.me ? " (คุณ)" : ""}</b><small>${r.sex ? (r.sex === "m" ? "ชาย" : "หญิง") + " " : ""}${agText(r.ag)}${tgt && r.value >= tgt ? " · ✅ ครบเป้า" : ""}</small></span>${tgt ? `<span class="bv"><i style="width:${Math.min(100, r.value / tgt * 100)}%"></i></span>` : ""}<span class="kv">${fmtRoom(room, r.value)}</span>${admin && !r.me ? `<button class="del" data-adm="${r.id}">✕</button>` : ""}</div>`;
-  const pod = b.top.slice(0, 3), podH = pod.length ? `<div class="cx-podium">${[1, 0, 2].filter(i => pod[i]).map(i => { const r = pod[i]; return `<div class="cx-pd p${i + 1}">${i === 0 ? '<div style="font-size:20px">👑</div>' : ""}<div class="ava" style="background:${avc(r.name)}${i === 0 ? ";width:60px;height:60px" : ""}">${esc(String(r.name).slice(0, 1))}</div><div class="nm">${esc(r.name)}${r.me ? " (คุณ)" : ""}</div><div class="v">${fmtRoom(room, r.value)} ${unit}</div><div class="blk">${i + 1}</div></div>`; }).join("")}</div>` : `<div class="mut small" style="text-align:center;padding:20px">ยังไม่มีใครในกลุ่มนี้</div>`;
+  const row = r => `<div class="cx-lr ${r.me ? "me" : ""}"><span class="no">${r.rank}</span>${chAva(r, "a")}<span class="nm"><b>${esc(r.name)}${r.me ? " (คุณ)" : ""}</b><small>${r.sex ? (r.sex === "m" ? "ชาย" : "หญิง") + " " : ""}${agText(r.ag)}${tgt && r.value >= tgt ? " · ✅ ครบเป้า" : ""}</small></span>${tgt ? `<span class="bv"><i style="width:${Math.min(100, r.value / tgt * 100)}%"></i></span>` : ""}<span class="kv">${fmtRoom(room, r.value)}</span>${admin && !r.me ? `${r.av ? `<button class="del" title="ลบรูป" data-admav="${r.id}">🖼</button>` : ""}<button class="del" data-adm="${r.id}">✕</button>` : ""}</div>`;
+  const pod = b.top.slice(0, 3), podH = pod.length ? `<div class="cx-podium">${[1, 0, 2].filter(i => pod[i]).map(i => { const r = pod[i]; return `<div class="cx-pd p${i + 1}">${i === 0 ? '<div style="font-size:20px">👑</div>' : ""}${chAva(r, "ava", i === 0 ? "width:60px;height:60px" : "")}<div class="nm">${esc(r.name)}${r.me ? " (คุณ)" : ""}</div><div class="v">${fmtRoom(room, r.value)} ${unit}</div><div class="blk">${i + 1}</div></div>`; }).join("")}</div>` : `<div class="mut small" style="text-align:center;padding:20px">ยังไม่มีใครในกลุ่มนี้</div>`;
   const rest = b.top.slice(3).map(row).join(""), extra = b.around.filter(r => !ids.has(r.rank));
   const me = b.me && b.me.inFilter ? b.me : null, ahead = me && b.around.concat(b.top).find(r => r.rank === me.rank - 1);
   const meBar = me ? `<div class="cx-mebar"><span class="no">#${me.rank}</span><span style="flex:1"><b>${esc(p.chName || p.name)}</b> · ${fmtRoom(room, me.value)} ${unit} <small>จาก ${b.total} คน</small><br><small>${me.rank === 1 ? "อยู่อันดับ 1! รักษาไว้นะ 🔥" : ahead ? (ahead.value - me.value <= 0 ? `ยอดเท่ากับ ${esc(ahead.name)} — อีกนิดเดียวแซงได้!` : `ตามหลัง ${esc(ahead.name)} ${fmtRoom(room, ahead.value - me.value)} ${unit}${ahead.value - me.value <= Math.max(1, me.value * 0.1) ? " — อีกนิดแซงได้!" : " — สู้ต่อ!"}`) : ""}</small></span>${rankDelta(p, room) > 0 && f === "all" ? `<span>▲ ${rankDelta(p, room)}</span>` : ""}</div>` : "";
   $("#sheetBody").innerHTML = head + `<div class="card" style="padding:12px 10px 0">${podH}</div>${rest || extra.length ? `<div class="cx-lb">${rest}${extra.length ? `<div class="cx-gap">···</div>${extra.map(row).join("")}` : ""}</div>` : ""}
     ${b.needAg ? `<div class="note info">เข้าห้องโดยเลือก "แสดงเพศและรุ่นอายุ" เพื่อดูอันดับในรุ่น</div>` : ""}
-    <div class="row" style="justify-content:space-between;margin:12px 2px"><span class="tiny mut">อัปเดตทุกครั้งที่ส่งผลซ้อม · ${b.total} คน</span>${(p.chJoined || {})[room] ? `<button class="linkbtn" data-chleave="${room}" style="color:var(--mut);font-size:12px">ออกจากห้อง</button>` : ""}</div>${meBar}`;
+    <div class="row" style="justify-content:space-between;margin:12px 2px"><span class="tiny mut">อัปเดตทุกครั้งที่ส่งผลซ้อม · ${b.total} คน</span>${(p.chJoined || {})[room] ? `<span>${p.photo ? `<button class="linkbtn" data-chav style="color:var(--mut);font-size:12px">${p.chAv ? "ซ่อนรูปของฉัน" : "แสดงรูปของฉัน"}</button> · ` : ""}<button class="linkbtn" data-chleave="${room}" style="color:var(--mut);font-size:12px">ออกจากห้อง</button></span>` : ""}</div>${meBar}`;
   bind();
   document.querySelectorAll("#sheetBody [data-adm]").forEach(x => x.addEventListener("click", async () => { if (!confirm("ลบชื่อนี้ออกจากห้อง?")) return; try { await chApi("/admin/remove", { admin, room, id: x.dataset.adm }); chBoardSheet(room, f); } catch (e) { toast("ลบไม่ได้: " + e.message); } }));
+  document.querySelectorAll("#sheetBody [data-admav]").forEach(x => x.addEventListener("click", async () => { if (!confirm("ลบรูปโปรไฟล์ของคนนี้?")) return; try { await chApi("/admin/noav", { admin, id: x.dataset.admav }); chBoardSheet(room, f); } catch (e) { toast("ลบไม่ได้: " + e.message); } }));
+  const avb = document.querySelector("#sheetBody [data-chav]");
+  if (avb) avb.addEventListener("click", async () => { p.chAv = !p.chAv; save(); avb.textContent = "กำลังอัปเดต…"; await chAvPush(p); toast(p.chAv ? "แสดงรูปในตารางแล้ว" : "ซ่อนรูปแล้ว"); chBoardSheet(room, f); chSync(p); });
   const lv = document.querySelector("#sheetBody [data-chleave]");
   if (lv) lv.addEventListener("click", async () => { if (!confirm("ออกจากห้องนี้? ยอดของคุณในตารางจะถูกลบ")) return;
     try { await chApi("/leave", { uid: id.uid, key: id.key, room }); delete p.chJoined[room]; if (p.chCache) delete p.chCache[room]; save(); closeSheet(); render(); toast("ออกจากห้องแล้ว"); } catch (e) { toast("ทำไม่ได้ตอนนี้ ลองใหม่"); } });
@@ -2646,7 +2662,7 @@ function pickImage(W, H, cb) {
   };
   inp.click();
 }
-function pickPhoto() { pickImage(256, 256, d => { P().photo = d; save(); render(); toast("อัปเดตรูปแล้ว"); }); }
+function pickPhoto() { pickImage(256, 256, d => { const p = P(); p.photo = d; save(); render(); toast("อัปเดตรูปแล้ว"); if (p.chAv) chAvPush(p); }); }
 const SHOE_SVG = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16c0-3 1-7 2-9l4 3c2 1 4 1 6 2l4 1c1 .3 2 1.3 2 2.5V18H4a1 1 0 0 1-1-1z"/><path d="M3 18h18"/></svg>`;
 const shoeThumb = (sh, w, h) => sh.photo ? `<img src="${sh.photo}" alt="" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:${Math.round(h / 4)}px;display:block;flex:none;border-bottom:3px solid ${shoeColor(sh)}">`
   : `<div style="width:${w}px;height:${h}px;border-radius:${Math.round(h / 4)}px;background:${shoeColor(sh)};color:#fff;display:grid;place-items:center;flex:none">${SHOE_SVG}</div>`;
@@ -3306,7 +3322,7 @@ document.addEventListener("click", e => {
   if (act === "dismissSuggest") { p.dismissed = p.dismissed || {}; p.dismissed[id] = 1; save(); render(); }
   if (act === "toggleWeeks") { planAllOpen = !planAllOpen; const y = window.scrollY; render(); window.scrollTo(0, y); }
   if (act === "photo") pickPhoto();
-  if (act === "photoDel") { delete p.photo; save(); render(); }
+  if (act === "photoDel") { delete p.photo; save(); render(); if (p.chAv) chAvPush(p); }
   if (act === "vo2Form") vo2Form();
   if (act === "vo2List") vo2List();
   if (act === "vo2Del") { p.vo2log = (p.vo2log || []).filter(m => m.id !== id); save(); render(); vo2List(); }
