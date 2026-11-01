@@ -250,6 +250,8 @@ body.lv-on{overflow:hidden}
 #lvBars i{display:inline-block;width:4px;background:#334;border-radius:1px}
 #lvBars i.on{background:#bef264}
 #lvBars em{color:#f87171;font-style:normal;margin-left:3px}
+.lv-lock.off{border-color:#c2410c;background:#3a1a06;color:#fed7aa;text-align:left;line-height:1.5}.lv-lock.off b{color:#fff}
+.sc-wrap{background:#111;border-radius:16px;overflow:hidden;display:flex;justify-content:center}.sc-wrap canvas{display:block;max-width:100%;max-height:58vh;width:auto;height:auto}
 .lv-lock{border:1px solid #3c5a1d;background:#16240f;color:#d9f99d;border-radius:12px;padding:7px 12px;font-size:12.5px;text-align:center}
 .lv-pill{width:max-content;max-width:100%;margin:12px auto 4px;border-radius:999px;padding:6px 16px;font-weight:700;font-size:15px}
 .lv-pill.o{background:#f08a35;color:#2a1302}.lv-pill.b{background:#1e3a5f;color:#bfdbfe}.lv-pill.bl{background:#3b82f6;color:#fff}.lv-pill.g{background:#166534;color:#dcfce7}
@@ -1451,6 +1453,7 @@ function showAch(list, l) {
     <div class="btns" style="margin-top:14px"><button class="btn" data-ach="close">เยี่ยม! ดูวิเคราะห์</button><button class="btn ghost" data-ach="share">แชร์ความภูมิใจ</button></div></div>`;
   el.addEventListener("click", async e => {
     const b = e.target.closest("[data-ach]"); if (!b && e.target !== el) return;
+    if (b && b.dataset.ach === "share" && l && RUN_TYPES.includes(l.type)) { el.classList.add("out"); setTimeout(() => el.remove(), 250); shareCard(l.id); return; }
     if (b && b.dataset.ach === "share") { try { if (navigator.share) await navigator.share({ text: shareTxt }); else { await navigator.clipboard.writeText(shareTxt); toast("คัดลอกข้อความแล้ว วางในโพสต์ได้เลย"); } } catch (err) {} return; }
     el.classList.add("out"); setTimeout(() => el.remove(), 250);
   });
@@ -1850,10 +1853,29 @@ function lvGps(on) {
   if (on && LV.watch == null && navigator.geolocation) LV.watch = navigator.geolocation.watchPosition(lvOnPos, e => { LV.gpsErr = e.code === 1 ? "denied" : "weak"; lvGpsUI(); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   if (!on && LV.watch != null) { try { navigator.geolocation.clearWatch(LV.watch); } catch (e) {} LV.watch = null; }
 }
-async function lvWake() {
-  try { if ("wakeLock" in navigator && !LV.wake && document.visibilityState === "visible") { LV.wake = await navigator.wakeLock.request("screen"); LV.wake.addEventListener("release", () => { LV.wake = null; }); } } catch (e) {}
+// ตัวสำรองกันจอดับ: วิดีโอเงียบเล่นวนเบื้องหลัง (สำหรับเครื่องที่ไม่รองรับ Wake Lock เช่น iPhone รุ่นเก่า)
+const LV_NS = "data:video/mp4;base64,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X3JhbmdlPTI0IGNocm9tYV9tZT0xIHRyZWxsaXM9MiA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tNCB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz04IGJfcHlyYW1pZD0yIGJfYWRhcHQ9MiBiX2JpYXM9MCBkaXJlY3Q9MyB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD02MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjIwAIAAAAARZYiBAAL5z/731LfMsu4HI4EBGCAHARggBwEYIAcBGCAHARggBwEYIAcBGCAHARggBwAAAApBmggtiC+c//7wARggBwEYIAcBGCAHARggBwEYIAcBGCAHARggBwEYIAc=";
+function lvVid(on) {
+  let v = document.getElementById("lvNS");
+  if (!on) { if (v) try { v.pause(); } catch (e) {} LV.vid = false; return; }
+  if (!v) { v = document.createElement("video"); v.id = "lvNS"; v.muted = v.defaultMuted = v.loop = v.playsInline = true; ["muted", "playsinline", "webkit-playsinline", "loop"].forEach(a => v.setAttribute(a, ""));
+    v.src = LV_NS; v.style.cssText = "position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none;z-index:-1"; document.body.appendChild(v); }
+  try { const pr = v.play(); if (pr && pr.then) pr.then(() => { LV.vid = true; lvLockUI(); }, () => { LV.vid = false; lvLockUI(); }); } catch (e) {}
 }
-function lvUnwake() { try { LV.wake && LV.wake.release(); } catch (e) {} LV.wake = null; }
+async function lvWake() {
+  if (isIOS || !("wakeLock" in navigator)) lvVid(true);          // iPhone: เปิดตัวสำรองไว้ด้วยเสมอ (แอปบนหน้าโฮม iOS < 18.4 กันจอดับไม่ได้)
+  try { if ("wakeLock" in navigator && !LV.wake && document.visibilityState === "visible") { LV.wake = await navigator.wakeLock.request("screen"); LV.wake.addEventListener("release", () => { LV.wake = null; lvLockUI(); }); } }
+  catch (e) { LV.wake = null; lvVid(true); }
+  lvLockUI();
+}
+function lvUnwake() { try { LV.wake && LV.wake.release(); } catch (e) {} LV.wake = null; lvVid(false); }
+function lvLockUI() {
+  const el = document.getElementById("lvLock"); if (!el) return;
+  const ok = !!LV.wake || !!LV.vid;
+  el.className = "lv-lock" + (ok ? "" : " off");
+  el.innerHTML = ok ? "🔒 กันจอดับทำงานอยู่ · อย่าล็อกจอ · อย่าสลับแอป"
+    : `⚠️ เครื่องนี้กันจอดับไม่ได้ — ไปที่ <b>${isIOS ? "ตั้งค่า › จอภาพและความสว่าง › ล็อกอัตโนมัติ › ไม่ใช้" : "ตั้งค่า › จอแสดงผล › ระยะหมดเวลาหน้าจอ › 10 นาที"}</b> ก่อนวิ่ง แล้วตั้งกลับหลังวิ่ง`;
+}
 function lvOnPos(pos) {
   const c = pos.coords, now = LV.now(), P1 = [c.latitude, c.longitude];
   LV.gpsErr = ""; LV.fix = { acc: Math.round(c.accuracy || 99), at: now, ll: P1 };
@@ -2088,6 +2110,7 @@ function lvCountdown() {
   if (!LV.ack) return toast("ติ๊ก “เข้าใจแล้ว” ก่อนนะ");
   if (LV.cfg.lo && LV.cfg.hi && LV.cfg.lo > LV.cfg.hi) { const t = LV.cfg.lo; LV.cfg.lo = LV.cfg.hi; LV.cfg.hi = t; }
   lvSay("พร้อมนะ 3. 2. 1. ไป!", true);          // แตะปุ่ม = ปลดล็อกเสียงบน iPhone
+  lvWake();                                       // เริ่มกันจอดับตอนแตะ (iPhone ต้องเริ่มวิดีโอจากการแตะ)
   if (LV.test) return lvStart();
   let n = 3; $("#live").innerHTML = `<div class="lv-run lv-cd"><div class="lv-cdn">${n}</div><div class="lv-cdl">เตรียมตัว…</div></div>`;
   const iv = setInterval(() => { n--; if (n > 0) { const e = document.querySelector(".lv-cdn"); if (e) e.textContent = n; } else { clearInterval(iv); lvStart(); } }, 1000);
@@ -2113,7 +2136,7 @@ function lvRunUI() {
   const c = st.cfg, s = st.steps[st.si], nx = st.steps[st.si + 1], paused = !st.segAt;
   LV.drawn = st.si + ":" + (LV.gapShow ? "g" : "") + (paused ? "p" : "");
   const top = `<div class="lv-top"><span id="lvBars"></span><span id="lvBat"></span><span>${c.type === "interval" ? `${c.by === "m" ? lvDistS(c.repM) : fmtTime(c.repSec)}×${c.reps}` : c.type === "tempo" ? `Tempo ${c.tempoMin} นาที` : LV_T[c.type] + (c.goalKm ? " " + fmtKm(c.goalKm) + " กม." : "")}</span></div>
-    <div class="lv-lock">🔒 อย่าล็อกจอ · อย่าสลับแอป — กันจอดับเปิดอยู่</div>`;
+    <div class="lv-lock" id="lvLock">🔒 อย่าล็อกจอ · อย่าสลับแอป</div>`;
   const nextTxt = !nx ? "" : nx.k === "work" ? `⚡ เที่ยวที่ ${nx.rep} · ${nx.dist ? lvDistS(nx.dist) : fmtTime(nx.dur)}` : nx.k === "rest" ? `${nx.mode === "walk" ? "🚶 เดินพัก" : "จ็อกพัก"} ${fmtTime(nx.dur)}` : nx.k === "cd" ? `🧊 คูลดาวน์ ${fmtTime(nx.dur)}` : nx.k === "over" ? "✓ จบโปรแกรม" : "";
   const next = nextTxt ? `<div class="lv-next"><span>ถัดไป</span><b>${nextTxt}</b></div>` : "";
   const cell = (id, lab, cls = "") => `<div><b id="${id}" class="${cls}">–</b><span>${lab}</span></div>`;
@@ -2148,7 +2171,7 @@ function lvRunUI() {
     ${paused ? `<div class="lv-pz">หยุดชั่วคราว — เวลาไม่เดิน</div>` : ""}
     ${LV.gapShow ? `<div class="lv-gap"><div><b>📡 สัญญาณ GPS ขาดหาย ${LV.gapShow} วินาที</b><p>ดูเหมือนจอถูกล็อกหรือสลับแอป ระยะช่วงนั้นคิดเป็นเส้นตรง อาจขาดไปบ้าง — เปิดแอปค้างไว้นะ</p><button type="button" data-lv="gapok">วิ่งต่อ</button></div></div>` : ""}
   </div>`;
-  lvGpsUI(); lvUpd();
+  lvGpsUI(); lvLockUI(); lvUpd();
 }
 function lvUpd() {
   const st = LV.st; if (!st || st.done || !document.getElementById("lvBig")) return;
@@ -2251,6 +2274,7 @@ function lvSave(F) {
     if (!l.note) l.note = c.type === "tempo" ? `Tempo ${lvDistS(st.reps[0].m)} ใน ${fmtTime(st.reps[0].sec)}` : `${c.by === "m" ? lvDistS(c.repM) : fmtTime(c.repSec)}×${st.reps.length}: ${st.reps.map(r => fmtTime(r.sec)).join(" · ")}`;
   }
   if (st.gaps.length) l.gpsGaps = st.gaps.length;
+  if (st.pts.length > 1) { const k = Math.ceil(st.pts.length / 300); l.route = st.pts.filter((x, i) => i % k === 0 || i === st.pts.length - 1).map(x => [x[0], x[1]]); }
   try { localStorage.removeItem(LV_KEY); } catch (e) {}
   LV.st = null; lvHide(); track("live-save");
   commitLog(p, l);
@@ -2298,6 +2322,125 @@ function lvBind() {
   window.addEventListener("pagehide", () => { if (LV.st && !LV.st.done) lvPersist(); });
 }
 
+/* ---------- รูปแชร์ผลวิ่ง: รูปนักวิ่ง + สถิติทับบนรูป (แบบนาฬิกา) ---------- */
+const SC = { img: null, t: "bottom", r: "45", id: null, route: true };
+function scStats(l) {
+  const km = +l.km || 0, sec = toSec(l.time), pc = km && sec ? sec / km : 0, out = [];
+  if (sec) out.push(["เวลา", fmtTime(sec), ""]);
+  if (pc) out.push(["เพซเฉลี่ย", fmtPace(pc), "/กม."]);
+  if (+l.dplus) out.push(["ขึ้นสะสม", Math.round(+l.dplus).toLocaleString("en-US"), "ม."]);
+  if (+l.hrAvg && out.length < 3) out.push(["หัวใจเฉลี่ย", String(l.hrAvg), "bpm"]);
+  if (out.length < 3 && l.bestPace) out.push(["กม.เร็วสุด", fmtPace(l.bestPace), "/กม."]);
+  return out.slice(0, 3);
+}
+const scKm = l => (Math.round((+l.km || 0) * 100) / 100).toFixed(2);
+function scShadow(g, on, blur = 18) { g.shadowColor = on ? "rgba(0,0,0,.55)" : "transparent"; g.shadowBlur = on ? blur : 0; g.shadowOffsetY = on ? 2 : 0; }
+function scRoute(g, pts, x, y, w, h, lw) {
+  if (!pts || pts.length < 2) return false;
+  const la = pts.map(p => p[0]), lo = pts.map(p => p[1]), k = Math.cos(la[0] * Math.PI / 180);
+  const x0 = Math.min(...lo), x1 = Math.max(...lo), y0 = Math.min(...la), y1 = Math.max(...la);
+  const rw = Math.max((x1 - x0) * k, 1e-7), rh = Math.max(y1 - y0, 1e-7), S = Math.min(w / rw, h / rh);
+  const ox = x + (w - rw * S) / 2, oy = y + (h - rh * S) / 2, X = p => ox + (p[1] - x0) * k * S, Y = p => oy + (y1 - p[0]) * S;
+  g.save(); g.lineJoin = g.lineCap = "round";
+  g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = lw + 6; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p), Y(p)) : g.moveTo(X(p), Y(p))); g.stroke();
+  g.strokeStyle = "#fff"; g.lineWidth = lw; g.stroke();
+  [[pts[0], "#4ade80"], [pts[pts.length - 1], "#f87171"]].forEach(([p, c]) => { g.fillStyle = c; g.strokeStyle = "#fff"; g.lineWidth = 4; g.beginPath(); g.arc(X(p), Y(p), lw * 1.2, 0, 7); g.fill(); g.stroke(); });
+  g.restore(); return true;
+}
+let scLogoImg = null;
+function scLogo(g, x, y, s, align = "left") {
+  g.save(); scShadow(g, true, 10);
+  g.font = `800 ${s}px Outfit, sans-serif`; const tw = g.measureText("KAOWIN").width, iw = s * 1.15, tot = iw + s * 0.25 + tw;
+  const sx = align === "center" ? x - tot / 2 : align === "right" ? x - tot : x;
+  if (scLogoImg && scLogoImg.complete) { g.save(); g.beginPath(); g.roundRect ? g.roundRect(sx, y - iw * 0.82, iw, iw, iw * 0.24) : g.rect(sx, y - iw * 0.82, iw, iw); g.clip(); g.drawImage(scLogoImg, sx, y - iw * 0.82, iw, iw); g.restore(); }
+  g.fillStyle = "#fff"; g.textAlign = "left"; g.textBaseline = "alphabetic"; g.fillText("KAOWIN", sx + iw + s * 0.25, y);
+  g.restore();
+}
+function scDraw(cv, l) {
+  const W = 1080, H = SC.r === "916" ? 1920 : 1350; cv.width = W; cv.height = H;
+  const g = cv.getContext("2d"), P0 = 64, T = `600 ${0}px "IBM Plex Sans Thai", sans-serif`;
+  const font = (w, s, f = '"IBM Plex Sans Thai"') => `${w} ${s}px ${f}, sans-serif`;
+  // พื้นหลัง
+  if (SC.img) { const im = SC.img, r = Math.max(W / im.width, H / im.height), sw = W / r, sh = H / r; g.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, 0, 0, W, H); }
+  else { const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, "#0b3d24"); gr.addColorStop(1, "#1f7a45"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.save(); g.globalAlpha = .12; g.fillStyle = "#a3e635"; g.translate(W * .7, H * .25); g.rotate(-0.5); for (let i = 0; i < 3; i++) { g.beginPath(); g.roundRect ? g.roundRect(-500, i * 170, 1100, 90, 45) : g.rect(-500, i * 170, 1100, 90); g.fill(); } g.restore(); }
+  const st = scStats(l), km = scKm(l), d = l.date, head = `${TYPE_LABEL[l.type] || "วิ่ง"} · ${TH_DAY[dow(d)]} ${thDateY(d)}${isTM(l) ? " · ลู่วิ่ง" : ""}`;
+  const ach = (l.ach || []).slice(0, 2).map(a => a.title).join(" · ");
+  const route = SC.route && l.route && l.route.length > 1 ? l.route : null;
+  g.textBaseline = "alphabetic";
+  if (SC.t === "bottom") {
+    const gr = g.createLinearGradient(0, H * .38, 0, H); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(.55, "rgba(0,0,0,.55)"); gr.addColorStop(1, "rgba(0,0,0,.82)"); g.fillStyle = gr; g.fillRect(0, H * .38, W, H * .62);
+    const gt = g.createLinearGradient(0, 0, 0, 260); gt.addColorStop(0, "rgba(0,0,0,.45)"); gt.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gt; g.fillRect(0, 0, W, 260);
+    scLogo(g, P0, 118, 50);
+    if (route) scRoute(g, route, W - P0 - 300, 60, 300, 300, 9);
+    let y = H - P0 - 10;
+    g.fillStyle = "#fff";
+    // แถวสถิติ
+    scShadow(g, true, 8);
+    st.forEach((s, i) => { const x = P0 + i * 330; g.font = font(500, 30); g.globalAlpha = .8; g.fillText(s[0], x, y - 78); g.globalAlpha = 1; g.font = font(700, 66, "Outfit"); g.fillText(s[1], x, y); const w = g.measureText(s[1]).width; g.font = font(500, 26); g.fillText(s[2], x + w + 8, y); });
+    y -= 140;
+    g.font = font(800, 250, "Outfit"); g.fillText(km, P0 - 8, y); const kw = g.measureText(km).width; g.font = font(700, 70); g.fillText("กม.", P0 + kw + 10, y);
+    y -= 238; g.font = font(600, 36); g.globalAlpha = .92; g.fillText(head, P0, y); g.globalAlpha = 1;
+    if (ach) { g.font = font(700, 32); const t = "🏅 " + ach, w = g.measureText(t).width + 44; y -= 70; scShadow(g, false); g.fillStyle = "#a3e635"; g.beginPath(); g.roundRect ? g.roundRect(P0, y - 40, w, 58, 29) : g.rect(P0, y - 40, w, 58); g.fill(); g.fillStyle = "#0b2a16"; g.fillText(t, P0 + 22, y); }
+  } else if (SC.t === "center") {
+    g.fillStyle = "rgba(0,0,0,.28)"; g.fillRect(0, 0, W, H);
+    g.textAlign = "center"; g.fillStyle = "#fff"; scShadow(g, true, 16);
+    const rows = [["ระยะทาง", km, "กม."], ...st], gap = SC.r === "916" ? 250 : 180, total = rows.length * gap + (route ? 260 : 0);
+    let y = (H - total) / 2 + 100;
+    rows.forEach((s, i) => { g.font = font(500, 32); g.globalAlpha = .85; g.fillText(s[0], W / 2, y - (i ? 92 : 128)); g.globalAlpha = 1; g.font = font(800, i ? 96 : 140, "Outfit"); g.fillText(s[1] + (s[2] ? "" : ""), W / 2, y); if (s[2]) { const w = g.measureText(s[1]).width; g.font = font(600, i ? 30 : 44); g.textAlign = "left"; g.fillText(s[2], W / 2 + w / 2 + 10, y); g.textAlign = "center"; } y += gap; });
+    if (route) scRoute(g, route, W / 2 - 140, y - 140, 280, 220, 8);
+    scShadow(g, true, 10); g.font = font(600, 32); g.fillText(head, W / 2, H - 150); if (ach) { g.font = font(700, 30); g.fillText("🏅 " + ach, W / 2, H - 200); }
+    scLogo(g, W / 2, H - 70, 44, "center");
+  } else {
+    const ch = 470, cy = H - P0 - ch;
+    g.save(); g.fillStyle = "rgba(9,22,14,.78)"; g.beginPath(); g.roundRect ? g.roundRect(P0 - 20, cy, W - 2 * P0 + 40, ch, 44) : g.rect(P0 - 20, cy, W - 2 * P0 + 40, ch); g.fill(); g.restore();
+    const x = P0 + 22; scLogo(g, x, cy + 84, 40);
+    g.fillStyle = "#cfe9d7"; g.font = font(600, 30); g.textAlign = "right"; g.fillText(head, W - P0 - 22, cy + 80); g.textAlign = "left";
+    g.fillStyle = "#fff"; g.font = font(800, 190, "Outfit"); g.fillText(km, x - 6, cy + 285); const kw = g.measureText(km).width; g.fillStyle = "#a3e635"; g.font = font(700, 56); g.fillText("กม.", x + kw + 8, cy + 285);
+    if (route) scRoute(g, route, W - P0 - 260, cy + 110, 230, 200, 7);
+    st.forEach((s, i) => { const xx = x + i * 315; g.fillStyle = "#9fc3ab"; g.font = font(500, 27); g.fillText(s[0], xx, cy + 360); g.fillStyle = "#fff"; g.font = font(700, 54, "Outfit"); g.fillText(s[1], xx, cy + 425); const w = g.measureText(s[1]).width; g.font = font(500, 24); g.fillStyle = "#cfe9d7"; g.fillText(s[2], xx + w + 6, cy + 425); });
+    if (ach) { g.font = font(700, 32); const t = "🏅 " + ach, w = g.measureText(t).width + 44; scShadow(g, false); g.fillStyle = "#a3e635"; g.beginPath(); g.roundRect ? g.roundRect(P0 - 20, cy - 80, w, 58, 29) : g.rect(P0 - 20, cy - 80, w, 58); g.fill(); g.fillStyle = "#0b2a16"; g.fillText(t, P0 + 2, cy - 40); }
+  }
+  scShadow(g, false); g.textAlign = "left"; g.globalAlpha = 1;
+}
+async function shareCard(id) {
+  const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
+  if (SC.id !== l.id) { SC.img = null; SC.id = l.id; }
+  if (!scLogoImg) { scLogoImg = new Image(); scLogoImg.src = LOGO_ICON; }
+  const seg = (k, opts) => `<div class="seg sc-seg">${opts.map(([v, t]) => `<button type="button" data-sc${k}="${v}" class="${SC[k] === v ? "on" : ""}"><span>${t}</span></button>`).join("")}</div>`;
+  openSheet("📸 รูปแชร์ผลวิ่ง", `<div id="scBox"><div class="sc-wrap"><canvas id="scCv"></canvas></div>
+    <button type="button" class="btn ghost block" data-scpick style="margin:12px 0">🖼 ${SC.img ? "เปลี่ยนรูปนักวิ่ง" : "เลือกรูปนักวิ่ง"}</button>
+    <div class="flabel">แบบ</div>${seg("t", [["bottom", "สถิติด้านล่าง"], ["center", "กลางรูป"], ["card", "การ์ด"]])}
+    <div class="flabel">ขนาด</div>${seg("r", [["45", "โพสต์ 4:5"], ["916", "สตอรี่ 9:16"]])}
+    ${l.route && l.route.length > 1 ? `<label class="inline"><input type="checkbox" data-scroute ${SC.route ? "checked" : ""}> แสดงเส้นทาง</label>` : ""}
+    <button type="button" class="btn block" data-scsave style="margin-top:6px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
+    <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div></div>`, body => {
+    const cv = body.querySelector("#scCv"), draw = () => scDraw(cv, l);
+    try { Promise.all(["800 100px Outfit", "700 60px Outfit", "600 30px 'IBM Plex Sans Thai'", "500 30px 'IBM Plex Sans Thai'", "700 30px 'IBM Plex Sans Thai'"].map(f => document.fonts.load(f, "0กม"))).then(draw, draw); } catch (e) {}
+    draw(); if (scLogoImg) scLogoImg.onload = draw;
+    body.querySelector("#scBox").addEventListener("click", e => {
+      const b = e.target.closest("[data-sct],[data-scr],[data-scpick],[data-scsave]"); if (!b) return;
+      if (b.dataset.sct) { SC.t = b.dataset.sct; return shareCard(id); }
+      if (b.dataset.scr) { SC.r = b.dataset.scr; return shareCard(id); }
+      if (b.hasAttribute("data-scpick")) {
+        const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.style.cssText = "position:fixed;left:-9999px;opacity:0"; document.body.appendChild(inp);
+        inp.onchange = () => { const f = inp.files[0]; inp.remove(); if (!f) return; const im = new Image(); im.onload = () => { SC.img = im; shareCard(id); }; im.onerror = () => toast("เปิดรูปนี้ไม่ได้ ลองรูปอื่น"); im.src = URL.createObjectURL(f); };
+        inp.click(); return;
+      }
+      if (b.hasAttribute("data-scsave")) {
+        cv.toBlob(async blob => {
+          if (!blob) return toast("ทำรูปไม่สำเร็จ");
+          const name = `KAOWIN-${l.date}-${scKm(l)}km.jpg`, file = new File([blob], name, { type: "image/jpeg" });
+          try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: "#KAOWIN ก้าววิน · Every Step Wins." }); track("share-card"); return; } } catch (err) { if (err && err.name === "AbortError") return; }
+          const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+          toast("บันทึกรูปแล้ว"); track("share-card");
+        }, "image/jpeg", 0.92);
+      }
+    });
+    const rc = body.querySelector("[data-scroute]"); if (rc) rc.addEventListener("change", () => { SC.route = rc.checked; draw(); });
+  });
+}
+
 function showAnalysis(id) {
   const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
   const r = analyzeLog(p, l), sec = toSec(l.time);
@@ -2328,7 +2471,7 @@ function showAnalysis(id) {
     ${l.src ? `<div class="tiny mut" style="margin:-6px 0 12px">ข้อมูลอ่านจาก${esc(l.src)}</div>` : ""}
     ${(() => { const a = A.find((x, i) => W[i] && W[i].start <= TODAY && TODAY <= W[i].end); const g = a && a.notes.filter(n => n.act); return g && g.length ? noteHtml({ notes: g }) : ""; })()}
     ${r.next ? `<div class="flabel">นัดถัดไป</div><div class="card" style="padding:6px 14px">${sessRow(r.next)}</div>` : ""}
-    <div class="btns"><button class="btn" data-act="closeSheet">เยี่ยม!</button></div>`);
+    <div class="btns">${RUN_TYPES.includes(l.type) && +l.km ? `<button class="btn ghost" data-act="shareCard" data-id="${l.id}">📸 ทำรูปแชร์</button>` : ""}<button class="btn" data-act="closeSheet">เยี่ยม!</button></div>`);
 }
 
 /* ---------- render ---------- */
@@ -3331,6 +3474,7 @@ document.addEventListener("click", e => {
   if (act === "openLog") openLog(el.dataset.key);
   if (act === "session") openSession(el.dataset.key);
   if (act === "tip") openTip(id);
+  if (act === "shareCard") shareCard(id);
   if (act === "live") { closeSheet(); openLive(el.dataset.key); }
   if (act === "lvResume" && LV.st) { closeSheet(); lvOpen(); lvGps(true); LV.st.segAt = LV.now(); lvWake(); lvLoop(true); lvSay("วิ่งต่อ", true); lvRunUI(); }
   if (act === "lvEnd" && LV.st) { closeSheet(); lvOpen(); lvFinish(); }
