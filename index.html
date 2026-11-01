@@ -251,7 +251,9 @@ body.lv-on{overflow:hidden}
 #lvBars i.on{background:#bef264}
 #lvBars em{color:#f87171;font-style:normal;margin-left:3px}
 .lv-lock.off{border-color:#c2410c;background:#3a1a06;color:#fed7aa;text-align:left;line-height:1.5}.lv-lock.off b{color:#fff}
-.sc-wrap{background:#111;border-radius:16px;overflow:hidden;display:flex;justify-content:center}.sc-wrap canvas{display:block;max-width:100%;max-height:58vh;width:auto;height:auto}
+.sc-wrap{background:#111;border-radius:16px;overflow:hidden;display:flex;justify-content:center;margin-bottom:12px}.sc-wrap.clear{background:repeating-conic-gradient(#7d8a82 0 25%,#9aa69f 0 50%) 0 0/22px 22px;padding:14px}
+.sc-tpl{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}.sc-tpl button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 4px;font:inherit;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer}.sc-tpl button.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.sc-seg{margin-bottom:10px}.sc-wrap canvas{display:block;max-width:100%;max-height:58vh;width:auto;height:auto}
 .lv-lock{border:1px solid #3c5a1d;background:#16240f;color:#d9f99d;border-radius:12px;padding:7px 12px;font-size:12.5px;text-align:center}
 .lv-pill{width:max-content;max-width:100%;margin:12px auto 4px;border-radius:999px;padding:6px 16px;font-weight:700;font-size:15px}
 .lv-pill.o{background:#f08a35;color:#2a1302}.lv-pill.b{background:#1e3a5f;color:#bfdbfe}.lv-pill.bl{background:#3b82f6;color:#fff}.lv-pill.g{background:#166534;color:#dcfce7}
@@ -2322,8 +2324,10 @@ function lvBind() {
   window.addEventListener("pagehide", () => { if (LV.st && !LV.st.done) lvPersist(); });
 }
 
-/* ---------- รูปแชร์ผลวิ่ง: รูปนักวิ่ง + สถิติทับบนรูป (แบบนาฬิกา) ---------- */
-const SC = { img: null, t: "bottom", r: "45", id: null, route: true };
+/* ---------- รูปแชร์ผลวิ่ง: รูปนักวิ่ง + สถิติ (แบบนาฬิกา) หรือสติกเกอร์พื้นใส (เอาไปวางใน TikTok/IG/CapCut) ---------- */
+const SC = { img: null, t: "bottom", r: "45", id: null, route: true, bg: "photo", col: "w" };
+const SC_T = [["bottom", "สถิติล่าง"], ["center", "กลางรูป"], ["card", "การ์ด"], ["minimal", "มินิมอล"], ["big", "ตัวใหญ่"], ["strip", "แถบ"], ["route", "เส้นทาง"], ["circle", "เหรียญ"], ["bib", "บิบวิ่ง"]];
+const SC_COL = { w: "#ffffff", k: "#111a14", g: "#c6f432" };
 function scStats(l) {
   const km = +l.km || 0, sec = toSec(l.time), pc = km && sec ? sec / km : 0, out = [];
   if (sec) out.push(["เวลา", fmtTime(sec), ""]);
@@ -2334,107 +2338,197 @@ function scStats(l) {
   return out.slice(0, 3);
 }
 const scKm = l => (Math.round((+l.km || 0) * 100) / 100).toFixed(2);
+const scF = (w, s, f = '"IBM Plex Sans Thai"') => `${w} ${s}px ${f}, sans-serif`;
 function scShadow(g, on, blur = 18) { g.shadowColor = on ? "rgba(0,0,0,.55)" : "transparent"; g.shadowBlur = on ? blur : 0; g.shadowOffsetY = on ? 2 : 0; }
-function scRoute(g, pts, x, y, w, h, lw) {
+function scRR(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+function scRoute(g, pts, x, y, w, h, lw, col = "#fff") {
   if (!pts || pts.length < 2) return false;
   const la = pts.map(p => p[0]), lo = pts.map(p => p[1]), k = Math.cos(la[0] * Math.PI / 180);
   const x0 = Math.min(...lo), x1 = Math.max(...lo), y0 = Math.min(...la), y1 = Math.max(...la);
   const rw = Math.max((x1 - x0) * k, 1e-7), rh = Math.max(y1 - y0, 1e-7), S = Math.min(w / rw, h / rh);
   const ox = x + (w - rw * S) / 2, oy = y + (h - rh * S) / 2, X = p => ox + (p[1] - x0) * k * S, Y = p => oy + (y1 - p[0]) * S;
-  g.save(); g.lineJoin = g.lineCap = "round";
-  g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = lw + 6; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p), Y(p)) : g.moveTo(X(p), Y(p))); g.stroke();
-  g.strokeStyle = "#fff"; g.lineWidth = lw; g.stroke();
+  g.save(); g.lineJoin = g.lineCap = "round"; g.shadowColor = "transparent";
+  if (col !== SC_COL.k) { g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = lw + 6; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p), Y(p)) : g.moveTo(X(p), Y(p))); g.stroke(); }
+  g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p), Y(p)) : g.moveTo(X(p), Y(p))); g.stroke();
   [[pts[0], "#4ade80"], [pts[pts.length - 1], "#f87171"]].forEach(([p, c]) => { g.fillStyle = c; g.strokeStyle = "#fff"; g.lineWidth = 4; g.beginPath(); g.arc(X(p), Y(p), lw * 1.2, 0, 7); g.fill(); g.stroke(); });
   g.restore(); return true;
 }
 let scLogoImg = null;
-function scLogo(g, x, y, s, align = "left") {
-  g.save(); scShadow(g, true, 10);
+function scLogo(g, x, y, s, align = "left", col = "#fff") {
+  g.save();
   g.font = `800 ${s}px Outfit, sans-serif`; const tw = g.measureText("KAOWIN").width, iw = s * 1.15, tot = iw + s * 0.25 + tw;
   const sx = align === "center" ? x - tot / 2 : align === "right" ? x - tot : x;
-  if (scLogoImg && scLogoImg.complete) { g.save(); g.beginPath(); g.roundRect ? g.roundRect(sx, y - iw * 0.82, iw, iw, iw * 0.24) : g.rect(sx, y - iw * 0.82, iw, iw); g.clip(); g.drawImage(scLogoImg, sx, y - iw * 0.82, iw, iw); g.restore(); }
-  g.fillStyle = "#fff"; g.textAlign = "left"; g.textBaseline = "alphabetic"; g.fillText("KAOWIN", sx + iw + s * 0.25, y);
+  if (scLogoImg && scLogoImg.complete && scLogoImg.naturalWidth) { g.save(); scRR(g, sx, y - iw * 0.82, iw, iw, iw * 0.24); g.clip(); g.drawImage(scLogoImg, sx, y - iw * 0.82, iw, iw); g.restore(); }
+  g.fillStyle = col; g.textAlign = "left"; g.textBaseline = "alphabetic"; g.fillText("KAOWIN", sx + iw + s * 0.25, y);
   g.restore();
+}
+// ข้อความ: พร้อมหน่วยตัวเล็กต่อท้าย
+function scVal(g, v, u, x, y, s, us, col, align = "left", fam = "Outfit") {
+  g.font = scF(800, s, fam); const w = g.measureText(v).width; g.font = scF(600, us); const uw = u ? g.measureText(u).width + us * 0.25 : 0;
+  const sx = align === "center" ? x - (w + uw) / 2 : align === "right" ? x - w - uw : x;
+  g.textAlign = "left"; g.fillStyle = col; g.font = scF(800, s, fam); g.fillText(v, sx, y);
+  if (u) { g.font = scF(600, us); g.fillText(u, sx + w + us * 0.25, y); }
+  return w + uw;
+}
+function scLbl(g, t, x, y, s, col, align = "left", a = .82) { g.save(); g.globalAlpha *= a; g.font = scF(500, s); g.textAlign = align; g.fillStyle = col; g.fillText(t, x, y); g.restore(); }
+function scAch(g, t, x, y, align = "left", s = 32) {
+  if (!t) return; g.save(); scShadow(g, false); g.font = scF(700, s); const tw = g.measureText(t).width + s * 1.4, h = s * 1.8, sx = align === "center" ? x - tw / 2 : x;
+  g.fillStyle = "#a3e635"; scRR(g, sx, y - h * .7, tw, h, h / 2); g.fill(); g.fillStyle = "#0b2a16"; g.textAlign = "left"; g.fillText(t, sx + s * .7, y + s * .05); g.restore();
 }
 function scDraw(cv, l) {
   const W = 1080, H = SC.r === "916" ? 1920 : 1350; cv.width = W; cv.height = H;
-  const g = cv.getContext("2d"), P0 = 64, T = `600 ${0}px "IBM Plex Sans Thai", sans-serif`;
-  const font = (w, s, f = '"IBM Plex Sans Thai"') => `${w} ${s}px ${f}, sans-serif`;
-  // พื้นหลัง
-  if (SC.img) { const im = SC.img, r = Math.max(W / im.width, H / im.height), sw = W / r, sh = H / r; g.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, 0, 0, W, H); }
-  else { const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, "#0b3d24"); gr.addColorStop(1, "#1f7a45"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
-    g.save(); g.globalAlpha = .12; g.fillStyle = "#a3e635"; g.translate(W * .7, H * .25); g.rotate(-0.5); for (let i = 0; i < 3; i++) { g.beginPath(); g.roundRect ? g.roundRect(-500, i * 170, 1100, 90, 45) : g.rect(-500, i * 170, 1100, 90); g.fill(); } g.restore(); }
+  const g = cv.getContext("2d"), P0 = 64, clear = SC.bg === "none";
+  g.clearRect(0, 0, W, H);
+  if (!clear) {
+    if (SC.img) { const im = SC.img, r = Math.max(W / im.width, H / im.height), sw = W / r, sh = H / r; g.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, 0, 0, W, H); }
+    else { const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, "#0b3d24"); gr.addColorStop(1, "#1f7a45"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+      g.save(); g.globalAlpha = .12; g.fillStyle = "#a3e635"; g.translate(W * .7, H * .25); g.rotate(-0.5); for (let i = 0; i < 3; i++) { scRR(g, -500, i * 170, 1100, 90, 45); g.fill(); } g.restore(); }
+  }
+  const C = SC_COL[SC.col] || "#fff", dark = SC.col === "k", sh = on => scShadow(g, on && !dark && (!clear || true), 14);
   const st = scStats(l), km = scKm(l), d = l.date, head = `${TYPE_LABEL[l.type] || "วิ่ง"} · ${TH_DAY[dow(d)]} ${thDateY(d)}${isTM(l) ? " · ลู่วิ่ง" : ""}`;
-  const ach = (l.ach || []).slice(0, 2).map(a => a.title).join(" · ");
+  const ach = (l.ach || []).slice(0, 2).map(a => a.title).join(" · "), achT = ach ? "🏅 " + ach : "";
   const route = SC.route && l.route && l.route.length > 1 ? l.route : null;
-  g.textBaseline = "alphabetic";
-  if (SC.t === "bottom") {
-    const gr = g.createLinearGradient(0, H * .38, 0, H); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(.55, "rgba(0,0,0,.55)"); gr.addColorStop(1, "rgba(0,0,0,.82)"); g.fillStyle = gr; g.fillRect(0, H * .38, W, H * .62);
-    const gt = g.createLinearGradient(0, 0, 0, 260); gt.addColorStop(0, "rgba(0,0,0,.45)"); gt.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gt; g.fillRect(0, 0, W, 260);
-    scLogo(g, P0, 118, 50);
-    if (route) scRoute(g, route, W - P0 - 300, 60, 300, 300, 9);
+  const dim = (y0, a) => { if (clear) return; const gr = g.createLinearGradient(0, y0, 0, H); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(.55, `rgba(0,0,0,${a * .7})`); gr.addColorStop(1, `rgba(0,0,0,${a})`); g.fillStyle = gr; g.fillRect(0, y0, W, H - y0); };
+  g.textBaseline = "alphabetic"; g.textAlign = "left";
+  const t = SC.t;
+  if (t === "bottom") {
+    dim(H * .38, .82);
+    if (!clear) { const gt = g.createLinearGradient(0, 0, 0, 260); gt.addColorStop(0, "rgba(0,0,0,.45)"); gt.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gt; g.fillRect(0, 0, W, 260); }
+    sh(1); const yK = H - P0 - 150, yH = yK - 238, yA = yH - 70;
+    if (clear) { scLogo(g, P0, (achT ? yA : yH) - 80, 46, "left", C); if (route) scRoute(g, route, W - P0 - 280, yK - 250, 280, 230, 9, C); }   // สติกเกอร์: รวบให้กระชับ
+    else { scLogo(g, P0, 118, 50, "left", C); if (route) scRoute(g, route, W - P0 - 300, 60, 300, 300, 9, C); }
     let y = H - P0 - 10;
-    g.fillStyle = "#fff";
-    // แถวสถิติ
-    scShadow(g, true, 8);
-    st.forEach((s, i) => { const x = P0 + i * 330; g.font = font(500, 30); g.globalAlpha = .8; g.fillText(s[0], x, y - 78); g.globalAlpha = 1; g.font = font(700, 66, "Outfit"); g.fillText(s[1], x, y); const w = g.measureText(s[1]).width; g.font = font(500, 26); g.fillText(s[2], x + w + 8, y); });
-    y -= 140;
-    g.font = font(800, 250, "Outfit"); g.fillText(km, P0 - 8, y); const kw = g.measureText(km).width; g.font = font(700, 70); g.fillText("กม.", P0 + kw + 10, y);
-    y -= 238; g.font = font(600, 36); g.globalAlpha = .92; g.fillText(head, P0, y); g.globalAlpha = 1;
-    if (ach) { g.font = font(700, 32); const t = "🏅 " + ach, w = g.measureText(t).width + 44; y -= 70; scShadow(g, false); g.fillStyle = "#a3e635"; g.beginPath(); g.roundRect ? g.roundRect(P0, y - 40, w, 58, 29) : g.rect(P0, y - 40, w, 58); g.fill(); g.fillStyle = "#0b2a16"; g.fillText(t, P0 + 22, y); }
-  } else if (SC.t === "center") {
-    g.fillStyle = "rgba(0,0,0,.28)"; g.fillRect(0, 0, W, H);
-    g.textAlign = "center"; g.fillStyle = "#fff"; scShadow(g, true, 16);
-    const rows = [["ระยะทาง", km, "กม."], ...st], gap = SC.r === "916" ? 250 : 180, total = rows.length * gap + (route ? 260 : 0);
+    st.forEach((s, i) => { const x = P0 + i * 330; scLbl(g, s[0], x, y - 78, 30, C); scVal(g, s[1], s[2], x, y, 66, 26, C); });
+    y -= 140; scVal(g, km, "กม.", P0 - 8, y, 250, 70, C);
+    y -= 238; scLbl(g, head, P0, y, 36, C, "left", .92);
+    if (achT) scAch(g, achT, P0, y - 70);
+  } else if (t === "center") {
+    if (!clear) { g.fillStyle = "rgba(0,0,0,.28)"; g.fillRect(0, 0, W, H); }
+    sh(1);
+    const rows = [["ระยะทาง", km, "กม."], ...st], gap = SC.r === "916" && !clear ? 250 : 180, total = rows.length * gap + (route ? 260 : 0);
     let y = (H - total) / 2 + 100;
-    rows.forEach((s, i) => { g.font = font(500, 32); g.globalAlpha = .85; g.fillText(s[0], W / 2, y - (i ? 92 : 128)); g.globalAlpha = 1; g.font = font(800, i ? 96 : 140, "Outfit"); g.fillText(s[1] + (s[2] ? "" : ""), W / 2, y); if (s[2]) { const w = g.measureText(s[1]).width; g.font = font(600, i ? 30 : 44); g.textAlign = "left"; g.fillText(s[2], W / 2 + w / 2 + 10, y); g.textAlign = "center"; } y += gap; });
-    if (route) scRoute(g, route, W / 2 - 140, y - 140, 280, 220, 8);
-    scShadow(g, true, 10); g.font = font(600, 32); g.fillText(head, W / 2, H - 150); if (ach) { g.font = font(700, 30); g.fillText("🏅 " + ach, W / 2, H - 200); }
-    scLogo(g, W / 2, H - 70, 44, "center");
-  } else {
+    rows.forEach((s, i) => { scLbl(g, s[0], W / 2, y - (i ? 92 : 128), 32, C, "center"); scVal(g, s[1], s[2], W / 2, y, i ? 96 : 140, i ? 30 : 44, C, "center"); y += gap; });
+    if (route) scRoute(g, route, W / 2 - 140, y - 140, 280, 220, 8, C);
+    scLbl(g, head, W / 2, H - 150, 32, C, "center", .95); if (achT) scAch(g, achT, W / 2, H - 210, "center", 28);
+    scLogo(g, W / 2, H - 70, 44, "center", C);
+  } else if (t === "card") {
     const ch = 470, cy = H - P0 - ch;
-    g.save(); g.fillStyle = "rgba(9,22,14,.78)"; g.beginPath(); g.roundRect ? g.roundRect(P0 - 20, cy, W - 2 * P0 + 40, ch, 44) : g.rect(P0 - 20, cy, W - 2 * P0 + 40, ch); g.fill(); g.restore();
+    g.save(); g.fillStyle = "rgba(9,22,14,.82)"; scRR(g, P0 - 20, cy, W - 2 * P0 + 40, ch, 44); g.fill(); g.restore();
     const x = P0 + 22; scLogo(g, x, cy + 84, 40);
-    g.fillStyle = "#cfe9d7"; g.font = font(600, 30); g.textAlign = "right"; g.fillText(head, W - P0 - 22, cy + 80); g.textAlign = "left";
-    g.fillStyle = "#fff"; g.font = font(800, 190, "Outfit"); g.fillText(km, x - 6, cy + 285); const kw = g.measureText(km).width; g.fillStyle = "#a3e635"; g.font = font(700, 56); g.fillText("กม.", x + kw + 8, cy + 285);
+    g.fillStyle = "#cfe9d7"; g.font = scF(600, 30); g.textAlign = "right"; g.fillText(head, W - P0 - 22, cy + 80); g.textAlign = "left";
+    const kw = scVal(g, km, "", x - 6, cy + 285, 190, 0, "#fff"); g.fillStyle = "#a3e635"; g.font = scF(700, 56); g.fillText("กม.", x + kw + 8, cy + 285);
     if (route) scRoute(g, route, W - P0 - 260, cy + 110, 230, 200, 7);
-    st.forEach((s, i) => { const xx = x + i * 315; g.fillStyle = "#9fc3ab"; g.font = font(500, 27); g.fillText(s[0], xx, cy + 360); g.fillStyle = "#fff"; g.font = font(700, 54, "Outfit"); g.fillText(s[1], xx, cy + 425); const w = g.measureText(s[1]).width; g.font = font(500, 24); g.fillStyle = "#cfe9d7"; g.fillText(s[2], xx + w + 6, cy + 425); });
-    if (ach) { g.font = font(700, 32); const t = "🏅 " + ach, w = g.measureText(t).width + 44; scShadow(g, false); g.fillStyle = "#a3e635"; g.beginPath(); g.roundRect ? g.roundRect(P0 - 20, cy - 80, w, 58, 29) : g.rect(P0 - 20, cy - 80, w, 58); g.fill(); g.fillStyle = "#0b2a16"; g.fillText(t, P0 + 2, cy - 40); }
+    st.forEach((s, i) => { const xx = x + i * 315; scLbl(g, s[0], xx, cy + 360, 27, "#9fc3ab", "left", 1); scVal(g, s[1], s[2], xx, cy + 425, 54, 24, "#fff"); });
+    if (achT) scAch(g, achT, P0 - 20, cy - 50);
+  } else if (t === "minimal") {
+    dim(H * .5, .6); sh(1);
+    const rows = [["ระยะทาง", km, "กม."], ...st]; let y = H - P0 - (rows.length - 1) * 128 - 30;
+    if (achT) scAch(g, achT, P0, y - 190, "left", 28);
+    scLbl(g, head, P0, y - 120, 30, C, "left", .9);
+    const yTop = y - (achT ? 190 : 120);
+    rows.forEach((s, i) => { scLbl(g, s[0], P0, y - 58, 26, C); scVal(g, s[1], s[2], P0, y, 66, 26, C); y += 128; });
+    if (route) scRoute(g, route, clear ? P0 + 330 : W - P0 - 240, H - P0 - 260, 240, 240, 7, C);
+    if (clear) scLogo(g, P0, yTop - 70, 40, "left", C); else scLogo(g, W - P0, 110, 40, "right", C);
+  } else if (t === "big") {
+    if (!clear) { g.fillStyle = "rgba(0,0,0,.22)"; g.fillRect(0, 0, W, H); }
+    sh(1); const cy = H * .52;
+    g.font = scF(800, 330, "Outfit"); let fs = 330; while (g.measureText(km).width > W - 120 && fs > 150) { fs -= 10; g.font = scF(800, fs, "Outfit"); }
+    g.textAlign = "center"; g.fillStyle = C; g.fillText(km, W / 2, cy);
+    g.font = scF(800, 64); g.fillText("กิโลเมตร", W / 2, cy + 90);
+    g.font = scF(700, 44, "Outfit"); g.fillText(st.map(s => s[1] + (s[2] === "/กม." ? "/km" : s[2] ? " " + s[2] : "")).join("   ·   "), W / 2, cy + 175);
+    scLbl(g, head, W / 2, cy - fs * .78 - 10, 34, C, "center", .92); if (achT) scAch(g, achT, W / 2, cy - fs * .78 - 80, "center", 28);
+    scLogo(g, W / 2, H - 80, 44, "center", C);
+  } else if (t === "strip") {
+    const sy = H * .70, shh = 230;
+    if (!clear || true) { g.save(); g.fillStyle = dark ? "rgba(255,255,255,.88)" : "rgba(10,25,16,.72)"; g.fillRect(0, sy, W, shh); g.fillStyle = "#a3e635"; g.fillRect(0, sy, 12, shh); g.restore(); }
+    const cols = [["ระยะทาง", km, "กม."], ...st], cw = (W - 2 * P0) / cols.length, tc = dark ? "#111a14" : "#fff";
+    cols.forEach((s, i) => { const x = P0 + i * cw; scLbl(g, s[0], x, sy + 78, 28, tc); scVal(g, s[1], s[2], x, sy + 168, i ? 62 : 76, 24, i ? tc : (dark ? "#1f7a45" : "#c6f432")); });
+    sh(1); scLogo(g, P0, sy - 34, 40, "left", C); scLbl(g, head, W - P0, sy - 34, 30, C, "right", .95);
+    if (route) scRoute(g, route, W - P0 - 220, sy - 300, 220, 220, 7, C);
+    if (achT) scAch(g, achT, P0, sy + shh + 70, "left", 28);
+  } else if (t === "route") {
+    if (!clear) { g.fillStyle = "rgba(0,0,0,.35)"; g.fillRect(0, 0, W, H); }
+    sh(1); const box = Math.min(W - 200, H * .5), by = (H - box) / 2 - 120;
+    if (!route || !scRoute(g, route, (W - box) / 2, by, box, box, 14, C)) { g.save(); g.strokeStyle = C; g.lineWidth = 14; g.globalAlpha = .9; g.beginPath(); g.arc(W / 2, by + box / 2, box * .38, 0, 7); g.stroke(); g.restore(); scLbl(g, "ไม่มีเส้นทาง GPS", W / 2, by + box / 2 + 12, 34, C, "center"); }
+    let y = by + box + 160; scVal(g, km, "กม.", W / 2, y, 150, 50, C, "center");
+    y += 90; g.font = scF(700, 44, "Outfit"); g.textAlign = "center"; g.fillStyle = C; g.fillText(st.map(s => s[1] + (s[2] === "/กม." ? "/km" : s[2] ? " " + s[2] : "")).join("   ·   "), W / 2, y);
+    scLbl(g, head, W / 2, y + 70, 30, C, "center", .9);
+    if (achT) scAch(g, achT, W / 2, by - 40, "center", 28);
+    scLogo(g, W / 2, H - 70, 42, "center", C);
+  } else if (t === "circle") {
+    if (!clear) { g.fillStyle = "rgba(0,0,0,.25)"; g.fillRect(0, 0, W, H); }
+    const R = 330, cx = W / 2, cy = H / 2 - 30;
+    g.save(); g.shadowColor = "rgba(0,0,0,.35)"; g.shadowBlur = 40;
+    const gr = g.createLinearGradient(cx - R, cy - R, cx + R, cy + R); gr.addColorStop(0, "#c6f432"); gr.addColorStop(.5, "#22a35a"); gr.addColorStop(1, "#0b3d24");
+    g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fill(); g.restore();
+    g.fillStyle = "#0b2a16"; g.beginPath(); g.arc(cx, cy, R - 26, 0, 7); g.fill();
+    g.strokeStyle = "rgba(198,244,50,.5)"; g.lineWidth = 3; g.setLineDash([4, 10]); g.beginPath(); g.arc(cx, cy, R - 48, 0, 7); g.stroke(); g.setLineDash([]);
+    scLogo(g, cx, cy - 170, 36, "center");
+    scVal(g, km, "", cx, cy + 40, 170, 0, "#fff", "center");
+    g.font = scF(800, 46); g.textAlign = "center"; g.fillStyle = "#c6f432"; g.fillText("กิโลเมตร", cx, cy + 105);
+    g.font = scF(700, 34, "Outfit"); g.fillStyle = "#e7f5ea"; g.fillText(st.slice(0, 2).map(s => s[1] + (s[2] === "/กม." ? "/km" : "")).join("  ·  "), cx, cy + 170);
+    g.font = scF(500, 26); g.fillStyle = "#9fc3ab"; g.fillText(head, cx, cy + 220);
+    if (achT) scAch(g, achT, cx, cy + R + 80, "center", 30);
+  } else if (t === "bib") {
+    const bw = 860, bh = 640, bx = (W - bw) / 2, by = (H - bh) / 2;
+    g.save(); g.shadowColor = "rgba(0,0,0,.35)"; g.shadowBlur = 40; g.shadowOffsetY = 12; g.fillStyle = "#fbfbf7"; scRR(g, bx, by, bw, bh, 26); g.fill(); g.restore();
+    g.save(); scRR(g, bx, by, bw, bh, 26); g.clip(); g.fillStyle = "#0b3d24"; g.fillRect(bx, by, bw, 150); g.fillStyle = "#a3e635"; g.fillRect(bx, by + 150, bw, 14); g.fillStyle = "#0b3d24"; g.fillRect(bx, by + bh - 90, bw, 90); g.restore();
+    [[bx + 34, by + 34], [bx + bw - 34, by + 34], [bx + 34, by + bh - 34], [bx + bw - 34, by + bh - 34]].forEach(([x, y]) => { g.fillStyle = "#d9d9d2"; g.beginPath(); g.arc(x, y, 13, 0, 7); g.fill(); g.fillStyle = clear ? "rgba(0,0,0,0)" : "#555"; g.globalCompositeOperation = clear ? "destination-out" : "source-over"; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); g.globalCompositeOperation = "source-over"; });
+    scLogo(g, W / 2, by + 98, 52, "center");
+    g.textAlign = "center"; g.fillStyle = "#0b2a16"; g.font = scF(800, 250, "Outfit"); g.fillText(km, W / 2, by + 420);
+    g.font = scF(800, 40); g.fillStyle = "#1f7a45"; g.fillText("กิโลเมตร", W / 2, by + 475);
+    g.font = scF(700, 34, "Outfit"); g.fillStyle = "#334a3c"; g.fillText(st.map(s => s[1] + (s[2] === "/กม." ? "/km" : s[2] ? " " + s[2] : "")).join("   ·   "), W / 2, by + 528);
+    g.font = scF(600, 30); g.fillStyle = "#e7f5ea"; g.fillText(head, W / 2, by + bh - 34);
+    if (achT) scAch(g, achT, W / 2, by + bh + 80, "center", 30);
   }
   scShadow(g, false); g.textAlign = "left"; g.globalAlpha = 1;
 }
+// ตัดขอบใสออก (สติกเกอร์) — คืน canvas ใหม่ที่พอดีกับเนื้อหา
+function scTrim(cv, pad = 28) {
+  const g = cv.getContext("2d"), { width: w, height: h } = cv, d = g.getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) if (d[(y * w + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) return cv;
+  x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(w, x1 + pad); y1 = Math.min(h, y1 + pad);
+  const o = document.createElement("canvas"); o.width = x1 - x0; o.height = y1 - y0; o.getContext("2d").drawImage(cv, x0, y0, o.width, o.height, 0, 0, o.width, o.height); return o;
+}
 async function shareCard(id) {
   const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
-  if (SC.id !== l.id) { SC.img = null; SC.id = l.id; }
+  if (SC.id !== l.id) { SC.id = l.id; }
   if (!scLogoImg) { scLogoImg = new Image(); scLogoImg.src = LOGO_ICON; }
-  const seg = (k, opts) => `<div class="seg sc-seg">${opts.map(([v, t]) => `<button type="button" data-sc${k}="${v}" class="${SC[k] === v ? "on" : ""}"><span>${t}</span></button>`).join("")}</div>`;
-  openSheet("📸 รูปแชร์ผลวิ่ง", `<div id="scBox"><div class="sc-wrap"><canvas id="scCv"></canvas></div>
-    <button type="button" class="btn ghost block" data-scpick style="margin:12px 0">🖼 ${SC.img ? "เปลี่ยนรูปนักวิ่ง" : "เลือกรูปนักวิ่ง"}</button>
-    <div class="flabel">แบบ</div>${seg("t", [["bottom", "สถิติด้านล่าง"], ["center", "กลางรูป"], ["card", "การ์ด"]])}
-    <div class="flabel">ขนาด</div>${seg("r", [["45", "โพสต์ 4:5"], ["916", "สตอรี่ 9:16"]])}
+  const seg = (k, opts) => `<div class="seg sc-seg">${opts.map(([v, t]) => `<button type="button" data-sck="${k}" data-scv="${v}" class="${SC[k] === v ? "on" : ""}"><span>${t}</span></button>`).join("")}</div>`;
+  const clear = SC.bg === "none";
+  openSheet("📸 รูปแชร์ผลวิ่ง", `<div id="scBox"><div class="sc-wrap${clear ? " clear" : ""}"><canvas id="scCv"></canvas></div>
+    ${seg("bg", [["photo", "🖼 ใส่รูปนักวิ่ง"], ["none", "✂️ พื้นใส (สติกเกอร์)"]])}
+    ${clear ? `<div class="tiny mut" style="margin:-6px 0 10px">ได้ไฟล์ PNG พื้นโปร่งใส ตัดขอบให้พอดี — เอาไปวางทับคลิปใน TikTok / IG Story / CapCut ได้เลย</div>`
+      : `<button type="button" class="btn ghost block" data-scpick style="margin:0 0 12px">🖼 ${SC.img ? "เปลี่ยนรูปนักวิ่ง" : "เลือกรูปนักวิ่ง"}</button>`}
+    <div class="flabel">แบบ (${SC_T.length} แบบ)</div><div class="sc-tpl">${SC_T.map(([v, n]) => `<button type="button" data-sck="t" data-scv="${v}" class="${SC.t === v ? "on" : ""}">${n}</button>`).join("")}</div>
+    <div class="flabel">สีตัวอักษร</div>${seg("col", [["w", "⚪ ขาว"], ["k", "⚫ ดำ"], ["g", "🟢 เขียวมะนาว"]])}
+    ${clear ? "" : `<div class="flabel">ขนาด</div>${seg("r", [["45", "โพสต์ 4:5"], ["916", "สตอรี่ / TikTok 9:16"]])}`}
     ${l.route && l.route.length > 1 ? `<label class="inline"><input type="checkbox" data-scroute ${SC.route ? "checked" : ""}> แสดงเส้นทาง</label>` : ""}
     <button type="button" class="btn block" data-scsave style="margin-top:6px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
     <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div></div>`, body => {
-    const cv = body.querySelector("#scCv"), draw = () => scDraw(cv, l);
-    try { Promise.all(["800 100px Outfit", "700 60px Outfit", "600 30px 'IBM Plex Sans Thai'", "500 30px 'IBM Plex Sans Thai'", "700 30px 'IBM Plex Sans Thai'"].map(f => document.fonts.load(f, "0กม"))).then(draw, draw); } catch (e) {}
-    draw(); if (scLogoImg) scLogoImg.onload = draw;
+    const cv = body.querySelector("#scCv"), draw = () => { if (SC.bg !== "none") return scDraw(cv, l);
+      const off = document.createElement("canvas"); scDraw(off, l); const t = scTrim(off); cv.width = t.width; cv.height = t.height; cv.getContext("2d").drawImage(t, 0, 0); };
+    try { Promise.all(["800 100px Outfit", "700 60px Outfit", "600 30px 'IBM Plex Sans Thai'", "500 30px 'IBM Plex Sans Thai'", "800 30px 'IBM Plex Sans Thai'"].map(f => document.fonts.load(f, "0กม"))).then(draw, draw); } catch (e) {}
+    draw(); if (scLogoImg && !scLogoImg.complete) scLogoImg.onload = draw;
     body.querySelector("#scBox").addEventListener("click", e => {
-      const b = e.target.closest("[data-sct],[data-scr],[data-scpick],[data-scsave]"); if (!b) return;
-      if (b.dataset.sct) { SC.t = b.dataset.sct; return shareCard(id); }
-      if (b.dataset.scr) { SC.r = b.dataset.scr; return shareCard(id); }
+      const b = e.target.closest("[data-sck],[data-scpick],[data-scsave]"); if (!b) return;
+      if (b.dataset.sck) { SC[b.dataset.sck] = b.dataset.scv; if (b.dataset.sck === "bg" && SC.bg === "none" && SC.r !== "916") SC.r = "916"; const y = $(".panel").scrollTop; shareCard(id); $(".panel").scrollTop = y; return; }
       if (b.hasAttribute("data-scpick")) {
         const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.style.cssText = "position:fixed;left:-9999px;opacity:0"; document.body.appendChild(inp);
         inp.onchange = () => { const f = inp.files[0]; inp.remove(); if (!f) return; const im = new Image(); im.onload = () => { SC.img = im; shareCard(id); }; im.onerror = () => toast("เปิดรูปนี้ไม่ได้ ลองรูปอื่น"); im.src = URL.createObjectURL(f); };
         inp.click(); return;
       }
       if (b.hasAttribute("data-scsave")) {
-        cv.toBlob(async blob => {
+        const png = SC.bg === "none", out = cv;
+        out.toBlob(async blob => {
           if (!blob) return toast("ทำรูปไม่สำเร็จ");
-          const name = `KAOWIN-${l.date}-${scKm(l)}km.jpg`, file = new File([blob], name, { type: "image/jpeg" });
-          try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: "#KAOWIN ก้าววิน · Every Step Wins." }); track("share-card"); return; } } catch (err) { if (err && err.name === "AbortError") return; }
+          const name = `KAOWIN-${l.date}-${scKm(l)}km${png ? "-sticker.png" : ".jpg"}`, file = new File([blob], name, { type: png ? "image/png" : "image/jpeg" });
+          try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); track("share-card"); return; } } catch (err) { if (err && err.name === "AbortError") return; }
           const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
           toast("บันทึกรูปแล้ว"); track("share-card");
-        }, "image/jpeg", 0.92);
+        }, png ? "image/png" : "image/jpeg", 0.92);
       }
     });
     const rc = body.querySelector("[data-scroute]"); if (rc) rc.addEventListener("change", () => { SC.route = rc.checked; draw(); });
