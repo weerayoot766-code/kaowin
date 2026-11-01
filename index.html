@@ -2326,7 +2326,8 @@ function lvBind() {
 
 /* ---------- รูปแชร์ผลวิ่ง: รูปนักวิ่ง + สถิติ (แบบนาฬิกา) หรือสติกเกอร์พื้นใส (เอาไปวางใน TikTok/IG/CapCut) ---------- */
 const SC = { img: null, t: "bottom", r: "45", id: null, route: true, bg: "photo", col: "w" };
-const SC_T = [["bottom", "สถิติล่าง"], ["center", "กลางรูป"], ["card", "การ์ด"], ["minimal", "มินิมอล"], ["big", "ตัวใหญ่"], ["strip", "แถบ"], ["route", "เส้นทาง"], ["circle", "เหรียญ"], ["bib", "บิบวิ่ง"]];
+const SC_T = [["bottom", "📊 สถิติล่าง"], ["center", "🎯 กลางรูป"], ["card", "🗂 การ์ด"], ["minimal", "✏️ มินิมอล"], ["big", "🔠 ตัวใหญ่"], ["strip", "➖ แถบ"], ["route", "🗺 เส้นทาง"], ["circle", "🥇 เหรียญ"], ["bib", "🎽 บิบวิ่ง"],
+  ["plate", "🚗 ป้ายทะเบียน"], ["receipt", "🧾 ใบเสร็จ"], ["boarding", "✈️ ตั๋วเครื่องบิน"], ["magazine", "📰 ปกนิตยสาร"], ["neon", "💡 นีออน"], ["polaroid", "📷 โพลารอยด์"], ["game", "🎮 เลเวลอัป"], ["chart", "📈 กราฟเพซ"], ["glitch", "📺 กลิตช์"]];
 const SC_COL = { w: "#ffffff", k: "#111a14", g: "#c6f432" };
 function scStats(l) {
   const km = +l.km || 0, sec = toSec(l.time), pc = km && sec ? sec / km : 0, out = [];
@@ -2469,6 +2470,153 @@ function scDraw(cv, l) {
     g.font = scF(700, 34, "Outfit"); g.fillStyle = "#e7f5ea"; g.fillText(st.slice(0, 2).map(s => s[1] + (s[2] === "/กม." ? "/km" : "")).join("  ·  "), cx, cy + 170);
     g.font = scF(500, 26); g.fillStyle = "#9fc3ab"; g.fillText(head, cx, cy + 220);
     if (achT) scAch(g, achT, cx, cy + R + 80, "center", 30);
+  } else if (t === "plate") {                                         // ป้ายทะเบียน (ไกล ≥ 21.1 = ป้ายทอง)
+    if (!clear) { g.fillStyle = "rgba(0,0,0,.18)"; g.fillRect(0, 0, W, H); }
+    const pw = 900, ph = 420, px = (W - pw) / 2, py = H * .62 - ph / 2, gold = +l.km >= 21;
+    g.save(); g.shadowColor = "rgba(0,0,0,.45)"; g.shadowBlur = 40; g.shadowOffsetY = 14;
+    if (gold) { const gg = g.createLinearGradient(px, py, px + pw, py + ph); gg.addColorStop(0, "#fff3b0"); gg.addColorStop(.5, "#f5c542"); gg.addColorStop(1, "#d99a1c"); g.fillStyle = gg; } else g.fillStyle = "#fbfbf5";
+    scRR(g, px, py, pw, ph, 34); g.fill(); g.restore();
+    g.strokeStyle = "#1b1b1b"; g.lineWidth = 12; scRR(g, px + 14, py + 14, pw - 28, ph - 28, 24); g.stroke();
+    g.lineWidth = 3; scRR(g, px + 34, py + 34, pw - 68, ph - 68, 16); g.stroke();
+    g.fillStyle = "#151515"; g.textAlign = "center";
+    g.font = scF(800, 175); const top = "ก้าว " + km; let fs = 175; while (g.measureText(top).width > pw - 120) { fs -= 6; g.font = scF(800, fs); } g.fillText(top, W / 2, py + 245);
+    g.font = scF(700, 50); g.fillText(`${TH_DAY_FULL[dow(d)]} ${thDateY(d)}`, W / 2, py + 335);
+    g.font = scF(700, 22, "Outfit"); g.textAlign = "right"; g.fillText("KAOWIN", px + pw - 52, py + ph - 48);
+    sh(1); g.textAlign = "center"; g.fillStyle = C; g.font = scF(700, 44, "Outfit");
+    g.fillText(st.map(s => s[1] + (s[2] === "/กม." ? "/km" : s[2] ? " " + s[2] : "")).join("   ·   "), W / 2, py + ph + 90);
+    if (gold) scLbl(g, "✨ ป้ายทอง — วิ่งเกินฮาล์ฟ", W / 2, py - 40, 34, C, "center", 1); if (achT) scAch(g, achT, W / 2, py - (gold ? 110 : 50), "center", 28);
+    scLogo(g, W / 2, H - 70, 42, "center", C);
+  } else if (t === "receipt") {                                       // ใบเสร็จการวิ่ง
+    const rw = 760, rx = (W - rw) / 2, rows = [["ระยะทาง", km + " กม."], ...st.map(s => [s[0], s[1] + (s[2] ? " " + s[2] : "")])];
+    const kg = parseFloat(P().weightKg) || 65, kcal = Math.round((+l.km || 0) * kg * 1.0);
+    if (kcal) rows.push(["พลังงาน (ประมาณ)", kcal.toLocaleString("en-US") + " kcal"]);
+    const rh = 380 + rows.length * 62 + 300, ry = (H - rh) / 2, zz = 18;
+    g.save(); g.shadowColor = "rgba(0,0,0,.35)"; g.shadowBlur = 36; g.shadowOffsetY = 10; g.fillStyle = "#fffdf6";
+    g.beginPath(); g.moveTo(rx, ry + zz); for (let x = rx; x < rx + rw; x += zz * 2) { g.lineTo(x + zz, ry); g.lineTo(x + zz * 2, ry + zz); }
+    g.lineTo(rx + rw, ry + rh - zz); for (let x = rx + rw; x > rx; x -= zz * 2) { g.lineTo(x - zz, ry + rh); g.lineTo(x - zz * 2, ry + rh - zz); } g.closePath(); g.fill(); g.restore();
+    const ink = "#222", mono = '"Courier New", ui-monospace, monospace', L = rx + 56, R = rx + rw - 56; let y = ry + 100;
+    g.fillStyle = ink; g.textAlign = "center"; g.font = scF(800, 46, mono); g.fillText("KAOWIN RUN CLUB", W / 2, y);
+    y += 52; g.font = scF(600, 30); g.fillText("ใบเสร็จการวิ่ง · Every Step Wins.", W / 2, y);
+    y += 44; g.font = scF(500, 26); g.fillText(`${TH_DAY_FULL[dow(d)]} ${thDateY(d)} · No. ${String(l.id).slice(-6)}`, W / 2, y);
+    const dash = yy => { g.save(); g.strokeStyle = "#999"; g.setLineDash([10, 8]); g.lineWidth = 3; g.beginPath(); g.moveTo(L, yy); g.lineTo(R, yy); g.stroke(); g.restore(); };
+    y += 40; dash(y); y += 66;
+    rows.forEach(([a, b]) => { g.textAlign = "left"; g.font = scF(600, 32); g.fillText(a, L, y); const aw = g.measureText(a).width; g.textAlign = "right"; g.font = scF(800, 34, mono); g.fillText(b, R, y); const bw = g.measureText(b).width;
+      g.save(); g.fillStyle = "#bbb"; for (let x = L + aw + 14; x < R - bw - 14; x += 14) g.fillRect(x, y - 6, 4, 4); g.restore(); y += 62; });
+    dash(y - 22); y += 40;
+    g.textAlign = "left"; g.font = scF(800, 36); g.fillText("ความภูมิใจรวม", L, y); g.textAlign = "right"; g.font = scF(800, 40, mono); g.fillText("100%", R, y);
+    y += 50; g.textAlign = "left"; g.font = scF(500, 28); g.fillText("ส่วนลดความขี้เกียจ", L, y); g.textAlign = "right"; g.font = scF(700, 30, mono); g.fillText("-100%", R, y);
+    y += 40; dash(y); y += 40;
+    let rs = (+l.id || 7) % 2147483647; const rnd = () => (rs = rs * 16807 % 2147483647) / 2147483647;
+    for (let x = L + 40; x < R - 40;) { const w = 3 + Math.floor(rnd() * 3) * 3; g.fillRect(x, y, w, 90); x += w + 4 + Math.floor(rnd() * 3) * 3; }
+    y += 140; g.textAlign = "center"; g.font = scF(700, 30); g.fillText("ขอบคุณที่วิ่ง แล้วเจอกันรอบหน้า 🏃", W / 2, y);
+    if (achT) scAch(g, achT, W / 2, ry - 40, "center", 30);
+  } else if (t === "boarding") {                                      // บอร์ดดิ้งพาส
+    const bw = 960, bh = 560, bx = (W - bw) / 2, by = (H - bh) / 2, stub = 250, sx = bx + bw - stub;
+    g.save(); g.shadowColor = "rgba(0,0,0,.4)"; g.shadowBlur = 40; g.shadowOffsetY = 12; g.fillStyle = "#fff"; scRR(g, bx, by, bw, bh, 30); g.fill(); g.restore();
+    g.save(); scRR(g, bx, by, bw, bh, 30); g.clip(); g.fillStyle = "#0b3d24"; g.fillRect(bx, by, bw, 110); g.fillStyle = "#a3e635"; g.fillRect(bx, by + 110, bw, 8); g.restore();
+    g.save(); g.globalCompositeOperation = clear ? "destination-out" : "source-over"; g.fillStyle = clear ? "#000" : "rgba(0,0,0,.0)";
+    if (clear) [by, by + bh].forEach(yy => { g.beginPath(); g.arc(sx, yy, 26, 0, 7); g.fill(); }); g.restore();
+    g.save(); g.strokeStyle = "#b9c5bd"; g.setLineDash([12, 10]); g.lineWidth = 3; g.beginPath(); g.moveTo(sx, by + 40); g.lineTo(sx, by + bh - 40); g.stroke(); g.restore();
+    scLogo(g, bx + 40, by + 74, 40); g.fillStyle = "#d9f99d"; g.font = scF(700, 30, "Outfit"); g.textAlign = "right"; g.fillText("BOARDING PASS", sx - 30, by + 72);
+    g.fillStyle = "#e7f5ea"; g.textAlign = "left"; g.fillText("RUN", sx + 30, by + 72);
+    g.fillStyle = "#6b7f72"; g.font = scF(600, 24); g.textAlign = "left"; g.fillText("จาก", bx + 50, by + 180); g.textAlign = "right"; g.fillText("ถึง", sx - 50, by + 180);
+    g.fillStyle = "#0b2a16"; g.font = scF(800, 110, "Outfit"); g.textAlign = "left"; g.fillText("STA", bx + 44, by + 285); g.textAlign = "right"; g.fillText("FIN", sx - 44, by + 285);
+    g.fillStyle = "#1f7a45"; g.textAlign = "center"; g.font = scF(800, 52); g.fillText("✈", (bx + sx) / 2, by + 262);
+    g.font = scF(800, 40, "Outfit"); g.fillText(km + " KM", (bx + sx) / 2, by + 315);
+    const fl = [["เที่ยวบิน", "KW" + km.replace(".", "")], ["วันที่", thDate(d)], ["เวลาบิน", st[0] ? st[0][1] : "-"], ["เพซ", st[1] ? st[1][1] : "-"]], cw = (sx - bx - 80) / 4;
+    fl.forEach(([a, b], i) => { const x = bx + 44 + i * cw; g.textAlign = "left"; g.fillStyle = "#6b7f72"; g.font = scF(600, 24); g.fillText(a, x, by + 400); g.fillStyle = "#0b2a16"; g.font = scF(800, 36, "Outfit"); g.fillText(b, x, by + 448); });
+    g.fillStyle = "#6b7f72"; g.font = scF(500, 24); g.textAlign = "left"; g.fillText(head, bx + 44, by + 515);
+    g.fillStyle = "#6b7f72"; g.font = scF(600, 24); g.fillText("ที่นั่ง", sx + 34, by + 180); g.fillStyle = "#0b2a16"; g.font = scF(800, 64, "Outfit"); g.fillText("1A", sx + 34, by + 250);
+    g.fillStyle = "#6b7f72"; g.font = scF(600, 24); g.fillText("ประตู", sx + 34, by + 310); g.fillStyle = "#0b2a16"; g.font = scF(800, 44, "Outfit"); g.fillText("KAOWIN", sx + 34, by + 360);
+    let rs = (+l.id || 9) % 2147483647; const rnd = () => (rs = rs * 16807 % 2147483647) / 2147483647; g.fillStyle = "#0b2a16";
+    for (let x = sx + 34; x < bx + bw - 34;) { const w = 3 + Math.floor(rnd() * 3) * 3; g.fillRect(x, by + 400, w, 110); x += w + 4 + Math.floor(rnd() * 2) * 3; }
+    if (achT) scAch(g, achT, W / 2, by - 40, "center", 30);
+  } else if (t === "magazine") {                                      // ปกนิตยสาร
+    if (!clear) { const gt = g.createLinearGradient(0, 0, 0, H * .3); gt.addColorStop(0, "rgba(0,0,0,.35)"); gt.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gt; g.fillRect(0, 0, W, H * .3); dim(H * .55, .7); }
+    sh(1); g.fillStyle = C; g.textAlign = "center"; g.font = scF(800, 250, "Outfit"); let fs = 250; while (g.measureText("KAOWIN").width > W - 80) { fs -= 8; g.font = scF(800, fs, "Outfit"); } g.fillText("KAOWIN", W / 2, 60 + fs * .78);
+    const y0 = 60 + fs * .78; g.font = scF(600, 28); g.fillText(`ฉบับนักวิ่ง · ${TH_MON_FULL[parseDate(d).getMonth()]} ${parseDate(d).getFullYear() + 543} · ก้าววิน`, W / 2, y0 + 50);
+    g.textAlign = "left"; let y = y0 + 190;
+    g.font = scF(800, 40); g.fillText(TYPE_LABEL[l.type] || "วิ่ง", P0, y); y += 110;
+    st.forEach(s => { g.font = scF(600, 26); g.globalAlpha = .85; g.fillText(s[0].toUpperCase(), P0, y - 52); g.globalAlpha = 1; g.font = scF(800, 60, "Outfit"); g.fillText(s[1], P0, y); y += 120; });
+    let yb = H - P0 - 30; g.font = scF(800, 70, "Outfit"); g.fillText("EVERY STEP WINS.", P0, yb);
+    yb -= 90; scVal(g, km, "กม.", P0 - 6, yb, 220, 64, C);
+    yb -= 210; g.font = scF(700, 36); g.fillText("เรื่องเด่นฉบับนี้", P0, yb);
+    if (achT || (l.ach || []).length) { const cx = W - P0 - 110, cy = y0 + 260; scShadow(g, false); g.fillStyle = "#e5484d"; g.beginPath(); for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, r = i % 2 ? 100 : 118; g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } g.closePath(); g.fill();
+      g.fillStyle = "#fff"; g.textAlign = "center"; g.font = scF(800, 40, "Outfit"); g.fillText(/PB/.test(ach) ? "NEW PB!" : "FINISH!", cx, cy + 6); g.font = scF(600, 22); g.fillText((l.ach || [])[0] ? String(l.ach[0].title).slice(0, 14) : "", cx, cy + 42); }
+  } else if (t === "neon") {                                          // ป้ายไฟนีออน
+    if (!clear) { g.fillStyle = "rgba(5,5,15,.55)"; g.fillRect(0, 0, W, H); }
+    const glow = (txt, x, y, f, col, blur = 34) => { g.font = f; g.fillStyle = col; g.shadowColor = col; for (const b of [blur * 1.6, blur, blur * .4]) { g.shadowBlur = b; g.fillText(txt, x, y); } g.shadowBlur = 0; g.fillStyle = "#fff"; g.globalAlpha = .85; g.fillText(txt, x, y); g.globalAlpha = 1; };
+    const cy = H / 2; g.textAlign = "center";
+    g.save(); g.strokeStyle = "#ff4fd8"; g.shadowColor = "#ff4fd8"; g.lineWidth = 8; for (const b of [40, 16]) { g.shadowBlur = b; scRR(g, 90, cy - 420, W - 180, 760, 60); g.stroke(); } g.restore();
+    glow("RUN", W / 2, cy - 250, scF(800, 110, "Outfit"), "#3ff0ff");
+    glow(km, W / 2, cy + 20, scF(800, 230, "Outfit"), "#c6f432");
+    glow("กิโลเมตร", W / 2, cy + 110, scF(800, 56), "#c6f432", 24);
+    glow(st.map(s => s[1] + (s[2] === "/กม." ? "/km" : "")).slice(0, 2).join("  ·  "), W / 2, cy + 230, scF(700, 54, "Outfit"), "#ff4fd8", 26);
+    glow(head, W / 2, cy + 300, scF(600, 30), "#3ff0ff", 16);
+    if (achT) scAch(g, achT, W / 2, cy - 470, "center", 30);
+    scLogo(g, W / 2, H - 70, 40, "center");
+  } else if (t === "polaroid") {                                      // โพลารอยด์
+    if (!clear && SC.img) { g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(0, 0, W, H); }
+    const fw = 780, fh = 960, cx = W / 2, cy = H / 2 - (SC.r === "916" ? 60 : 10);
+    g.save(); g.translate(cx, cy); g.rotate(-0.06);
+    g.shadowColor = "rgba(0,0,0,.45)"; g.shadowBlur = 40; g.shadowOffsetY = 16; g.fillStyle = "#fbfaf4"; g.fillRect(-fw / 2, -fh / 2, fw, fh); g.shadowColor = "transparent";
+    const iw = fw - 80, ix = -fw / 2 + 40, iy = -fh / 2 + 40;
+    g.save(); g.beginPath(); g.rect(ix, iy, iw, iw); g.clip();
+    if (SC.img) { const im = SC.img, r = Math.max(iw / im.width, iw / im.height), sw = iw / r, s2 = iw / r; g.drawImage(im, (im.width - sw) / 2, (im.height - s2) / 2, sw, s2, ix, iy, iw, iw); }
+    else { const gr = g.createLinearGradient(ix, iy, ix + iw, iy + iw); gr.addColorStop(0, "#0b3d24"); gr.addColorStop(1, "#1f7a45"); g.fillStyle = gr; g.fillRect(ix, iy, iw, iw);
+      if (route) scRoute(g, route, ix + 90, iy + 90, iw - 180, iw - 180, 12); else { g.fillStyle = "#c6f432"; g.font = scF(800, 200, "Outfit"); g.textAlign = "center"; g.fillText(km, 0, iy + iw / 2 + 70); } }
+    g.restore();
+    g.fillStyle = "#1d2a22"; g.textAlign = "center"; g.font = `italic ${scF(800, 84, "Outfit")}`; g.fillText(km + " km", 0, iy + iw + 110);
+    g.font = scF(600, 34); g.fillStyle = "#3b4b41"; g.fillText(`${st.slice(0, 2).map(s => s[1] + (s[2] === "/กม." ? "/km" : "")).join(" · ")} · ${thDate(d)}`, 0, iy + iw + 165);
+    g.restore();
+    if (achT) scAch(g, achT, W / 2, cy - fh / 2 - 50, "center", 30);
+    sh(1); scLogo(g, W / 2, H - 60, 40, "center", C);
+  } else if (t === "game") {                                          // เลเวลอัป แบบเกม
+    if (!clear) { g.fillStyle = "rgba(0,0,0,.3)"; g.fillRect(0, 0, W, H); }
+    const out = (txt, x, y, f, fill, lw = 14) => { g.font = f; g.lineJoin = "round"; g.strokeStyle = "#111"; g.lineWidth = lw; g.strokeText(txt, x, y); g.fillStyle = fill; g.fillText(txt, x, y); };
+    const cy = H / 2 - 120; g.textAlign = "center";
+    const gy = g.createLinearGradient(0, cy - 150, 0, cy); gy.addColorStop(0, "#fff36b"); gy.addColorStop(1, "#ff9f1a");
+    out("LEVEL UP!", W / 2, cy, scF(800, 150, "Outfit"), gy, 18);
+    out(`+${Math.round((+l.km || 0) * 100).toLocaleString("en-US")} XP`, W / 2, cy + 100, scF(800, 64, "Outfit"), "#c6f432", 12);
+    const bx = 140, bw = W - 280, byy = cy + 160, pct = Math.min(1, (+l.km || 0) / 42.195);
+    g.fillStyle = "#111"; scRR(g, bx - 8, byy - 8, bw + 16, 66, 14); g.fill(); g.fillStyle = "#2b2b2b"; scRR(g, bx, byy, bw, 50, 10); g.fill();
+    const gb = g.createLinearGradient(bx, 0, bx + bw, 0); gb.addColorStop(0, "#22c55e"); gb.addColorStop(1, "#c6f432"); g.fillStyle = gb; scRR(g, bx, byy, Math.max(30, bw * pct), 50, 10); g.fill();
+    out(`${km} / 42.195 KM`, W / 2, byy + 38, scF(800, 32, "Outfit"), "#fff", 7);
+    const items = [["⏱", st[0]], ["⚡", st[1]], ["❤️", st[2]]].filter(x => x[1]);
+    items.forEach(([ic, s], i) => { const y = byy + 160 + i * 96; g.textAlign = "right"; out(`${ic} ${s[0]}`, W / 2 - 16, y, scF(800, 44), "#fff", 10); g.textAlign = "left"; out(s[1] + (s[2] ? " " + s[2] : ""), W / 2 + 16, y, scF(800, 52, "Outfit"), "#c6f432", 10); });
+    g.textAlign = "center"; out(head, W / 2, byy + 160 + items.length * 96 + 10, scF(700, 32), "#fff", 8);
+    if (achT) out(`🏆 ${ach}`, W / 2, cy - 190, scF(800, 38), "#fff36b", 10);
+    scLogo(g, W / 2, H - 70, 40, "center");
+  } else if (t === "chart") {                                         // กราฟเพซรายกิโล
+    dim(H * .25, .8);
+    const laps = (l.laps || []).filter(x => +x[0] > 0 && +x[1] > 0).map(x => +x[1] / +x[0]).filter(PACE_OK).slice(0, 30);
+    const cx0 = P0, cw = W - 2 * P0, ch = 420, cyb = H - P0 - 170;
+    sh(1); scLogo(g, P0, cyb - ch - 260, 44, "left", C);
+    scVal(g, km, "กม.", P0 - 6, cyb - ch - 110, 150, 50, C); scLbl(g, `${head}${st[0] ? " · " + st[0][1] : ""}${st[1] ? " · เฉลี่ย " + st[1][1] + "/กม." : ""}`, P0, cyb - ch - 40, 30, C, "left", .92);
+    scShadow(g, false);
+    if (laps.length >= 2) {
+      const mn = Math.min(...laps), mx = Math.max(...laps), bw = cw / laps.length;
+      laps.forEach((p, i) => { const f = mx > mn ? (mx - p) / (mx - mn) : .5, h = ch * (.35 + .65 * f), x = cx0 + i * bw;
+        g.fillStyle = f > .66 ? "#c6f432" : f > .33 ? "#22c55e" : "#f59e0b"; scRR(g, x + bw * .12, cyb - h, bw * .76, h, Math.min(14, bw * .3)); g.fill();
+        if (laps.length <= 15 || i % 2 === 0) { g.fillStyle = C; g.font = scF(700, Math.min(30, bw * .45), "Outfit"); g.textAlign = "center"; g.fillText(fmtPace(p), x + bw / 2, cyb - h - 12); } });
+      g.fillStyle = C; g.globalAlpha = .8; g.font = scF(500, 26); g.textAlign = "left"; g.fillText("เพซรายกิโล — เขียวมะนาว = เร็วสุด", P0, cyb + 50); g.globalAlpha = 1;
+    } else { g.fillStyle = C; g.globalAlpha = .85; g.font = scF(600, 32); g.textAlign = "left"; g.fillText("ผลนี้ไม่มีข้อมูลรายกิโล — แคปหน้า “รอบ/Laps” จากนาฬิกามาด้วย", P0, cyb - ch / 2, cw); g.globalAlpha = 1; }
+    if (achT) scAch(g, achT, P0, cyb - ch - 340, "left", 28);
+  } else if (t === "glitch") {                                        // กลิตช์ Y2K
+    if (!clear) { g.fillStyle = "rgba(0,0,0,.4)"; g.fillRect(0, 0, W, H); }
+    const tmp = document.createElement("canvas"); tmp.width = W; tmp.height = 300; const tg = tmp.getContext("2d");
+    tg.font = scF(800, 250, "Outfit"); tg.textAlign = "center"; tg.textBaseline = "alphabetic";
+    tg.globalCompositeOperation = "lighter"; [["#ff2bd6", -12], ["#20f0ff", 12], ["#ffffff", 0]].forEach(([c, dx]) => { tg.fillStyle = c; tg.fillText(km, W / 2 + dx, 240); });
+    let rs = (+l.id || 3) % 2147483647; const rnd = () => (rs = rs * 16807 % 2147483647) / 2147483647;
+    const ty = H / 2 - 220;
+    for (let y = 0; y < 300;) { const hh = 10 + Math.floor(rnd() * 34), dx = rnd() < .3 ? (rnd() - .5) * 70 : 0; g.drawImage(tmp, 0, y, W, hh, dx, ty + y, W, hh); y += hh; }
+    g.textAlign = "center"; const mono = '"Courier New", ui-monospace, monospace';
+    [["#ff2bd6", -3], ["#20f0ff", 3], [C, 0]].forEach(([c, dx]) => { g.fillStyle = c; g.font = scF(800, 64, mono); g.fillText("KILOMETERS", W / 2 + dx, ty + 340); });
+    g.fillStyle = C; g.font = scF(700, 46, mono); st.forEach((s, i) => g.fillText(`> ${s[1]}${s[2] === "/กม." ? "/km" : s[2] ? " " + s[2] : ""}`, W / 2, ty + 450 + i * 70));
+    g.font = scF(600, 30); g.fillText(head, W / 2, ty + 450 + st.length * 70 + 30);
+    if (!clear) { g.fillStyle = "rgba(0,0,0,.18)"; for (let y = 0; y < H; y += 6) g.fillRect(0, y, W, 2); }
+    if (achT) scAch(g, achT, W / 2, ty - 60, "center", 30);
+    scLogo(g, W / 2, H - 70, 40, "center", C);
   } else if (t === "bib") {
     const bw = 860, bh = 640, bx = (W - bw) / 2, by = (H - bh) / 2;
     g.save(); g.shadowColor = "rgba(0,0,0,.35)"; g.shadowBlur = 40; g.shadowOffsetY = 12; g.fillStyle = "#fbfbf7"; scRR(g, bx, by, bw, bh, 26); g.fill(); g.restore();
