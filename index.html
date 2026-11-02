@@ -326,6 +326,37 @@ body.lv-on{overflow:hidden}
 .lv-spl i{height:8px;background:var(--soft2);border-radius:6px;overflow:hidden}
 .lv-spl em{display:block;height:100%;background:var(--pri);border-radius:6px}
 .lv-spl b{text-align:right}
+.wx-card{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:linear-gradient(160deg,#eef8f1,#e3f1e8);border:1px solid #cfe5d6;border-radius:18px;padding:12px 14px;margin:0 0 12px;cursor:pointer}
+.wx-card.wx-empty{display:flex;align-items:center;gap:12px}
+.wx-card.lv1{background:linear-gradient(160deg,#fffbe8,#fff3c4);border-color:#f2df8f}
+.wx-card.lv2{background:linear-gradient(160deg,#fff3e6,#ffe0c2);border-color:#f5b77a}
+.wx-card.lv3{background:linear-gradient(160deg,#ffecec,#ffd3d3);border-color:#f19a9a}
+.wx-top{display:flex;align-items:center;gap:10px}
+.wx-ic{font-size:34px;line-height:1}
+.wx-t b{display:block;font-family:Outfit,sans-serif;font-size:30px;line-height:1}
+.wx-t span{font-size:12px;color:var(--mut)}
+.wx-pl{flex:1;min-width:0;text-align:right}
+.wx-pl b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wx-pl span{font-size:12px;color:var(--mut)}
+.wx-chips{display:flex;gap:6px;margin:10px 0 8px;flex-wrap:wrap}
+.wx-chip{flex:1;min-width:58px;background:rgba(255,255,255,.75);border-radius:10px;padding:5px 6px;text-align:center;font-weight:700;font-size:14px}
+.wx-chip small{display:block;font-weight:500;font-size:10.5px;color:var(--mut)}
+.wx-chip.y{background:#fff3b0}.wx-chip.o{background:#ffd8b0}.wx-chip.r{background:#ffc2c2;color:#9b1c1c}
+.wx-lv{font-size:13px;font-weight:700}
+.wx-best{font-size:12.5px;margin-top:6px;color:#2b4a35}
+.wx-warn{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.wx-warn:last-child{border:0}
+.wx-warn>span{font-size:22px;line-height:1.2}
+.wx-warn.l3 b{color:#c81e1e}.wx-warn.l2 b{color:#c2570c}
+.wx-hrs{display:flex;gap:4px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
+.wx-h{flex:0 0 38px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;font-size:11px}
+.wx-h small{color:var(--mut)}
+.wx-h i{width:14px;border-radius:7px;background:#22a35a}
+.wx-h i.lv1{background:#e8c22c}.wx-h i.lv2{background:#f08a35}.wx-h i.lv3{background:#e5484d}
+.wx-h b{font-size:12px}
+.wx-h em{font-style:normal;font-size:10px;color:var(--mut)}.wx-h em.o{color:#c2570c}.wx-h em.r{color:#c81e1e;font-weight:700}
+.wx-live{border-radius:14px;padding:10px 12px;margin:0 0 10px;font-size:13.5px;background:#eef8f1;border:1px solid #cfe5d6;line-height:1.5}
+.wx-live.lv1{background:#fffbe8;border-color:#f2df8f}.wx-live.lv2{background:#fff3e6;border-color:#f5b77a}.wx-live.lv3{background:#ffecec;border-color:#f19a9a}
 .achpop{position:fixed;inset:0;z-index:60;background:rgba(10,40,26,.55);display:flex;align-items:center;justify-content:center;padding:18px;animation:fadein .25s}
 .achpop.out{opacity:0;transition:opacity .25s}
 .achcard{position:relative;background:#fff;border-radius:26px;padding:20px 18px 16px;width:100%;max-width:400px;max-height:88vh;overflow:auto;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.35);animation:popin .45s cubic-bezier(.2,1.4,.4,1)}
@@ -2026,7 +2057,8 @@ function openLive(key) {
   if (LV.st) { lvOpen(); return LV.st.done ? lvSummary() : lvRunUI(); }
   if (!navigator.geolocation && !LV.test) return toast("เครื่อง/เบราว์เซอร์นี้ใช้ GPS ไม่ได้");
   LV.plan0 = lvDefaults(lvToday(key)); LV.cfg = { ...LV.plan0 }; LV.ack = false;
-  lvOpen(); lvSetup(); lvGps(true); track("live-open");
+  lvOpen(); LV.wxHtml = ""; LV.wxNow = null; lvSetup(); lvGps(true); track("live-open");
+  setTimeout(wxForLive, 2500); setTimeout(() => { if (!LV.wxNow) wxForLive(); }, 9000);
   try { navigator.getBattery && navigator.getBattery().then(b => { LV.bat = b; }); } catch (e) {}
   try { window.speechSynthesis && speechSynthesis.getVoices(); } catch (e) {}
 }
@@ -2080,6 +2112,7 @@ function lvSetup() {
       <li>เปิดเสียงมือถือ/ใส่หูฟัง แอปจะพูดบอกเป็นภาษาไทย · แนะนำใส่ปลอกแขน และชาร์จแบตให้เกิน 40%</li></ul></div>
     <label class="lv-ack"><input type="checkbox" data-lv="ack" ${LV.ack ? "checked" : ""}><span>เข้าใจแล้ว จะเปิดแอปค้างไว้ตลอดที่วิ่ง</span></label>
     ${c.plan ? `<div class="lv-plan">📋 ตามแผน${c.date === TODAY ? "วันนี้" : " " + thDate(c.date)}: <b>${esc(c.plan)}</b> — ตั้งค่าให้แล้ว แก้ได้</div>` : `<div class="lv-plan">วันนี้ไม่มีนัดวิ่งในแผน — เลือกแบบที่อยากวิ่งได้เลย</div>`}
+    <div id="lvWx">${LV.wxHtml || ""}</div>
     <div class="lv-lab">ประเภท</div><div class="lv-chips">${["free", "easy", "long", "tempo", "interval"].map(t => chip("type", t, (t === "free" ? "🏃 " : "") + LV_T[t])).join("")}</div>
     <div class="lv-card">${f}</div>
     <div class="lv-card"><div class="lv-ct">🔊 เสียงและการเตือน</div>
@@ -2276,6 +2309,7 @@ function lvSave(F) {
     if (!l.note) l.note = c.type === "tempo" ? `Tempo ${lvDistS(st.reps[0].m)} ใน ${fmtTime(st.reps[0].sec)}` : `${c.by === "m" ? lvDistS(c.repM) : fmtTime(c.repSec)}×${st.reps.length}: ${st.reps.map(r => fmtTime(r.sec)).join(" · ")}`;
   }
   if (st.gaps.length) l.gpsGaps = st.gaps.length;
+  if (LV.wxNow) { const w = LV.wxNow; l.wx = { t: w.temp, feels: w.feels, hum: w.hum, pm: w.pm, code: w.code }; }
   if (st.pts.length > 1) { const k = Math.ceil(st.pts.length / 300); l.route = st.pts.filter((x, i) => i % k === 0 || i === st.pts.length - 1).map(x => [x[0], x[1]]); }
   try { localStorage.removeItem(LV_KEY); } catch (e) {}
   LV.st = null; lvHide(); track("live-save");
@@ -2841,6 +2875,148 @@ async function shareCard(id) {
   });
 }
 
+/* ---------- อากาศที่จะวิ่ง: อุณหภูมิ รู้สึกเหมือน PM2.5 UV ฝน + คำเตือน (Open-Meteo ฟรี ไม่ต้องสมัคร) ---------- */
+const WX_API = "https://api.open-meteo.com/v1/forecast", AQ_API = "https://air-quality-api.open-meteo.com/v1/air-quality";
+let wxBusy = false;
+const wxIcon = (c, h) => { const n = h !== undefined && (h < 6 || h >= 18); return c === 0 ? (n ? "🌙" : "☀️") : c <= 2 ? (n ? "🌙" : "🌤️") : c === 3 ? "☁️" : c <= 48 ? "🌫️" : c <= 57 ? "🌦️" : c <= 67 ? "🌧️" : c <= 77 ? "🌨️" : c <= 82 ? "🌧️" : c <= 86 ? "🌨️" : "⛈️"; };
+const wxDesc = c => c === 0 ? "ฟ้าใส" : c <= 2 ? "มีเมฆบางส่วน" : c === 3 ? "เมฆมาก" : c <= 48 ? "หมอก" : c <= 57 ? "ฝนปรอย" : c <= 67 ? "ฝนตก" : c <= 77 ? "หิมะ" : c <= 82 ? "ฝนซู่" : c <= 86 ? "หิมะ" : "พายุฝนฟ้าคะนอง";
+// ระดับความเสี่ยง 0 ปลอดภัย · 1 เฝ้าระวัง · 2 ระวังมาก · 3 อันตราย (ดัชนีความร้อนตามกรมอนามัย 27/32/41/54 °C · PM2.5 ตามเกณฑ์ไทย 37.5/75)
+function wxRisk(h) {
+  const out = [], add = (lvl, ic, t, d) => out.push({ lvl, ic, t, d });
+  const f = h.feels;
+  if (f >= 54) add(3, "🔥", `ร้อนอันตรายมาก (รู้สึก ${f}°)`, "งดวิ่งกลางแจ้ง — เสี่ยงฮีทสโตรกสูงมาก ย้ายไปลู่วิ่งในที่เย็น หรือเลื่อนไปช่วงเช้ามืด");
+  else if (f >= 41) add(3, "🔥", `ร้อนอันตราย (รู้สึก ${f}°)`, "เสี่ยงฮีทสโตรก: ลดระยะ/ความหนัก หรือวิ่งลู่แทน ถ้าจะออกไป ให้วิ่งช้าลง 20–40 วิ/กม. ดื่มน้ำ+เกลือแร่ทุก 15 นาที");
+  else if (f >= 32) add(2, "🥵", `ร้อนมาก (รู้สึก ${f}°)`, "ช้าลง 10–20 วิ/กม. วันนี้ดูหัวใจ/ความเหนื่อยแทนเพซ ดื่มน้ำทุก 15–20 นาที เลี่ยงงาน Tempo/Interval กลางแดด");
+  else if (f >= 27) add(1, "🌡️", `ค่อนข้างร้อน (รู้สึก ${f}°)`, "ดื่มน้ำก่อนวิ่ง 300–500 มล. ถ้าเกิน 60 นาทีพกน้ำ/เกลือแร่ เพซอาจช้าลง 0–10 วิ/กม. เป็นเรื่องปกติ");
+  if (h.hum >= 80 && f >= 27) add(1, "💧", `ความชื้นสูง ${h.hum}%`, "เหงื่อระเหยยาก ร่างกายระบายความร้อนได้น้อย — ใส่เสื้อระบายอากาศ อย่าฝืนเพซ");
+  if (h.pm != null) {
+    if (h.pm > 75) add(3, "😷", `PM2.5 สูงมาก ${h.pm} มคก./ลบ.ม.`, "งดวิ่งกลางแจ้ง (เกณฑ์ไทย: มีผลต่อสุขภาพ) — วิ่งลู่ในห้องที่มีเครื่องฟอกอากาศแทน");
+    else if (h.pm > 37.5) add(2, "😷", `PM2.5 สูง ${h.pm} มคก./ลบ.ม.`, "ลดเวลา/ความหนักกลางแจ้ง เลี่ยงริมถนนใหญ่ ถ้ามีอาการไอ แน่นหน้าอก แสบตา ให้หยุดทันที");
+    else if (h.pm > 25) add(1, "🌫️", `PM2.5 ปานกลาง ${h.pm}`, "วิ่งได้ ถ้าเป็นภูมิแพ้/หอบหืด ลดความหนักลง");
+  }
+  if (h.code >= 95) add(3, "⚡", "พายุฝนฟ้าคะนอง", "เสี่ยงฟ้าผ่า: ห้ามวิ่งที่โล่ง สนาม ริมน้ำ หรือใต้ต้นไม้ใหญ่ รอให้ฟ้าเงียบ 30 นาทีก่อนออกไป");
+  else if ((h.code >= 61 && h.code <= 67) || (h.code >= 80 && h.code <= 82)) add(1, "🌧️", "ฝนตก", "พื้นลื่น ทางม้าลาย/ฝาท่อลื่นมาก ลดเพซตอนเลี้ยว ใส่เสื้อสีสว่าง รถมองเห็นยาก");
+  else if (h.rain >= 60) add(1, "☔", `โอกาสฝน ${h.rain}%`, "พกหมวก/เสื้อกันฝนบาง ๆ ถ้าฟ้าร้องให้กลับทันที");
+  if (h.uv >= 11) add(2, "☀️", `UV สูงมาก (${h.uv})`, "แดดเผาผิวใน 10–15 นาที — เลี่ยงช่วง 10:00–15:00 ทาครีมกันแดด หมวก แว่น");
+  else if (h.uv >= 8) add(1, "☀️", `UV สูง (${h.uv})`, "ทาครีมกันแดด SPF30+ ใส่หมวก/แว่นกันแดด");
+  if (h.wind >= 40) add(1, "💨", `ลมแรง ${h.wind} กม./ชม.`, "วิ่งทวนลมจะช้ากว่าปกติ ไม่ต้องไล่เพซ ระวังกิ่งไม้");
+  out.sort((a, b) => b.lvl - a.lvl);
+  return { lvl: out.length ? out[0].lvl : 0, items: out };
+}
+const WX_LV = [["ok", "✅ อากาศดี วิ่งได้ตามแผน"], ["l1", "🟡 วิ่งได้ แต่เฝ้าระวัง"], ["l2", "🟠 ระวังมาก ปรับการซ้อม"], ["l3", "🔴 อันตราย ควรงด/ย้ายที่วิ่ง"]];
+// ชั่วโมงที่ดีที่สุดสำหรับวิ่ง (05–09 น. / 16–20 น.) ในอีก ~36 ชม.
+function wxBest(d) {
+  const now = Date.now(), cand = d.hours.filter(h => h.ts > now - 30 * 60e3 && h.ts < now + 36 * 3600e3 && ((h.hr >= 5 && h.hr <= 9) || (h.hr >= 16 && h.hr <= 20)));
+  const score = h => h.feels + (h.pm != null ? Math.max(0, h.pm - 25) * .25 : 0) + (h.rain >= 60 ? 6 : 0) + (h.code >= 95 ? 30 : 0) + (h.uv >= 8 ? 3 : 0);
+  return cand.length ? cand.reduce((a, b) => score(b) < score(a) ? b : a) : null;
+}
+async function wxFetch(lat, lon) {
+  const q = `latitude=${lat}&longitude=${lon}&timezone=Asia%2FBangkok&forecast_days=2`;
+  const [f, a] = await Promise.all([
+    fetch(`${WX_API}?${q}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,uv_index,precipitation&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability,weather_code,uv_index,wind_speed_10m`).then(r => r.json()),
+    fetch(`${AQ_API}?${q}&current=pm2_5&hourly=pm2_5`).then(r => r.json()).catch(() => null)
+  ]);
+  if (!f || !f.current) throw new Error("โหลดพยากรณ์ไม่ได้");
+  const c = f.current, H = f.hourly, aqH = a && a.hourly ? Object.fromEntries(a.hourly.time.map((t, i) => [t, a.hourly.pm2_5[i]])) : {};
+  const rnd = v => v == null ? null : Math.round(v), pm = v => v == null ? null : Math.round(v * 10) / 10;
+  const hours = H.time.map((t, i) => ({ t, ts: new Date(t + ":00+07:00").getTime(), hr: +t.slice(11, 13), temp: rnd(H.temperature_2m[i]), feels: rnd(H.apparent_temperature[i]), hum: rnd(H.relative_humidity_2m[i]), rain: rnd(H.precipitation_probability[i]) || 0, code: H.weather_code[i], uv: Math.round((H.uv_index[i] || 0) * 10) / 10, wind: rnd(H.wind_speed_10m[i]), pm: pm(aqH[t]) }));
+  const nowH = hours.find(h => h.ts > Date.now() - 3600e3) || hours[0];
+  const cur = { t: c.time, temp: rnd(c.temperature_2m), feels: rnd(c.apparent_temperature), hum: rnd(c.relative_humidity_2m), code: c.weather_code, wind: rnd(c.wind_speed_10m), uv: Math.round((c.uv_index || 0) * 10) / 10, rain: nowH ? nowH.rain : 0, pm: a && a.current ? pm(a.current.pm2_5) : (nowH ? nowH.pm : null), hr: +String(c.time).slice(11, 13) };
+  return { at: Date.now(), lat, lon, cur, hours };
+}
+async function wxPlaceName(lat, lon) {
+  try { const j = await (await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=th`)).json(); return [j.locality, j.city || j.principalSubdivision].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).slice(0, 2).join(", ") || "ตำแหน่งของฉัน"; }
+  catch (e) { return "ตำแหน่งของฉัน"; }
+}
+async function wxLoad(p, opt = {}) {
+  if (!p.wx || wxBusy || (!opt.force && p.wxData && Date.now() - p.wxData.at < 30 * 60e3 && p.wxData.lat === p.wx.lat && p.wxData.lon === p.wx.lon)) return p.wxData;
+  wxBusy = true;
+  try { p.wxData = await wxFetch(p.wx.lat, p.wx.lon); save(); track("weather"); if (tab === "home" && !opt.quiet) { const y = window.scrollY; render(); window.scrollTo(0, y); } return p.wxData; }
+  catch (e) { if (opt.loud) toast("โหลดข้อมูลอากาศไม่ได้ ตรวจอินเทอร์เน็ต"); return null; }
+  finally { wxBusy = false; }
+}
+function wxUseHere(after) {
+  if (!navigator.geolocation) return toast("เครื่องนี้ใช้ตำแหน่งไม่ได้ — ค้นหาชื่อสถานที่แทน");
+  toast("กำลังหาตำแหน่ง…");
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const p = P(), lat = Math.round(pos.coords.latitude * 100) / 100, lon = Math.round(pos.coords.longitude * 100) / 100;   // ปัดพิกัด ~1 กม. เพื่อความเป็นส่วนตัว
+    p.wx = { lat, lon, name: await wxPlaceName(lat, lon), here: true }; save();
+    await wxLoad(p, { force: true, loud: true }); if (after) after();
+  }, e => toast(e.code === 1 ? "ไม่ได้รับอนุญาตใช้ตำแหน่ง — ค้นหาชื่อสถานที่แทนได้" : "หาตำแหน่งไม่ได้ ลองใหม่ที่โล่ง"), { enableHighAccuracy: false, timeout: 15000, maximumAge: 10 * 60e3 });
+}
+function wxChip(lbl, v, cls = "") { return `<span class="wx-chip ${cls}"><small>${lbl}</small>${v}</span>`; }
+function wxHomeHtml(p) {
+  if (!p.wx) return `<button class="wx-card wx-empty" data-act="wxOpen"><span style="font-size:26px">🌤️</span><span style="flex:1;text-align:left"><b>อากาศที่จะวิ่ง</b><br><span class="tiny">อุณหภูมิ · รู้สึกเหมือน · PM2.5 · ฝน + คำเตือน — แตะเพื่อตั้งสถานที่</span></span><span>›</span></button>`;
+  const d = p.wxData;
+  if (!d || Date.now() - d.at > 30 * 60e3) setTimeout(() => wxLoad(P()), 50);
+  if (!d) return `<div class="wx-card" data-act="wxOpen"><span style="font-size:26px">🌤️</span><span style="flex:1"><b>${esc(p.wx.name)}</b><br><span class="tiny">กำลังโหลดอากาศ…</span></span></div>`;
+  const c = d.cur, r = wxRisk(c), b = wxBest(d), old = Date.now() - d.at > 3 * 3600e3;
+  return `<div class="wx-card lv${r.lvl}" data-act="wxOpen">
+    <div class="wx-top"><span class="wx-ic">${wxIcon(c.code, c.hr)}</span><div class="wx-t"><b>${c.temp}°</b><span>รู้สึก ${c.feels}°</span></div>
+      <div class="wx-pl"><b>📍 ${esc(p.wx.name)}</b><span>${wxDesc(c.code)}${old ? " · ข้อมูลเก่า" : ""}</span></div></div>
+    <div class="wx-chips">${wxChip("ความชื้น", c.hum + "%")}${c.pm != null ? wxChip("PM2.5", c.pm, c.pm > 75 ? "r" : c.pm > 37.5 ? "o" : c.pm > 25 ? "y" : "") : ""}${wxChip("UV", c.uv, c.uv >= 11 ? "r" : c.uv >= 8 ? "o" : "")}${wxChip("ฝน", c.rain + "%", c.code >= 95 ? "r" : c.rain >= 60 ? "y" : "")}</div>
+    <div class="wx-lv">${WX_LV[r.lvl][1]}${r.items[0] ? ` — ${r.items[0].t}` : ""}</div>
+    ${b ? `<div class="wx-best">⏰ ช่วงเหมาะวิ่ง: <b>${new Date(b.ts).getDate() !== new Date().getDate() ? "พรุ่งนี้" : "วันนี้"} ${pad(b.hr)}:00</b> · ${b.temp}° รู้สึก ${b.feels}°${b.pm != null ? ` · PM ${b.pm}` : ""}</div>` : ""}
+  </div>`;
+}
+function wxSheet() {
+  const p = P(), d = p.wxData;
+  const body = () => {
+    if (!p.wx) return `<p class="small mut" style="margin-top:0">ตั้งสถานที่ที่จะวิ่ง แอปจะบอกอุณหภูมิ ความรู้สึกร้อนจริง ฝุ่น PM2.5 แดด/UV ฝน และเตือนก่อนออกไปวิ่ง</p>`;
+    if (!d) return `<div class="mut small" style="text-align:center;padding:20px">กำลังโหลด…</div>`;
+    const c = d.cur, r = wxRisk(c), b = wxBest(d), now = Date.now(), next = d.hours.filter(h => h.ts > now - 3600e3).slice(0, 24);
+    const mx = Math.max(...next.map(h => h.feels)), mn = Math.min(...next.map(h => h.feels));
+    return `<div class="wx-card lv${r.lvl}" style="cursor:default">
+      <div class="wx-top"><span class="wx-ic">${wxIcon(c.code, c.hr)}</span><div class="wx-t"><b>${c.temp}°</b><span>รู้สึก ${c.feels}°</span></div><div class="wx-pl"><b>📍 ${esc(p.wx.name)}</b><span>${wxDesc(c.code)} · อัปเดต ${new Date(d.at).toTimeString().slice(0, 5)} น.</span></div></div>
+      <div class="wx-chips">${wxChip("ความชื้น", c.hum + "%")}${c.pm != null ? wxChip("PM2.5", c.pm, c.pm > 75 ? "r" : c.pm > 37.5 ? "o" : c.pm > 25 ? "y" : "") : ""}${wxChip("UV", c.uv, c.uv >= 11 ? "r" : c.uv >= 8 ? "o" : "")}${wxChip("ฝน", c.rain + "%")}${wxChip("ลม", c.wind + " กม./ชม.")}</div>
+      <div class="wx-lv">${WX_LV[r.lvl][1]}</div></div>
+    ${r.items.length ? `<div class="flabel">คำเตือนตอนนี้</div><div class="card" style="padding:4px 14px">${r.items.map(x => `<div class="wx-warn l${x.lvl}"><span>${x.ic}</span><div><b>${x.t}</b><div class="small">${x.d}</div></div></div>`).join("")}</div>` : `<div class="note" style="margin:12px 0">อากาศดี ไม่มีคำเตือน — วิ่งตามแผนได้เลย 🏃</div>`}
+    ${b ? `<div class="note info" style="margin:10px 0">⏰ <b>ช่วงที่เหมาะสุดใน 36 ชม.:</b> ${new Date(b.ts).getDate() !== new Date().getDate() ? "พรุ่งนี้" : "วันนี้"} ${pad(b.hr)}:00 น. · ${b.temp}° (รู้สึก ${b.feels}°)${b.pm != null ? ` · PM2.5 ${b.pm}` : ""} · ฝน ${b.rain}%</div>` : ""}
+    <div class="flabel">24 ชั่วโมงข้างหน้า (รู้สึกเหมือน)</div>
+    <div class="wx-hrs">${next.map(h => { const rk = wxRisk(h).lvl; return `<div class="wx-h"><small>${pad(h.hr)}</small><span>${wxIcon(h.code, h.hr)}</span><i class="lv${rk}" style="height:${Math.round(18 + 62 * (h.feels - mn) / Math.max(1, mx - mn))}px"></i><b>${h.feels}°</b>${h.pm != null ? `<em class="${h.pm > 75 ? "r" : h.pm > 37.5 ? "o" : ""}">${Math.round(h.pm)}</em>` : ""}</div>`; }).join("")}</div>
+    <div class="tiny mut" style="margin:4px 0 12px">แท่งสี: เขียว = ปลอดภัย · เหลือง = เฝ้าระวัง · ส้ม = ระวังมาก · แดง = อันตราย · ตัวเลขเล็กล่าง = PM2.5</div>
+    <button class="btn line block" data-act="tip" data-id="heat" style="margin-bottom:8px">🚨 อาการฮีทสโตรก & วิธีช่วยเหลือ</button>`;
+  };
+  openSheet("🌤️ อากาศที่จะวิ่ง", `<div id="wxBox">${body()}
+    <div class="flabel">สถานที่</div>
+    <button class="btn ghost block" data-wx="here" style="margin-bottom:8px">📍 ใช้ตำแหน่งตอนนี้</button>
+    <div class="row" style="gap:8px"><input class="lv-in" data-wx="q" placeholder="ค้นหา เช่น สวนลุมพินี, เขาใหญ่, เชียงใหม่" style="flex:1;width:auto;text-align:left"><button class="btn" data-wx="find" style="padding:8px 14px">ค้นหา</button></div>
+    <div id="wxRes"></div>
+    ${(p.wxRecent || []).length ? `<div class="tiny mut" style="margin:10px 0 6px">ล่าสุด</div><div class="lv-chips">${p.wxRecent.map((x, i) => `<button class="lv-chip" data-wx="rec" data-i="${i}">${esc(x.name)}</button>`).join("")}</div>` : ""}
+    <div class="tiny mut" style="margin-top:12px">ข้อมูลจาก Open-Meteo (ฟรี) · ส่งแค่พิกัดคร่าว ๆ (~1 กม.) ไปขอพยากรณ์ ไม่ส่งข้อมูลการวิ่ง · เกณฑ์ความร้อนตามกรมอนามัย · PM2.5 ตามเกณฑ์ไทย</div></div>`, root => {
+    const set = async (pl) => { p.wx = { lat: pl.lat, lon: pl.lon, name: pl.name }; p.wxRecent = [pl, ...(p.wxRecent || []).filter(x => x.name !== pl.name)].slice(0, 5); save(); await wxLoad(p, { force: true, loud: true, quiet: true }); render(); wxSheet(); };
+    root.querySelector("#wxBox").addEventListener("click", async e => {
+      const b = e.target.closest("[data-wx]"); if (!b) return; const a = b.dataset.wx;
+      if (a === "here") wxUseHere(() => { render(); wxSheet(); });
+      if (a === "rec") set(p.wxRecent[+b.dataset.i]);
+      if (a === "pick") set(JSON.parse(b.dataset.pl));
+      if (a === "find") {
+        const q = root.querySelector("[data-wx=q]").value.trim(); if (!q) return; const res = root.querySelector("#wxRes"); res.innerHTML = `<div class="tiny mut" style="margin-top:8px">กำลังค้นหา…</div>`;
+        try { const j = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=th&format=json`)).json();
+          const L = (j.results || []).map(x => ({ lat: Math.round(x.latitude * 100) / 100, lon: Math.round(x.longitude * 100) / 100, name: [x.name, x.admin1].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(", ") + (x.country_code && x.country_code !== "TH" ? ` (${x.country_code})` : "") }));
+          res.innerHTML = L.length ? `<div class="card" style="padding:4px 12px;margin-top:8px">${L.map(x => `<div class="item" data-wx="pick" data-pl='${esc(JSON.stringify(x))}'><div class="grow small">📍 ${esc(x.name)}</div><span class="link">เลือก ›</span></div>`).join("")}</div>` : `<div class="note warn" style="margin-top:8px">ไม่พบ "${esc(q)}" — ลองชื่ออำเภอ/จังหวัด หรือสะกดภาษาอังกฤษ</div>`;
+        } catch (err) { res.innerHTML = `<div class="note warn" style="margin-top:8px">ค้นหาไม่ได้ ตรวจอินเทอร์เน็ต</div>`; }
+      }
+    });
+    const qi = root.querySelector("[data-wx=q]"); qi.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); root.querySelector("[data-wx=find]").click(); } });
+  });
+  if (p.wx && (!d || Date.now() - d.at > 30 * 60e3)) wxLoad(p, { quiet: true }).then(x => { if (x && $("#wxBox")) wxSheet(); });
+}
+// ใช้ในโหมดวิ่งสด: ดึงอากาศ ณ จุดที่ยืนอยู่ (จาก GPS) แล้วโชว์คำเตือนก่อนเริ่ม
+async function wxForLive() {
+  const el = document.getElementById("lvWx"); if (!el) return;
+  const f = LV.fix, p = P();
+  let d = null;
+  try {
+    if (f && f.ll) { const lat = Math.round(f.ll[0] * 100) / 100, lon = Math.round(f.ll[1] * 100) / 100; d = (p.wxData && p.wxData.lat === lat && p.wxData.lon === lon && Date.now() - p.wxData.at < 30 * 60e3) ? p.wxData : await wxFetch(lat, lon); }
+    else if (p.wx) d = await wxLoad(p, { quiet: true });
+  } catch (e) {}
+  if (!d) { el.innerHTML = ""; return; }
+  LV.wxNow = d.cur; const r = wxRisk(d.cur), c = d.cur;
+  el.innerHTML = LV.wxHtml = `<div class="wx-live lv${r.lvl}"><b>${wxIcon(c.code, c.hr)} ${c.temp}° · รู้สึก ${c.feels}° · ชื้น ${c.hum}%${c.pm != null ? ` · PM2.5 ${c.pm}` : ""}</b>
+    <div>${WX_LV[r.lvl][1]}</div>${r.items.slice(0, 3).map(x => `<div class="small">${x.ic} <b>${x.t}</b> — ${x.d}</div>`).join("")}</div>`;
+}
+
 function showAnalysis(id) {
   const p = P(), l = p.logs.find(x => String(x.id) === String(id)); if (!l) return;
   const r = analyzeLog(p, l), sec = toSec(l.time);
@@ -2868,6 +3044,7 @@ function showAnalysis(id) {
         <div class="lapx">${ls.laps.map(x => `<span>${x.n === 1 || x.n % 5 === 0 ? x.n : ""}</span>`).join("")}</div>
         <div class="legend" style="margin-top:6px"><span><i style="background:#7cc93a"></i>เร็วกว่าเฉลี่ย</span><span><i style="background:var(--pri)"></i>ใกล้เฉลี่ย</span><span><i style="background:#e0a33a"></i>ช้ากว่าเฉลี่ย</span></div></div>`; })()}
     <div class="card" style="padding:4px 14px">${r.insights.map(x => `<div class="ins ${x.lvl}"><i>${ico[x.lvl]}</i><div>${esc(x.t)}</div></div>`).join("")}</div>
+    ${l.wx ? `<div class="note ${l.wx.feels >= 32 ? "warn" : "info"}" style="margin:-4px 0 12px">${wxIcon(l.wx.code)} ตอนวิ่ง ${l.wx.t}° รู้สึก ${l.wx.feels}° · ชื้น ${l.wx.hum}%${l.wx.pm != null ? ` · PM2.5 ${l.wx.pm}` : ""}${l.wx.feels >= 32 ? " — อากาศร้อน เพซช้าลง/หัวใจสูงกว่าปกติเป็นเรื่องปกติ อย่าโทษตัวเอง" : ""}</div>` : ""}
     ${l.src ? `<div class="tiny mut" style="margin:-6px 0 12px">ข้อมูลอ่านจาก${esc(l.src)}</div>` : ""}
     ${(() => { const a = A.find((x, i) => W[i] && W[i].start <= TODAY && TODAY <= W[i].end); const g = a && a.notes.filter(n => n.act); return g && g.length ? noteHtml({ notes: g }) : ""; })()}
     ${r.next ? `<div class="flabel">นัดถัดไป</div><div class="card" style="padding:6px 14px">${sessRow(r.next)}</div>` : ""}
@@ -2965,7 +3142,7 @@ function renderHome() {
   const weekKm = w ? w.sessions.filter(s => RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0) : 0;
   const weekGot = w ? sumKm(runLogs(p), w.start, w.end) : 0;
   const vertGot = w ? runLogs(p).filter(l => l.date >= w.start && l.date <= w.end).reduce((t, l) => t + (+l.dplus || 0), 0) : 0;
-  return installBanner() + tipBarHtml(p) + chHomeHtml(p) + `
+  return installBanner() + tipBarHtml(p) + wxHomeHtml(p) + chHomeHtml(p) + `
   <div class="card hero">
     <div class="row"><span><span class="chip pink">${esc(raceShort(nr))}</span> <span class="chip">${PRIO[prioOf(p, nr)].icon} ${PRIO[prioOf(p, nr)].label}</span>${agChip(p, nr) ? ` <span class="chip ag">🏅 ${esc(agChip(p, nr))}</span>` : ""}</span><span class="tiny mut">${thDateY(nr.date)}</span></div>
     <div style="font-weight:600;margin-top:8px">${esc(nr.name)}</div>
@@ -3887,6 +4064,7 @@ document.addEventListener("click", e => {
   if (act === "openLog") openLog(el.dataset.key);
   if (act === "session") openSession(el.dataset.key);
   if (act === "tip") openTip(id);
+  if (act === "wxOpen") wxSheet();
   if (act === "shareCard") shareCard(id);
   if (act === "live") { closeSheet(); openLive(el.dataset.key); }
   if (act === "lvResume" && LV.st) { closeSheet(); lvOpen(); lvGps(true); LV.st.segAt = LV.now(); lvWake(); lvLoop(true); lvSay("วิ่งต่อ", true); lvRunUI(); }
