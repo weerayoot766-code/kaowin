@@ -3137,7 +3137,7 @@ const FIT_CAT = {
   stretch: { n: "ยืด/คูลดาวน์", ic: "🧘", g: "linear-gradient(135deg,#64748b,#94a3b8)", sub: "ลดปวดตึง ก่อนนอน", pose: "stSide",
     lo: ["stSide", "stQuad", "stHam", "stCat", "stChild", "armCircle"], hi: [] }
 };
-const FIT_LV = { 1: { n: "เริ่มต้น", w: 30, r: 20, bpm: 112 }, 2: { n: "กลาง", w: 40, r: 15, bpm: 124 }, 3: { n: "เข้มข้น", w: 45, r: 12, bpm: 132 } };
+const FIT_LV = { 1: { n: "เริ่มต้น", w: 30, r: 20, bpm: 120 }, 2: { n: "กลาง", w: 40, r: 15, bpm: 128 }, 3: { n: "เข้มข้น", w: 45, r: 12, bpm: 136 } };
 const FIT_GOALS = { belly: "ลดพุง", glute: "ปั้นก้น", upper: "กระชับอก-แขน", aerobic: "เผาผลาญ/ลดน้ำหนัก", full: "ฟิตทั้งตัว" };
 // แผนรายสัปดาห์ตามเป้าหมาย (จ.–อา.)
 const FIT_WEEK = {
@@ -3240,7 +3240,59 @@ function musNote(t, f, dur, type, vol, cut) { const c = MUS.ctx, o = c.createOsc
 function musNoise(t, dur, vol, type, freq) { const c = MUS.ctx, s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter(); s.buffer = MUS.noise; f.type = type; f.frequency.value = freq;
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(f).connect(g).connect(MUS.out); s.start(t); s.stop(t + dur + .02); }
 function musKick(t) { const c = MUS.ctx, o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + .12); g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.0001, t + .32); o.connect(g).connect(MUS.out); o.start(t); o.stop(t + .35); }
+/* ---- เพลงแอโรบิกแบบมัน ๆ (EDM): กลองหนัก เบสปั๊ม ฮุคลีด บิลด์อัพ-ดร็อป · สุ่มเพลงใหม่ทุกครั้ง ---- */
+const EDM_SONGS = [
+  { prog: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], lead: [12, 0, 7, 0, 12, 0, 10, 7, 12, 0, 7, 0, 15, 14, 12, 10] },        // Am F C G
+  { prog: [[53, 57, 60], [55, 59, 62], [57, 60, 64], [57, 60, 64]], lead: [7, 0, 12, 7, 0, 12, 7, 0, 10, 0, 12, 0, 14, 12, 10, 7] },         // F G Am Am
+  { prog: [[60, 63, 67], [56, 60, 63], [51, 55, 58], [58, 62, 65]], lead: [12, 12, 0, 15, 0, 12, 0, 10, 12, 12, 0, 15, 0, 17, 15, 12] },     // Cm Ab Eb Bb
+  { prog: [[52, 55, 59], [48, 52, 55], [55, 59, 62], [50, 54, 57]], lead: [0, 7, 12, 7, 0, 7, 12, 14, 0, 7, 12, 7, 15, 14, 12, 7] }          // Em C G D
+];
+function edmBus() {
+  const c = MUS.ctx;
+  if (!MUS.comp) { MUS.comp = c.createDynamicsCompressor(); MUS.comp.threshold.value = -14; MUS.comp.ratio.value = 4; MUS.comp.attack.value = .003; MUS.comp.release.value = .15; MUS.comp.connect(MUS.out); }
+  if (!MUS.pump) { MUS.pump = c.createGain(); MUS.pump.gain.value = 1; MUS.pump.connect(MUS.comp); }
+}
+function edmPump(t, beat) { const g = MUS.pump.gain; g.cancelScheduledValues(t); g.setValueAtTime(.25, t); g.linearRampToValueAtTime(1, t + beat * .85); }
+function edmTone(t, f, dur, type, vol, cut, to, det) {
+  const c = MUS.ctx, g = c.createGain(), fl = c.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.setValueAtTime(cut, t); fl.Q.value = 4;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  (det || [0]).forEach(d => { const o = c.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = d; o.connect(fl); o.start(t); o.stop(t + dur + .05); });
+  fl.connect(g).connect(to || MUS.pump);
+}
+function edmKick(t) { const c = MUS.ctx, o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(48, t + .09); g.gain.setValueAtTime(1.1, t); g.gain.exponentialRampToValueAtTime(.0001, t + .35); o.connect(g).connect(MUS.comp); o.start(t); o.stop(t + .38);
+  const cl = c.createBufferSource(), cg = c.createGain(), cf = c.createBiquadFilter(); cl.buffer = MUS.noise; cf.type = "highpass"; cf.frequency.value = 3000; cg.gain.setValueAtTime(.35, t); cg.gain.exponentialRampToValueAtTime(.0001, t + .015); cl.connect(cf).connect(cg).connect(MUS.comp); cl.start(t); cl.stop(t + .03); }
+function edmNoise(t, dur, vol, type, f0, f1, to) { const c = MUS.ctx, s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter(); s.buffer = MUS.noise; s.loop = true; f.type = type; f.frequency.setValueAtTime(f0, t); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(f).connect(g).connect(to || MUS.comp); s.start(t); s.stop(t + dur + .02); }
+function edmClap(t, v = .5) { [0, .012, .024].forEach((d, i) => edmNoise(t + d, i === 2 ? .18 : .03, v, "bandpass", 1400)); }
+function edmStep(t, s) {
+  edmBus();
+  const song = EDM_SONGS[MUS.song || 0], beat = 60 / MUS.bpm, i = s % 16, bar = Math.floor(s / 16) % 32, ch = song.prog[Math.floor(s / 16) % 4];
+  const sec = bar < 8 ? "groove" : bar < 16 ? "full" : bar < 20 ? "break" : bar < 24 ? "build" : "drop";
+  const drums = sec !== "break", big = sec === "full" || sec === "drop";
+  if (drums && sec !== "build" && i % 4 === 0) { edmKick(t); edmPump(t, beat); }
+  if (sec === "build") {                                       // บิลด์อัพ: กลองรัวถี่ขึ้น + เสียงไซเรนพุ่งขึ้น
+    const b = bar - 20, every = b < 2 ? 4 : b < 3 ? 2 : 1;
+    if (i % every === 0) edmClap(t, .18 + b * .08 + i / 120);
+    if (b < 2 && i % 4 === 0) { edmKick(t); edmPump(t, beat); }
+    if (bar === 20 && i === 0) edmNoise(t, beat * 16, .22, "bandpass", 300, 7000);
+  }
+  if (drums && sec !== "build") {
+    if (i === 4 || i === 12) edmClap(t, big ? .55 : .42);
+    if (i % 4 === 2) edmNoise(t, .09, big ? .32 : .22, "highpass", 8000);                    // ไฮแฮทเปิด จังหวะยก
+    if (big && i % 2 === 1) edmNoise(t, .025, .12, "highpass", 10000);
+  }
+  if ((sec === "drop" && bar === 24 || sec === "full" && bar === 8) && i === 0) edmNoise(t, 1.6, .45, "highpass", 5000);   // แฉตอนดร็อป
+  const root = ch[0] - 24;
+  if (drums && sec !== "build") {                               // เบสปั๊ม
+    if (big) edmTone(t, mHz(root + (i % 4 === 2 ? 12 : 0)), beat * .22, "sawtooth", .3, 900, null, [-7, 7]);
+    else if (i % 4 === 2) edmTone(t, mHz(root), beat * .4, "sawtooth", .3, 700, null, [-6, 6]);
+  }
+  if (i === 0 && sec !== "build") ch.forEach(n => edmTone(t, mHz(n), beat * 3.6, "sawtooth", sec === "break" ? .05 : .035, sec === "break" ? 1400 : 2600, null, [-12, 12]));   // คอร์ดซูเปอร์ซอว์
+  if (sec === "break" || sec === "build") edmTone(t, mHz(ch[i % 3] + 12 + (i % 6 > 2 ? 12 : 0)), beat * .22, "triangle", .07, 3500);           // อาร์เปจจิโอ
+  if (big) { const n = song.lead[i]; if (n !== undefined && (i % 2 === 0 || sec === "drop")) edmTone(t, mHz(ch[0] + n + 12), beat * .45, "square", .055, sec === "drop" ? 4200 : 3000, null, [-9, 9]); }
+}
 function musStep(t, s) {
+  if (MUS.style === "dance") return edmStep(t, s);
   const st = MUS.style, bar = Math.floor(s / 16), ch = MUS_PROG[bar % 4], i = s % 16;
   if (st === "calm") {                                     // ยืดเหยียด: แพดนุ่ม ๆ ไม่มีกลอง
     if (i === 0) ch.forEach(n => musNote(t, mHz(n), 60 / MUS.bpm * 4 * .95, "sine", .06, 1200));
@@ -3300,6 +3352,7 @@ function fxStart(list, meta) {
   if (LV.st && !LV.st.done) return toast("มีการวิ่งสดค้างอยู่ — จบก่อนนะ");
   const now = Date.now();
   FX.st = { ...meta, list, i: 0, phase: "go", segAt: now, pausedAt: 0, said: {}, start: now };
+  MUS.song = Math.floor(Math.random() * EDM_SONGS.length); MUS.step = 0;                // สุ่มเพลงใหม่ทุกครั้ง
   musCtx(); musStart(fxStyle(list[0]) === "calm" ? 72 : list[0].gx ? 96 : meta.bpm, fxStyle(list[0]));
   $("#live").classList.remove("hidden"); document.body.classList.add("lv-on"); lvWake();
   lvSay(`เริ่ม${meta.name} ${Math.round(fitTime(list) / 60)} นาที. วอร์มอัพ ${fxInfo(list[0]).n}`, true);
