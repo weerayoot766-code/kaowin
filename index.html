@@ -504,7 +504,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v47</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v48</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -4096,7 +4096,7 @@ const EN_MON = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "
 function parseRunText(texts) {
   const r = { laps: [] }, lines = [];
   texts.forEach(t => String(t).split(/\n/).forEach(x => {
-    x = x.replace(/((?:\d|ไ)[\dไ.,\s]{1,8}?)\s*(กม|km)/gi, (m, a, u) => a.replace(/ไ/g, "1").replace(/\s+/g, "") + " " + u);   // "1 .ไ 0 กม." → "1.10 กม."
+    x = x.replace(/((?:\d|ไ)[\dไJjl|!.,\s]{1,8}?)\s*(กม|km)/gi, (m, a, u) => a.replace(/[ไJjl|!]/g, "1").replace(/\s+/g, "") + " " + u);   // "1 .ไ 0 กม." → "1.10 กม."
     x = x.replace(/[\[|!l]\s*km\b/gi, "/km").replace(/(\d)\s+([.,])\s*(\d)/g, "$1$2$3").replace(/\s+/g, " ").trim();
     if (x) lines.push(x);
   }));
@@ -4151,7 +4151,7 @@ function parseRunText(texts) {
   // เพซเฉลี่ยที่แอปนาฬิกาบอกมา (ใช้ตรวจระยะ/เวลา)
   const PACE = /\b(\d{1,2}):(\d{2})\s*\/\s*(?:km|กม)/i, paceOf = s => { const m = s.match(PACE); return m ? +m[1] * 60 + +m[2] : 0; };
   for (let i = 0; i < lines.length && !r.paceAvg; i++) {
-    const s = lines[i], LB = /เพ[ซชฃ]\s*เฉล\S*|avg\.? pace|average pace/i; if (!LB.test(s) || /ดีที่สุด|best|เพซ\S{0,8}เคลื่อน|moving pace|grade adj|ปรับตาม/i.test(s)) continue;
+    const s = lines[i], LB = /เพ[ซชฃ]{1,2}\s*เฉล\S*|avg\.? pace|average pace/i; if (!LB.test(s) || /ดีที่สุด|best|เพซ\S{0,8}เคลื่อน|moving pace|grade adj|ปรับตาม/i.test(s)) continue;
     const col = colOf(s, LB), pick = (t, nu) => { const a = []; let re = new RegExp(PACE.source, "gi"), m; while (t && (m = re.exec(t))) a.push(+m[1] * 60 + +m[2]);
       if (!a.length && t && nu) { re = /(?<![\d:])(\d{1,2}):(\d{2})(?![\d:.])/g; while ((m = re.exec(t))) { const v = +m[1] * 60 + +m[2]; if (PACE_OK(v)) a.push(v); } }   // ไม่มีหน่วย /km
       return a; };
@@ -4163,7 +4163,7 @@ function parseRunText(texts) {
   if (!r.timeSec && r.km && r.paceAvg) { r.timeSec = Math.round(r.km * r.paceAvg); r.timeEst = true; }   // ไม่เจอเวลา: คำนวณจากระยะ × เพซเฉลี่ย
   // อ่านป้ายไม่ออก (ระยะ/เพซหาย) แต่ได้เวลา → จับคู่ตัวเลขทศนิยม × ตัวเลขนาที:วินาที ที่คูณกันได้เวลาพอดี
   if (r.timeSec && (!r.km || !r.paceAvg) && !r.laps.length) {
-    const cl1 = s => s.replace(/[ไlI|](?=\s*[.,]?\s*\d)|(?<=\d\s*[.,]?\s*)[ไlI|]/g, "1"), cl = s => cl1(cl1(s)).replace(/(\d)\s*[.,]\s*(\d)/g, "$1.$2");
+    const cl1 = s => s.replace(/[ไlI|Jj!](?=\s*[.,]?\s*\d)|(?<=\d\s*[.,]?\s*)[ไlI|Jj!]/g, "1"), cl = s => cl1(cl1(s)).replace(/(\d)\s*[.,]\s*(\d)/g, "$1.$2");
     const D = r.km ? [r.km] : [], P = r.paceAvg ? [r.paceAvg] : [];
     lines.forEach(s0 => { const s = cl(s0);
       if (!r.km) (s.match(/(?<![\d:.])\d{1,3}\.\d{1,2}(?![\d:])/g) || []).forEach(x => { const v = +x; if (v > 0.2 && v <= 300) D.push(v); });
