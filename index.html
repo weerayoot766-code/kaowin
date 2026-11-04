@@ -504,7 +504,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v50</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v51</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -4694,7 +4694,7 @@ document.addEventListener("submit", e => {
   let longDay = +F.longDay.value; if (!runDays.includes(longDay)) longDay = runDays[runDays.length - 1];
   Object.assign(p, { name: F.name.value.trim() || "นักวิ่ง", sex: F.sex.value, birthYear: F.birthYear.value.trim(), weightKg: F.weightKg.value.trim(), level: F.level.value,
     weeklyKm: parseFloat(F.weeklyKm.value) || 0, runDays, longDay, gymDays: [...e.target.querySelectorAll("input[name=gymDays]:checked")].map(x => +x.value), planStart: F.planStart.value || mondayOf(TODAY) });
-  save(); render(); toast("บันทึกแล้ว · สร้างตารางใหม่");
+  save(); render(); toast("บันทึกแล้ว · สร้างตารางใหม่"); if (CH_API) chSync(p);
 });
 $("#sheet").addEventListener("click", e => { if (e.target.id === "sheet") closeSheet(); });
 $("#importFile").addEventListener("change", e => {
@@ -4743,7 +4743,19 @@ async function doInstall() {
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; render(); });
 window.addEventListener("appinstalled", () => { deferredPrompt = null; render(); toast(`ติดตั้ง ${APP_NAME} แล้ว 🎉`); });
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1"))
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+    // มีเวอร์ชันใหม่ → รีโหลดเองตอนที่ไม่ได้วิ่ง/เล่นคลิป/เปิดหน้าต่างค้างอยู่ (คนที่ไม่เคยปิดแอพก็ได้ของใหม่)
+    const had = !!navigator.serviceWorker.controller; let pend = false;
+    const busy = () => (LV.st && !LV.st.done) || FX.st || !$("#sheet").classList.contains("hidden");
+    const go = () => { if (pend && !busy()) { pend = false; location.reload(); } };
+    navigator.serviceWorker.addEventListener("controllerchange", () => { if (!had) return; pend = true; if (document.hidden) return; go(); });
+    let lastChk = Date.now();
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) return; go();
+      if (Date.now() - lastChk > 120000) { lastChk = Date.now(); navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}); if (CH_API) chSync(P(), { lobby: false }); }
+    });
+  });
 
 // โลโก้ + favicon
 $("#wordmark").src = LOGO_WORDMARK;
