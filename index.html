@@ -504,7 +504,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v49</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v50</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -1768,21 +1768,23 @@ function lapSeg(l) {
 }
 function chJoinSheet(room) {
   const p = P(), d = roomDef(room), canAg = !!(p.sex && birthCE(p));
-  openSheet(`${d.em} เข้าร่วม ${d.full}`, `<form id="cjForm">
+  const edit = !!(p.chJoined || {})[room];
+  openSheet(edit ? `✏️ แก้ชื่อ/รูปในตาราง` : `${d.em} เข้าร่วม ${d.full}`, `<form id="cjForm">
     <p class="small mut" style="margin-top:0">${d.sub} · เดือน${monthTH(room)} · ยอดคิดจากผลซ้อมที่ส่งในเดือนนี้อัตโนมัติ (รวมที่ส่งไปแล้ว)</p>
     <label class="f">ชื่อที่จะแสดงในตาราง<input name="name" maxlength="20" value="${esc([p.chName, p.name].find(x => x && x !== "นักวิ่งใหม่" && x !== "นักวิ่ง") || "")}" placeholder="ชื่อเล่น เช่น แพร" required></label>
-    <label class="inline"><input type="checkbox" name="showAg" ${canAg ? "checked" : "disabled"}> แสดงเพศและรุ่นอายุ (${canAg ? `${p.sex === "m" ? "ชาย" : "หญิง"} ${agText(agCode(p))}` : "ใส่เพศ/ปีเกิดในแท็บ ฉัน ก่อน"}) เพื่อจัดอันดับในรุ่น</label>
+    <label class="inline"><input type="checkbox" name="showAg" ${canAg ? (edit && !p.chJoined[room].showAg ? "" : "checked") : "disabled"}> แสดงเพศและรุ่นอายุ (${canAg ? `${p.sex === "m" ? "ชาย" : "หญิง"} ${agText(agCode(p))}` : "ใส่เพศ/ปีเกิดในแท็บ ฉัน ก่อน"}) เพื่อจัดอันดับในรุ่น</label>
     <label class="inline cx-avck">${p.photo ? `<img src="${p.photo}" alt="">` : ""}<input type="checkbox" name="showAv" ${p.photo ? (p.chAv === false ? "" : "checked") : "disabled"}> ${p.photo ? "แสดงรูปโปรไฟล์ในตาราง (ย่อเป็นรูปเล็ก)" : "แสดงรูปโปรไฟล์ — ใส่รูปในแท็บ ฉัน ก่อน"}</label>
     <div class="note info" style="margin:10px 0">ส่งขึ้นไปแค่ชื่อเล่น${canAg ? " เพศ รุ่นอายุ" : ""}${p.photo ? " รูปโปรไฟล์ (ถ้าเลือก)" : ""} และยอดรวมของห้องนี้ ออกจากห้องได้ทุกเมื่อ ยอดจะถูกลบ</div>
-    <button class="btn block" type="submit">เข้าร่วมเลย</button></form>`, body => {
+    <button class="btn block" type="submit">${edit ? "บันทึก (ใช้กับทุกห้องที่เข้า)" : "เข้าร่วมเลย"}</button></form>`, body => {
     body.querySelector("#cjForm").addEventListener("submit", async e => {
       e.preventDefault(); const F = e.target.elements, btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "กำลังเข้าร่วม…";
       try {
         const id = chIdent(p), name = F.name.value.trim().slice(0, 20) || "นักวิ่ง", sh = F.showAg.checked;
         await chApi("/join", { uid: id.uid, key: id.key, room, name, sex: sh ? p.sex : "", ag: sh ? agCode(p) : "" });
+        for (const r of joinedRooms(p, curMonth()).filter(r => r !== room)) { const s2 = p.chJoined[r].showAg; await chApi("/join", { uid: id.uid, key: id.key, room: r, name, sex: s2 ? p.sex : "", ag: s2 ? agCode(p) : "" }).catch(() => {}); }   // ใช้ชื่อเดียวกันทุกห้อง
         p.chName = name; p.chNameAuto = name === String(p.name || "").trim(); p.chJoined = p.chJoined || {}; p.chJoined[room] = { at: TODAY, showAg: sh }; p.chAv = !!(p.photo && F.showAv.checked); save(); track("challenge-join");
         await chAvPush(p);
-        closeSheet(); toast("เข้าร่วมแล้ว! 🎉"); render(); chSync(p, { after: () => chBoardSheet(room) });
+        closeSheet(); toast(edit ? "อัปเดตชื่อแล้ว ✓" : "เข้าร่วมแล้ว! 🎉"); render(); chSync(p, { after: () => chBoardSheet(room) });
       } catch (err) { btn.disabled = false; btn.textContent = "เข้าร่วมเลย"; toast(err.message === "name" ? "ชื่อนี้ใช้ไม่ได้ ลองชื่ออื่น" : "เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง"); }
     });
   });
@@ -1816,12 +1818,13 @@ async function chBoardSheet(room, f = "all") {
   const meBar = me ? `<div class="cx-mebar"><span class="no">#${me.rank}</span><span style="flex:1"><b>${esc(p.chName || p.name)}</b> · ${fmtRoom(room, me.value)} ${unit} <small>จาก ${b.total} คน</small><br><small>${me.rank === 1 ? "อยู่อันดับ 1! รักษาไว้นะ 🔥" : ahead ? (ahead.value - me.value <= 0 ? `ยอดเท่ากับ ${esc(ahead.name)} — อีกนิดเดียวแซงได้!` : `ตามหลัง ${esc(ahead.name)} ${fmtRoom(room, ahead.value - me.value)} ${unit}${ahead.value - me.value <= Math.max(1, me.value * 0.1) ? " — อีกนิดแซงได้!" : " — สู้ต่อ!"}`) : ""}</small></span>${rankDelta(p, room) > 0 && f === "all" ? `<span>▲ ${rankDelta(p, room)}</span>` : ""}</div>` : "";
   $("#sheetBody").innerHTML = head + `<div class="card" style="padding:12px 10px 0">${podH}</div>${rest || extra.length ? `<div class="cx-lb">${rest}${extra.length ? `<div class="cx-gap">···</div>${extra.map(row).join("")}` : ""}</div>` : ""}
     ${b.needAg ? `<div class="note info">เข้าห้องโดยเลือก "แสดงเพศและรุ่นอายุ" เพื่อดูอันดับในรุ่น</div>` : ""}
-    <div class="row" style="justify-content:space-between;margin:12px 2px"><span class="tiny mut">อัปเดตทุกครั้งที่ส่งผลซ้อม · ${b.total} คน</span>${(p.chJoined || {})[room] ? `<span>${p.photo ? `<button class="linkbtn" data-chav style="color:var(--mut);font-size:12px">${p.chAv ? "ซ่อนรูปของฉัน" : "แสดงรูปของฉัน"}</button> · ` : ""}<button class="linkbtn" data-chleave="${room}" style="color:var(--mut);font-size:12px">ออกจากห้อง</button></span>` : ""}</div>${meBar}`;
+    <div class="row" style="justify-content:space-between;margin:12px 2px"><span class="tiny mut">อัปเดตทุกครั้งที่ส่งผลซ้อม · ${b.total} คน</span>${(p.chJoined || {})[room] ? `<span>${p.photo ? `<button class="linkbtn" data-chav style="color:var(--mut);font-size:12px">${p.chAv ? "ซ่อนรูปของฉัน" : "แสดงรูปของฉัน"}</button> · ` : ""}<button class="linkbtn" data-chren style="color:var(--mut);font-size:12px">✏️ แก้ชื่อ</button> · <button class="linkbtn" data-chleave="${room}" style="color:var(--mut);font-size:12px">ออกจากห้อง</button></span>` : ""}</div>${meBar}`;
   bind();
   document.querySelectorAll("#sheetBody [data-adm]").forEach(x => x.addEventListener("click", async () => { if (!confirm("ลบชื่อนี้ออกจากห้อง?")) return; try { await chApi("/admin/remove", { admin, room, id: x.dataset.adm }); chBoardSheet(room, f); } catch (e) { toast("ลบไม่ได้: " + e.message); } }));
   document.querySelectorAll("#sheetBody [data-admav]").forEach(x => x.addEventListener("click", async () => { if (!confirm("ลบรูปโปรไฟล์ของคนนี้?")) return; try { await chApi("/admin/noav", { admin, id: x.dataset.admav }); chBoardSheet(room, f); } catch (e) { toast("ลบไม่ได้: " + e.message); } }));
   const avb = document.querySelector("#sheetBody [data-chav]");
   if (avb) avb.addEventListener("click", async () => { p.chAv = !p.chAv; save(); avb.textContent = "กำลังอัปเดต…"; await chAvPush(p); toast(p.chAv ? "แสดงรูปในตารางแล้ว" : "ซ่อนรูปแล้ว"); chBoardSheet(room, f); chSync(p); });
+  const rn = document.querySelector("#sheetBody [data-chren]"); if (rn) rn.addEventListener("click", () => chJoinSheet(room));
   const lv = document.querySelector("#sheetBody [data-chleave]");
   if (lv) lv.addEventListener("click", async () => { if (!confirm("ออกจากห้องนี้? ยอดของคุณในตารางจะถูกลบ")) return;
     try { await chApi("/leave", { uid: id.uid, key: id.key, room }); delete p.chJoined[room]; if (p.chCache) delete p.chCache[room]; save(); closeSheet(); render(); toast("ออกจากห้องแล้ว"); } catch (e) { toast("ทำไม่ได้ตอนนี้ ลองใหม่"); } });
