@@ -504,7 +504,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v48</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v49</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -1319,7 +1319,8 @@ function lapStats(l) {
   const laps = (l.laps || []).map(([km, sec], i) => ({ n: i + 1, km: +km, sec: +sec, pace: +sec / +km })).filter(x => x.km >= 0.5 && PACE_OK(x.pace));
   if (laps.length < 4) return null;
   const tot = laps.reduce((t, x) => t + x.km, 0), totSec = laps.reduce((t, x) => t + x.sec, 0);
-  const allKm = +l.km || tot, allSec = toSec(l.time);
+  let allKm = +l.km || tot, allSec = toSec(l.time);
+  if (l.multi) { const m = l.multi.filter(([k]) => +k >= tot - 0.05).sort((a, b) => a[0] - b[0])[0]; if (m) { allKm = +m[0]; allSec = +m[1]; } }   // หลายกิจกรรม: รอบเป็นของกิจกรรมหลัก
   let p1, p2, partial = null;
   if (allSec && allKm - tot > Math.max(1, allKm * 0.15) && allSec > totSec) {
     // รูปรอบไม่ครบ: เทียบช่วงที่มีรอบ กับระยะที่เหลือ (คำนวณจากเวลารวม)
@@ -1373,12 +1374,14 @@ function analyzeLog(p, l) {
     if (+l.rpe >= 7) out.push({ lvl: "warn", t: `RPE ${l.rpe} สูงสำหรับวันเบา — อาจพักไม่พอ ร้อน หรือขาดน้ำ ลองนอนเพิ่มและวิ่งช่วงอากาศเย็นกว่า` });
   }
   if (l.type === "quality") {
-    const sp = +l.segKm && l.segTime ? toSec(l.segTime) / +l.segKm : 0;
+    const ag = !(+l.segKm && l.segTime) && lapSeg(l);
+    const sp = +l.segKm && l.segTime ? toSec(l.segTime) / +l.segKm : ag ? ag.sec / ag.km : 0;
+    if (ag) out.push({ lvl: "info", t: `ช่วงเร็วต่อเนื่อง (หาจากรอบให้อัตโนมัติ): กม. ${ag.from}–${ag.to} รวม ${fmtKm(ag.km)} กม. เพซ ${fmtPace(ag.sec / ag.km)}/กม.` });
     if (sp && v && v.range) {
       if (sp < v.range[0] - 5) out.push({ lvl: "warn", t: `ช่วงเร็ว ${fmtPace(sp)}/กม. เร็วกว่าเป้า (${rng(v.range)}) — เร็วเกินช่วยไม่มาก แต่เพิ่มความล้า` });
       else if (sp <= v.range[1] + 3) out.push({ lvl: "ok", t: `ช่วงเร็ว ${fmtPace(sp)}/กม. ตรงเป้า ${rng(v.range)} 👍` });
       else out.push({ lvl: +l.rpe >= 8 ? "warn" : "info", t: `ช่วงเร็ว ${fmtPace(sp)}/กม. ช้ากว่าเป้า${+l.rpe >= 8 ? " และเหนื่อยมาก — สัปดาห์หน้าจะปรับเพซให้" : " — ถ้ายังไม่เหนื่อยมาก ครั้งหน้าลองดันอีกนิด"}` });
-    } else out.push({ lvl: "info", t: "ใส่ “ช่วงเร็วต่อเนื่อง” ครั้งหน้า เพื่อให้วิเคราะห์เพซและคำนวณ VO2max ได้" });
+    } else if (!sp) out.push({ lvl: "info", t: "อยากให้วิเคราะห์ช่วงเร็วและคำนวณ VO2max: ส่งรูปหน้า “รอบ” มาด้วย แอพจะหาช่วงเร็วให้เอง หรือกรอกเองตอนส่งผล → “แก้ค่าที่อ่านได้เอง” → “ช่วงเร็วต่อเนื่อง”" });
     if (+l.rpe <= 5) out.push({ lvl: "info", t: `RPE ${l.rpe} สำหรับวันเร็วถือว่าสบาย — ความฟิตอาจดีกว่าเป้า` });
   }
   if (l.type === "race" && pace && nr && !isTrail(nr) && !steep) out.push({ lvl: "info", t: `เพซเฉลี่ย ${fmtPace(pace)}/กม. เทียบเพซเป้า ${nr.name} ${fmtPace(nr.target / nr.km)}/กม.` });
@@ -1701,6 +1704,11 @@ async function chSync(p, opt = {}) {
   chBusy = true;
   try {
     const id = chIdent(p);
+    const DEF = ["นักวิ่งใหม่", "นักวิ่ง", ""], nm = String(p.name || "").trim().slice(0, 20);
+    if (mine.length && nm && !DEF.includes(nm) && p.chName !== nm && (DEF.includes(String(p.chName || "").trim()) || p.chNameAuto)) {   // เปลี่ยนชื่อในโปรไฟล์ → อัปเดตชื่อในตารางให้ด้วย
+      for (const room of mine) { const sh = p.chJoined[room] && p.chJoined[room].showAg; await chApi("/join", { uid: id.uid, key: id.key, room, name: nm, sex: sh ? p.sex : "", ag: sh ? agCode(p) : "" }); }
+      p.chName = nm; p.chNameAuto = true;
+    }
     if (mine.length) await chApi("/submit", { uid: id.uid, key: id.key, entries: mine.map(room => ({ room, value: roomVal(p, room) })) });
     p.chCache = p.chCache || {}; p.chRank = p.chRank || {};
     for (const room of mine.filter(r => r.startsWith(curMonth()))) {
@@ -1748,11 +1756,21 @@ function chLobbyHtml(p) {
     ${chHeroHtml(p, "ห้องที่เข้าร่วม") ? `<div style="height:14px"></div>${chHeroHtml(p, "ห้องที่เข้าร่วม")}` : ""}
     <div class="tiny mut" style="text-align:center;margin:8px 0 18px">ส่งขึ้นตารางแค่ชื่อเล่น + ยอดรวมของห้อง ไม่ส่งเวลา เพซ หัวใจ หรือข้อมูลสุขภาพ</div>`;
 }
+// ช่วงเร็วต่อเนื่องจากรอบ: ช่วงติดกัน ≥ 2 กม. ที่เร็วที่สุด แล้วขยายต่อถ้ารอบข้าง ๆ เพซใกล้กัน (≤ 3%)
+function lapSeg(l) {
+  const L = (l.laps || []).map(([k, s]) => ({ k: +k, s: +s })).filter(x => x.k >= 0.5 && PACE_OK(x.s / x.k)); if (L.length < 2) return null;
+  let best = null;
+  for (let i = 0; i < L.length; i++) { let k = 0, s = 0; for (let j = i; j < L.length; j++) { k += L[j].k; s += L[j].s; if (k >= 1.95) { if (!best || s / k < best.s / best.k) best = { i, j, k, s }; break; } } }
+  if (!best) return null;
+  let { i, j, k, s } = best; const lim = (s / k) * 1.03, ok = x => x.s / x.k <= lim;
+  for (let go = true; go;) { go = false; if (j + 1 < L.length && ok(L[j + 1])) { j++; k += L[j].k; s += L[j].s; go = true; } if (i > 0 && ok(L[i - 1])) { i--; k += L[i].k; s += L[i].s; go = true; } }
+  return { km: Math.round(k * 100) / 100, sec: Math.round(s), from: i + 1, to: j + 1 };
+}
 function chJoinSheet(room) {
   const p = P(), d = roomDef(room), canAg = !!(p.sex && birthCE(p));
   openSheet(`${d.em} เข้าร่วม ${d.full}`, `<form id="cjForm">
     <p class="small mut" style="margin-top:0">${d.sub} · เดือน${monthTH(room)} · ยอดคิดจากผลซ้อมที่ส่งในเดือนนี้อัตโนมัติ (รวมที่ส่งไปแล้ว)</p>
-    <label class="f">ชื่อที่จะแสดงในตาราง<input name="name" maxlength="20" value="${esc(p.chName || p.name || "")}" required></label>
+    <label class="f">ชื่อที่จะแสดงในตาราง<input name="name" maxlength="20" value="${esc([p.chName, p.name].find(x => x && x !== "นักวิ่งใหม่" && x !== "นักวิ่ง") || "")}" placeholder="ชื่อเล่น เช่น แพร" required></label>
     <label class="inline"><input type="checkbox" name="showAg" ${canAg ? "checked" : "disabled"}> แสดงเพศและรุ่นอายุ (${canAg ? `${p.sex === "m" ? "ชาย" : "หญิง"} ${agText(agCode(p))}` : "ใส่เพศ/ปีเกิดในแท็บ ฉัน ก่อน"}) เพื่อจัดอันดับในรุ่น</label>
     <label class="inline cx-avck">${p.photo ? `<img src="${p.photo}" alt="">` : ""}<input type="checkbox" name="showAv" ${p.photo ? (p.chAv === false ? "" : "checked") : "disabled"}> ${p.photo ? "แสดงรูปโปรไฟล์ในตาราง (ย่อเป็นรูปเล็ก)" : "แสดงรูปโปรไฟล์ — ใส่รูปในแท็บ ฉัน ก่อน"}</label>
     <div class="note info" style="margin:10px 0">ส่งขึ้นไปแค่ชื่อเล่น${canAg ? " เพศ รุ่นอายุ" : ""}${p.photo ? " รูปโปรไฟล์ (ถ้าเลือก)" : ""} และยอดรวมของห้องนี้ ออกจากห้องได้ทุกเมื่อ ยอดจะถูกลบ</div>
@@ -1762,7 +1780,7 @@ function chJoinSheet(room) {
       try {
         const id = chIdent(p), name = F.name.value.trim().slice(0, 20) || "นักวิ่ง", sh = F.showAg.checked;
         await chApi("/join", { uid: id.uid, key: id.key, room, name, sex: sh ? p.sex : "", ag: sh ? agCode(p) : "" });
-        p.chName = name; p.chJoined = p.chJoined || {}; p.chJoined[room] = { at: TODAY, showAg: sh }; p.chAv = !!(p.photo && F.showAv.checked); save(); track("challenge-join");
+        p.chName = name; p.chNameAuto = name === String(p.name || "").trim(); p.chJoined = p.chJoined || {}; p.chJoined[room] = { at: TODAY, showAg: sh }; p.chAv = !!(p.photo && F.showAv.checked); save(); track("challenge-join");
         await chAvPush(p);
         closeSheet(); toast("เข้าร่วมแล้ว! 🎉"); render(); chSync(p, { after: () => chBoardSheet(room) });
       } catch (err) { btn.disabled = false; btn.textContent = "เข้าร่วมเลย"; toast(err.message === "name" ? "ชื่อนี้ใช้ไม่ได้ ลองชื่ออื่น" : "เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง"); }
@@ -4360,7 +4378,7 @@ function openLog(key) {
       if (hA >= 60 && hA <= 230) l.hrAvg = hA; if (hM >= 60 && hM <= 230) l.hrMax = hM;
       if (dp > 0 && dp < 20000) l.dplus = dp;
       if (F.env.value === "tm") { l.env = "tm"; const inc = parseFloat(String(F.incline.value).replace(",", ".")); if (inc >= 0 && inc <= 15) l.incline = inc; }
-      if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
+      if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (l.type === "quality" && !l.segKm && l.laps) { const g = lapSeg(l); if (g) { l.segKm = g.km; l.segTime = fmtTime(g.sec); l.segAuto = true; } } if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.multi && Math.abs(km - ocr.km) < 0.02) l.multi = ocr.multi.map(x => [x.km, x.sec]); if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
       commitLog(p, l);
     });
   });
