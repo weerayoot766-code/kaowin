@@ -504,7 +504,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v46</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v47</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -4161,6 +4161,16 @@ function parseRunText(texts) {
   }
   if (!r.paceAvg) { const cnt = {}; lines.forEach(s => { const re = new RegExp(PACE.source, "gi"); let m; while ((m = re.exec(s))) { const v = +m[1] * 60 + +m[2]; if (PACE_OK(v)) cnt[v] = (cnt[v] || 0) + 1; } }); const b = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]; if (b && b[1] >= 2) r.paceAvg = +b[0]; }
   if (!r.timeSec && r.km && r.paceAvg) { r.timeSec = Math.round(r.km * r.paceAvg); r.timeEst = true; }   // ไม่เจอเวลา: คำนวณจากระยะ × เพซเฉลี่ย
+  // อ่านป้ายไม่ออก (ระยะ/เพซหาย) แต่ได้เวลา → จับคู่ตัวเลขทศนิยม × ตัวเลขนาที:วินาที ที่คูณกันได้เวลาพอดี
+  if (r.timeSec && (!r.km || !r.paceAvg) && !r.laps.length) {
+    const cl1 = s => s.replace(/[ไlI|](?=\s*[.,]?\s*\d)|(?<=\d\s*[.,]?\s*)[ไlI|]/g, "1"), cl = s => cl1(cl1(s)).replace(/(\d)\s*[.,]\s*(\d)/g, "$1.$2");
+    const D = r.km ? [r.km] : [], P = r.paceAvg ? [r.paceAvg] : [];
+    lines.forEach(s0 => { const s = cl(s0);
+      if (!r.km) (s.match(/(?<![\d:.])\d{1,3}\.\d{1,2}(?![\d:])/g) || []).forEach(x => { const v = +x; if (v > 0.2 && v <= 300) D.push(v); });
+      if (!r.paceAvg) { const re = /(?<![\d:.])(\d{1,2}):(\d{2})(?![\d:.])/g; let m; while ((m = re.exec(s))) { const v = +m[1] * 60 + +m[2]; if (PACE_OK(v) && v !== r.timeSec) P.push(v); } } });
+    let best = null; D.forEach(d => P.forEach(p => { const e = Math.abs(d * p - r.timeSec) / r.timeSec; if (e <= 0.015 && (!best || e < best.e)) best = { d, p, e }; }));
+    if (best) { r.km = best.d; r.paceAvg = best.p; }
+  }
   // ตรวจไขว้: ระยะ × เพซ ต้องได้เวลา — ถ้าไม่ตรง เลือกตัวเลขระยะที่ตรงกว่า
   if (r.timeSec && r.paceAvg) {
     const want = r.timeSec / r.paceAvg, near = v => Math.abs(v - want) / want;
@@ -4189,13 +4199,17 @@ function parseRunText(texts) {
 // หลายรูปจากคนละกิจกรรม (เช่น วอร์มอัพ 1.10 กม. + วิ่งหลัก 7.54 กม.) → รวมเป็นผลเดียว
 function parseRunMulti(texts) {
   const all = parseRunText(texts); if (texts.length < 2) return all;
-  const acts = [];
-  texts.forEach(t => {
+  const acts = [], partial = [];
+  texts.forEach((t, ix) => {
     const r = parseRunText([t]), st = (String(t).match(/@\s*(\d{1,2})[:.](\d{2})/) || []).slice(1).map(x => x.padStart(2, "0")).join(":");
-    if (!r.km || !r.timeSec || r.laps.length >= 2 || r.timeEst) return;
+    if (r.laps.length >= 2) return;
+    if (!r.km !== !r.timeSec) { partial.push({ ix: ix + 1, km: r.km || 0, sec: r.timeSec || 0 }); return; }
+    if (!r.km || r.timeEst) return;
     if (acts.some(a => Math.abs(a.km - r.km) < .02 && Math.abs(a.sec - r.timeSec) < 5)) return;
     acts.push({ km: r.km, sec: r.timeSec, hr: r.hrAvg || 0, hrMax: r.hrMax || 0, dplus: r.dplus || 0, st });
   });
+  if (partial.length && acts.length) all.partial = partial;
+  if (acts.length === 1 && partial.length) { const a = acts[0]; Object.assign(all, { km: a.km, timeSec: a.sec, paceAvg: 0, fixed: undefined, timeEst: false, hrAvg: a.hr || all.hrAvg, hrMax: a.hrMax || all.hrMax }); return all; }
   if (acts.length < 2) return all;
   acts.sort((a, b) => (a.st || "").localeCompare(b.st || ""));
   const hrA = acts.filter(a => a.hr), sec = acts.reduce((t, a) => t + a.sec, 0);
@@ -4323,7 +4337,7 @@ function openLog(key) {
           else if (!F.sessionKey.value && ocr.km) F.type.value = ocr.km >= 14 ? "long" : "easy";
           ["km", "time", "hrAvg", "hrMax", "dplus", "date"].forEach(n => { if (F[n].value) F[n].classList.add("ocr-filled"); });
           st.innerHTML = "";
-          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>${ocr.multi ? `<div class="note info" style="margin-top:8px">🔗 พบ <b>${ocr.multi.length} กิจกรรม</b> ในรูป: ${ocr.multi.map(x => `${x.st ? x.st + " น. " : ""}${x.km} กม. ${fmtTime(x.sec)}`).join(" + ")} → <b>รวมเป็น ${ocr.km} กม. ${fmtTime(ocr.timeSec)}</b><br><button type="button" class="linkbtn" data-ocr-one style="margin-top:4px">ใช้แค่กิจกรรมที่ยาวที่สุดแทน</button></div>` : ""}${ocr.date ? "" : `<div class="note warn" style="margin-top:8px">📅 ไม่พบวันที่ในรูป — ตอนนี้ใส่เป็น<b>วันนี้</b>ไว้ ถ้าเป็นผลวันก่อน เลือก “วันที่” ด้านล่างให้ถูกก่อนกดบันทึก</div>`}${ocr.km && !ocr.timeSec ? `<div class="note warn" style="margin-top:8px">⏱ อ่าน<b>เวลา</b>จากรูปไม่ได้ — พิมพ์เวลารวมในช่อง “เวลารวม” ด้านล่าง (เช่น 48:00) ไม่งั้นจะไม่มีเพซและรูปแชร์จะขึ้นแต่ระยะ</div>` : ocr.timeEst ? `<div class="note info" style="margin-top:8px">⏱ ไม่เห็นเวลาในรูป เลยคำนวณจากระยะ × เพซเฉลี่ย = <b>${fmtTime(ocr.timeSec)}</b> ตรวจอีกทีนะ</div>` : ""}`;
+          res.innerHTML = `<div class="note" style="margin-top:8px">✓ อ่านได้จาก ${files.length} รูป</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${ocrSummary(ocr)}</div>${ocr.multi ? `<div class="note info" style="margin-top:8px">🔗 พบ <b>${ocr.multi.length} กิจกรรม</b> ในรูป: ${ocr.multi.map(x => `${x.st ? x.st + " น. " : ""}${x.km} กม. ${fmtTime(x.sec)}`).join(" + ")} → <b>รวมเป็น ${ocr.km} กม. ${fmtTime(ocr.timeSec)}</b><br><button type="button" class="linkbtn" data-ocr-one style="margin-top:4px">ใช้แค่กิจกรรมที่ยาวที่สุดแทน</button></div>` : ""}${ocr.partial ? ocr.partial.map(x => `<div class="note warn" style="margin-top:8px">⚠️ รูปที่ ${x.ix} อ่าน${x.km ? `ได้แค่ระยะ ${x.km} กม. ไม่เห็นเวลา` : `ได้แค่เวลา ${fmtTime(x.sec)} ไม่เห็นระยะ`} — ยังไม่ได้รวมรูปนี้ ถ้าเป็นอีกกิจกรรม บวกเพิ่มเองในช่อง “ระยะรวม/เวลารวม”</div>`).join("") : ""}${ocr.date ? "" : `<div class="note warn" style="margin-top:8px">📅 ไม่พบวันที่ในรูป — ตอนนี้ใส่เป็น<b>วันนี้</b>ไว้ ถ้าเป็นผลวันก่อน เลือก “วันที่” ด้านล่างให้ถูกก่อนกดบันทึก</div>`}${ocr.km && !ocr.timeSec ? `<div class="note warn" style="margin-top:8px">⏱ อ่าน<b>เวลา</b>จากรูปไม่ได้ — พิมพ์เวลารวมในช่อง “เวลารวม” ด้านล่าง (เช่น 48:00) ไม่งั้นจะไม่มีเพซและรูปแชร์จะขึ้นแต่ระยะ</div>` : ocr.timeEst ? `<div class="note info" style="margin-top:8px">⏱ ไม่เห็นเวลาในรูป เลยคำนวณจากระยะ × เพซเฉลี่ย = <b>${fmtTime(ocr.timeSec)}</b> ตรวจอีกทีนะ</div>` : ""}`;
           res.insertAdjacentHTML("beforeend", `<details class="tiny" style="margin-top:8px"><summary>🔍 ดูว่าอ่านแต่ละรูปได้อะไร</summary>${texts.map((t, i) => { const r = parseRunText([t]), why = !r.km ? "ไม่พบระยะ" : !r.timeSec ? "ไม่พบเวลา" : r.laps.length >= 2 ? `ตารางรอบ ${r.laps.length} รอบ` : r.timeEst ? "เวลาคำนวณเอง" : "นับเป็น 1 กิจกรรม"; return `<div style="margin-top:4px">รูปที่ ${i + 1}: ${r.km ? r.km + " กม. " : ""}${r.timeSec ? fmtTime(r.timeSec) + " " : ""}— ${why}</div>`; }).join("")}<button type="button" class="linkbtn" data-ocr-copy style="margin-top:6px">📋 คัดลอกข้อความที่อ่านได้ (ส่งให้ผู้พัฒนา)</button></details>`);
           res.querySelector("[data-ocr-copy]").addEventListener("click", e => { const tx = `KAOWIN ${document.getElementById("appVer")?.textContent || ""} · ${files.length} รูป\n` + texts.map((t, i) => `===== รูปที่ ${i + 1}\n${t}`).join("\n"); const ok = () => { e.target.textContent = "✓ คัดลอกแล้ว วางในแชทได้เลย"; }; (navigator.clipboard ? navigator.clipboard.writeText(tx).then(ok) : Promise.reject()).catch(() => { const ta = document.createElement("textarea"); ta.value = tx; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); ok(); }); });
           const one = res.querySelector("[data-ocr-one]"); if (one) one.addEventListener("click", () => { const x = ocr.multi.reduce((p, q) => q.km > p.km ? q : p); F.km.value = x.km; F.time.value = fmtTime(x.sec); if (x.hr) F.hrAvg.value = x.hr; if (x.hrMax) F.hrMax.value = x.hrMax; one.parentNode.innerHTML = `✓ ใช้เฉพาะ ${x.km} กม. ${fmtTime(x.sec)}`; });
