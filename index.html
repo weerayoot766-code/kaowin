@@ -506,7 +506,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v54</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v55</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -4816,19 +4816,33 @@ function pingStat() {
 setTimeout(pingStat, 1500);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) pingStat(); });
 // ---- สถิติผู้ใช้ (แอดมิน): แตะเลขเวอร์ชันท้ายหน้า 5 ครั้ง ----
-async function statsSheet() {
-  const key = (() => { try { return localStorage.getItem("kaowin.admin") || ""; } catch (e) { return ""; } })();
-  if (!key && !statsSheet.ask) {             // ยังไม่ตั้งรหัสแอดมินใน Worker → ดูได้เลย
-    try { await chApi("/admin/stats", { admin: "" }); } catch (e) { if (/admin/.test(e.message)) { statsSheet.ask = 1; return statsSheet(); } }
-  } else if (!key) {
-    openSheet("📊 สถิติผู้ใช้ (แอดมิน)", `<form id="admKey"><label class="f">รหัสแอดมิน (ADMIN_KEY ใน Cloudflare)<input name="k" type="password" autocomplete="off" required></label><button class="btn block" type="submit">ดูสถิติ</button><p class="tiny mut">เก็บไว้ในเครื่องนี้เครื่องเดียว</p></form>`,
-      body => body.querySelector("#admKey").addEventListener("submit", e => { e.preventDefault(); try { localStorage.setItem("kaowin.admin", e.target.elements.k.value.trim()); } catch (er) {} statsSheet(); }));
-    return;
-  }
+async function statsSheet(msg) {
+  const lsGet = k => { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }, lsSet = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} };
+  const key = lsGet("kaowin.admin");
+  // ฟอร์มรหัส: set = ตั้งครั้งแรก, ask = ใส่รหัสที่ตั้งไว้
+  const form = mode => {
+    openSheet(mode === "set" ? "🔐 ตั้งรหัสดูสถิติ" : "🔐 ใส่รหัสดูสถิติ", `<form id="admKey">
+      ${msg ? `<div class="note warn" style="margin-bottom:10px">${msg}</div>` : ""}
+      ${mode === "set" ? `<p class="small mut" style="margin-top:0">ตั้งรหัสครั้งแรก (อย่างน้อย 4 ตัว) — คนอื่นที่แตะเลขเวอร์ชันจะเปิดไม่ได้ถ้าไม่รู้รหัสนี้ จดไว้ด้วยนะ</p>` : ""}
+      <label class="f">รหัส<input name="k" type="password" inputmode="text" autocomplete="off" minlength="4" required></label>
+      ${mode === "set" ? `<label class="f">ใส่รหัสอีกครั้ง<input name="k2" type="password" autocomplete="off" minlength="4" required></label>` : ""}
+      <button class="btn block" type="submit">${mode === "set" ? "ตั้งรหัสและดูสถิติ" : "ดูสถิติ"}</button></form>`,
+      body => body.querySelector("#admKey").addEventListener("submit", async e => {
+        e.preventDefault(); const F = e.target.elements, k = F.k.value.trim(), btn = e.target.querySelector("button");
+        if (mode === "set") {
+          if (k !== F.k2.value.trim()) return toast("รหัส 2 ช่องไม่ตรงกัน");
+          btn.disabled = true; try { await chApi("/admin/setkey", { key: k }); } catch (er) { btn.disabled = false; return toast(er.message === "short" ? "รหัสสั้นไป ใส่อย่างน้อย 4 ตัว" : er.message === "admin" ? "มีคนตั้งรหัสไว้แล้ว — ใส่รหัสเดิม" : "เชื่อมต่อไม่ได้ ลองใหม่"); }
+        }
+        lsSet("kaowin.admin", k); statsSheet();
+      }));
+  };
+  if (!key && msg !== "load") return statsSheet.mode ? form(statsSheet.mode) : (statsSheet.mode = "ask", statsSheet("load"));
   openSheet("📊 สถิติผู้ใช้", `<div class="mut small" style="text-align:center;padding:30px">กำลังโหลด…</div>`);
   let r; try { r = await chApi("/admin/stats", { admin: key }); } catch (e) {
-    $("#sheetBody").innerHTML = `<div class="note warn">${/admin|403/.test(e.message) ? "รหัสแอดมินไม่ถูกต้อง" : /not found|404/.test(e.message) ? "Worker ยังเป็นเวอร์ชันเก่า — วางโค้ด Worker ใหม่ก่อน" : esc(e.message)}</div><button class="btn block" data-admreset style="margin-top:10px">ใส่รหัสใหม่</button>`;
-    const b = $("#sheetBody [data-admreset]"); if (b) b.addEventListener("click", () => { try { localStorage.removeItem("kaowin.admin"); } catch (er) {} statsSheet(); }); return; }
+    if (e.message === "nokey") { statsSheet.mode = "set"; msg = ""; return form("set"); }
+    if (e.message === "admin") { lsSet("kaowin.admin", ""); statsSheet.mode = "ask"; msg = key ? "รหัสไม่ถูกต้อง ลองใหม่" : ""; return form("ask"); }
+    $("#sheetBody").innerHTML = `<div class="note warn">${/not found|404/.test(e.message) ? "Worker ยังเป็นเวอร์ชันเก่า — วางโค้ด Worker ใหม่ก่อน" : "เชื่อมต่อไม่ได้ — " + esc(e.message)}</div>`; return; }
+  lsSet("kaowin.owner", "1"); ownerBtn();           // ผ่านรหัสแล้ว = เครื่องเจ้าของ → โชว์ปุ่มสถิติ
   const t = r.tot, D = Object.entries(r.days), mx = Math.max(1, ...D.map(([, v]) => v.act));
   const tile = (n, l, sub) => `<div class="card" style="margin:0;padding:12px;text-align:center"><div style="font-size:26px;font-weight:800">${n}</div><div class="tiny">${l}</div>${sub ? `<div class="tiny mut">${sub}</div>` : ""}</div>`;
   const dd = d => { const [y, m, x] = d.split("-"); return `${+x}/${+m}`; };
@@ -4843,10 +4857,9 @@ async function statsSheet() {
 // ปุ่มสถิติลอยเหนือ "ส่งผลซ้อม" — โชว์เฉพาะเครื่องเจ้าของ (เปิดครั้งแรกด้วยการแตะเลขเวอร์ชัน 5 ครั้ง หรือลิงก์ #owner)
 const ownerOn = () => { try { return localStorage.getItem("kaowin.owner") === "1"; } catch (e) { return false; } };
 function ownerBtn() { const b = document.getElementById("fabStats"); if (b) b.hidden = !ownerOn(); }
-try { if (/(^|[#&])owner\b/.test(location.hash)) { localStorage.setItem("kaowin.owner", "1"); history.replaceState(null, "", location.pathname); } } catch (e) {}
-document.getElementById("fabStats").addEventListener("click", e => { e.stopPropagation(); statsSheet(); });
+document.getElementById("fabStats").addEventListener("click", e => { e.stopPropagation(); statsSheet.mode = ""; statsSheet(); });
 ownerBtn();
-{ let n = 0, tm = 0; const v = document.getElementById("appVer"); if (v) v.addEventListener("click", () => { clearTimeout(tm); tm = setTimeout(() => n = 0, 1500); if (++n >= 5) { n = 0; try { localStorage.setItem("kaowin.owner", "1"); } catch (e) {} ownerBtn(); statsSheet(); } }); }
+{ let n = 0, tm = 0; const v = document.getElementById("appVer"); if (v) v.addEventListener("click", () => { clearTimeout(tm); tm = setTimeout(() => n = 0, 1500); if (++n >= 5) { n = 0; statsSheet.mode = ""; statsSheet(); } }); }
 lvBind(); fitBind(); setTimeout(lvRecover, 600);
 try { const m = location.hash.match(/admin=([^&]+)/); if (m) { localStorage.setItem("kaowin.admin", decodeURIComponent(m[1])); history.replaceState(null, "", location.pathname); } } catch (e) {}
 setTimeout(() => { const p = P(); const me = chMonthEnd(p); if (me.length) showAch(me, null); if (CH_API) chSync(p); }, 1200);
