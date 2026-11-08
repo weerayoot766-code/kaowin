@@ -25,7 +25,7 @@ body{display:flex;flex-direction:column;min-height:100vh;box-sizing:border-box;p
 main{flex:1 0 auto;width:100%;box-sizing:border-box}
 .top,.foot{width:100%}
 .foot{background:#0d5a3c;color:#e3f4e8;margin-top:8px}
-.foot-in{max-width:640px;margin:0 auto;padding:16px 16px calc(78px + env(safe-area-inset-bottom));text-align:left;font-size:12.5px;line-height:1.6;display:flex;flex-direction:column;align-items:flex-start}
+.foot-in{max-width:640px;margin:0 auto;padding:16px 16px calc(150px + env(safe-area-inset-bottom));text-align:left;font-size:12.5px;line-height:1.6;display:flex;flex-direction:column;align-items:flex-start}
 .foot-in b{color:#fff;font-weight:600;letter-spacing:.2px}
 .foot-in span{color:#b9dec6}
 .line-btn{display:inline-flex;align-items:center;gap:8px;background:#06c755;color:#fff;text-decoration:none;font-weight:700;font-size:15px;border-radius:12px;padding:11px 18px;margin-bottom:4px;min-height:44px;box-sizing:border-box}
@@ -206,6 +206,8 @@ body.lv-on{overflow:hidden}
 #live{position:fixed;inset:0;z-index:60;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
 #live.hidden{display:none}
 .fabs{position:fixed;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:7;display:flex;gap:8px;align-items:center}
+.fab-st{position:absolute;right:0;bottom:calc(100% + 10px);border:0;border-radius:999px;padding:11px 16px;font:inherit;font-weight:700;font-size:14px;background:linear-gradient(135deg,#ffb020,#ff6a00);color:#fff;box-shadow:0 8px 20px rgba(255,106,0,.35);cursor:pointer}
+.fab-st[hidden]{display:none}
 .fab-live{border-radius:999px;padding:13px 16px;background:#14231a;color:#d9f99d;box-shadow:0 8px 20px rgba(0,0,0,.25)}
 .lv-setup{max-width:560px;margin:0 auto;padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
 .lv-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:18px}
@@ -504,10 +506,10 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v53</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v54</span></span>
 </div></footer>
 
-<div class="fabs" id="fab"><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
+<div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
 <div id="live" class="hidden"></div>
 
 <nav class="tabs"><div class="tabs-in">
@@ -4838,7 +4840,13 @@ async function statsSheet() {
       ${D.map(([d, v]) => `<span>${dd(d)}</span><span style="display:flex;align-items:center;gap:6px"><i style="display:block;height:10px;border-radius:5px;background:var(--brand,#1f8a5b);width:${Math.max(2, v.act / mx * 100)}%"></i>${v.act}</span><span>${v.nw || ""}</span><span>${v.inst || ""}</span><span></span>`).join("")}</div>
     <p class="tiny mut" style="margin-top:12px">ระบบ: ${Object.entries(r.os).map(([k, n]) => `${{ ios: "iPhone/iPad", android: "Android", desktop: "คอม", other: "อื่น ๆ" }[k] || k} ${n}`).join(" · ")}<br>โหมด: ${Object.entries(r.mode).map(([k, n]) => `${k === "fit" ? "ฟิตที่บ้าน" : "วิ่ง"} ${n}`).join(" · ")}<br>นับเครื่องละครั้งต่อวันตอนเปิดแอพ (ต่อเน็ต) · เครื่องที่ใช้มาก่อนมีตัวนับ จะถูกนับย้อนไปวันที่เริ่มใช้จริงตอนเปิดแอพครั้งถัดไป (วันติดตั้งของคนกลุ่มนี้เป็นค่าประมาณ)</p>`;
 }
-{ let n = 0, tm = 0; const v = document.getElementById("appVer"); if (v) v.addEventListener("click", () => { clearTimeout(tm); tm = setTimeout(() => n = 0, 1500); if (++n >= 5) { n = 0; statsSheet(); } }); }
+// ปุ่มสถิติลอยเหนือ "ส่งผลซ้อม" — โชว์เฉพาะเครื่องเจ้าของ (เปิดครั้งแรกด้วยการแตะเลขเวอร์ชัน 5 ครั้ง หรือลิงก์ #owner)
+const ownerOn = () => { try { return localStorage.getItem("kaowin.owner") === "1"; } catch (e) { return false; } };
+function ownerBtn() { const b = document.getElementById("fabStats"); if (b) b.hidden = !ownerOn(); }
+try { if (/(^|[#&])owner\b/.test(location.hash)) { localStorage.setItem("kaowin.owner", "1"); history.replaceState(null, "", location.pathname); } } catch (e) {}
+document.getElementById("fabStats").addEventListener("click", e => { e.stopPropagation(); statsSheet(); });
+ownerBtn();
+{ let n = 0, tm = 0; const v = document.getElementById("appVer"); if (v) v.addEventListener("click", () => { clearTimeout(tm); tm = setTimeout(() => n = 0, 1500); if (++n >= 5) { n = 0; try { localStorage.setItem("kaowin.owner", "1"); } catch (e) {} ownerBtn(); statsSheet(); } }); }
 lvBind(); fitBind(); setTimeout(lvRecover, 600);
 try { const m = location.hash.match(/admin=([^&]+)/); if (m) { localStorage.setItem("kaowin.admin", decodeURIComponent(m[1])); history.replaceState(null, "", location.pathname); } } catch (e) {}
 setTimeout(() => { const p = P(); const me = chMonthEnd(p); if (me.length) showAch(me, null); if (CH_API) chSync(p); }, 1200);
