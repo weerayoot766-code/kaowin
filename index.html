@@ -504,7 +504,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v51</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v52</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -4783,6 +4783,45 @@ function track(name) {
   setTimeout(() => { try { history.pushState(null, "", base + "e/" + name); setTimeout(() => history.replaceState(null, "", back), 400); } catch (e) {} }, 2500);
 }
 if (isStandalone()) track("installed");
+// ---- ตัวนับผู้ใช้ของเราเอง (ผ่าน Worker ชาเลนจ์): รหัสเครื่องสุ่ม + วันที่เปิด วันละครั้ง ไม่ส่งชื่อหรือข้อมูลวิ่ง ----
+function devId() { try { let d = localStorage.getItem("kaowin.did"); if (!d) { d = ((crypto.randomUUID && crypto.randomUUID().replace(/-/g, "")) || (Math.random().toString(36).slice(2) + Date.now().toString(36))).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20); localStorage.setItem("kaowin.did", d); } return d; } catch (e) { return ""; } }
+function pingStat() {
+  try {
+    if (!CH_API || !navigator.onLine) return; const did = devId(); if (did.length < 12) return;
+    const inst = isStandalone() ? 1 : 0, day = ds(new Date()), k = day + ":" + inst;
+    if (localStorage.getItem("kaowin.ping") === k) return;
+    const ua = navigator.userAgent, os = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? "ios" : /Android/i.test(ua) ? "android" : /Windows|Macintosh|Linux|CrOS/.test(ua) ? "desktop" : "other";
+    let mode = "run"; try { mode = P().mode === "fit" ? "fit" : "run"; } catch (e) {}
+    fetch(CH_API.replace(/\/$/, "") + "/ping", { method: "POST", body: JSON.stringify({ did, inst, os, mode }), keepalive: true })
+      .then(r => r.json()).then(j => { if (j.ok) localStorage.setItem("kaowin.ping", k); }).catch(() => {});
+  } catch (e) {}
+}
+setTimeout(pingStat, 1500);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) pingStat(); });
+// ---- สถิติผู้ใช้ (แอดมิน): แตะเลขเวอร์ชันท้ายหน้า 5 ครั้ง ----
+async function statsSheet() {
+  const key = (() => { try { return localStorage.getItem("kaowin.admin") || ""; } catch (e) { return ""; } })();
+  if (!key) {
+    openSheet("📊 สถิติผู้ใช้ (แอดมิน)", `<form id="admKey"><label class="f">รหัสแอดมิน (ADMIN_KEY ใน Cloudflare)<input name="k" type="password" autocomplete="off" required></label><button class="btn block" type="submit">ดูสถิติ</button><p class="tiny mut">เก็บไว้ในเครื่องนี้เครื่องเดียว</p></form>`,
+      body => body.querySelector("#admKey").addEventListener("submit", e => { e.preventDefault(); try { localStorage.setItem("kaowin.admin", e.target.elements.k.value.trim()); } catch (er) {} statsSheet(); }));
+    return;
+  }
+  openSheet("📊 สถิติผู้ใช้", `<div class="mut small" style="text-align:center;padding:30px">กำลังโหลด…</div>`);
+  let r; try { r = await chApi("/admin/stats", { admin: key }); } catch (e) {
+    $("#sheetBody").innerHTML = `<div class="note warn">${/admin|403/.test(e.message) ? "รหัสแอดมินไม่ถูกต้อง" : /not found|404/.test(e.message) ? "Worker ยังเป็นเวอร์ชันเก่า — วางโค้ด Worker ใหม่ก่อน" : esc(e.message)}</div><button class="btn block" data-admreset style="margin-top:10px">ใส่รหัสใหม่</button>`;
+    const b = $("#sheetBody [data-admreset]"); if (b) b.addEventListener("click", () => { try { localStorage.removeItem("kaowin.admin"); } catch (er) {} statsSheet(); }); return; }
+  const t = r.tot, D = Object.entries(r.days), mx = Math.max(1, ...D.map(([, v]) => v.act));
+  const tile = (n, l, sub) => `<div class="card" style="margin:0;padding:12px;text-align:center"><div style="font-size:26px;font-weight:800">${n}</div><div class="tiny">${l}</div>${sub ? `<div class="tiny mut">${sub}</div>` : ""}</div>`;
+  const dd = d => { const [y, m, x] = d.split("-"); return `${+x}/${+m}`; };
+  $("#sheetBody").innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      ${tile(t.devices, "เครื่องทั้งหมด", `ใหม่วันนี้ ${t.newToday} · 7 วัน ${t.new7}`)}${tile(t.installed, "ติดตั้งเป็นแอพ", `วันนี้ ${t.instToday} · 7 วัน ${t.inst7}`)}${tile(t.members, "อยู่ในชาเลนจ์", "")}
+      ${tile(t.dau, "ใช้งานวันนี้", "")}${tile(t.wau, "ใช้งาน 7 วัน", "")}${tile(t.mau, "ใช้งาน 30 วัน", "")}</div>
+    <h3 style="margin:16px 0 6px">14 วันล่าสุด</h3>
+    <div class="tiny mut" style="display:grid;grid-template-columns:44px 1fr 34px 34px 34px;gap:4px;align-items:center"><b>วันที่</b><b>ใช้งาน</b><b>ใหม่</b><b>ติดตั้ง</b><b></b>
+      ${D.map(([d, v]) => `<span>${dd(d)}</span><span style="display:flex;align-items:center;gap:6px"><i style="display:block;height:10px;border-radius:5px;background:var(--brand,#1f8a5b);width:${Math.max(2, v.act / mx * 100)}%"></i>${v.act}</span><span>${v.nw || ""}</span><span>${v.inst || ""}</span><span></span>`).join("")}</div>
+    <p class="tiny mut" style="margin-top:12px">ระบบ: ${Object.entries(r.os).map(([k, n]) => `${{ ios: "iPhone/iPad", android: "Android", desktop: "คอม", other: "อื่น ๆ" }[k] || k} ${n}`).join(" · ")}<br>โหมด: ${Object.entries(r.mode).map(([k, n]) => `${k === "fit" ? "ฟิตที่บ้าน" : "วิ่ง"} ${n}`).join(" · ")}<br>นับเครื่องละครั้งต่อวันตอนเปิดแอพ (ต่อเน็ต) · เริ่มนับตั้งแต่ v52 — เครื่องเดิมจะถูกนับตอนเปิดแอพครั้งถัดไป</p>`;
+}
+{ let n = 0, tm = 0; const v = document.getElementById("appVer"); if (v) v.addEventListener("click", () => { clearTimeout(tm); tm = setTimeout(() => n = 0, 1500); if (++n >= 5) { n = 0; statsSheet(); } }); }
 lvBind(); fitBind(); setTimeout(lvRecover, 600);
 try { const m = location.hash.match(/admin=([^&]+)/); if (m) { localStorage.setItem("kaowin.admin", decodeURIComponent(m[1])); history.replaceState(null, "", location.pathname); } } catch (e) {}
 setTimeout(() => { const p = P(); const me = chMonthEnd(p); if (me.length) showAch(me, null); if (CH_API) chSync(p); }, 1200);
