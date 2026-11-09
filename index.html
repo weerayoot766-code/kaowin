@@ -506,7 +506,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v55</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v56</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -4809,7 +4809,7 @@ function pingStat() {
     if (localStorage.getItem("kaowin.ping") === k) return;
     const ua = navigator.userAgent, os = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? "ios" : /Android/i.test(ua) ? "android" : /Windows|Macintosh|Linux|CrOS/.test(ua) ? "desktop" : "other";
     let mode = "run"; try { mode = P().mode === "fit" ? "fit" : "run"; } catch (e) {}
-    fetch(CH_API.replace(/\/$/, "") + "/ping", { method: "POST", body: JSON.stringify({ did, inst, os, mode, since: firstUse() }), keepalive: true })
+    fetch(CH_API.replace(/\/$/, "") + "/ping", { method: "POST", body: JSON.stringify({ app: "kaowin", did, inst, os, mode, since: firstUse() }), keepalive: true })
       .then(r => r.json()).then(j => { if (j.ok) localStorage.setItem("kaowin.ping", k); }).catch(() => {});
   } catch (e) {}
 }
@@ -4838,7 +4838,8 @@ async function statsSheet(msg) {
   };
   if (!key && msg !== "load") return statsSheet.mode ? form(statsSheet.mode) : (statsSheet.mode = "ask", statsSheet("load"));
   openSheet("📊 สถิติผู้ใช้", `<div class="mut small" style="text-align:center;padding:30px">กำลังโหลด…</div>`);
-  let r; try { r = await chApi("/admin/stats", { admin: key }); } catch (e) {
+  const APP = statsSheet.app || "kaowin";
+  let r; try { r = await chApi("/admin/stats", { admin: key, app: APP }); } catch (e) {
     if (e.message === "nokey") { statsSheet.mode = "set"; msg = ""; return form("set"); }
     if (e.message === "admin") { lsSet("kaowin.admin", ""); statsSheet.mode = "ask"; msg = key ? "รหัสไม่ถูกต้อง ลองใหม่" : ""; return form("ask"); }
     $("#sheetBody").innerHTML = `<div class="note warn">${/not found|404/.test(e.message) ? "Worker ยังเป็นเวอร์ชันเก่า — วางโค้ด Worker ใหม่ก่อน" : "เชื่อมต่อไม่ได้ — " + esc(e.message)}</div>`; return; }
@@ -4846,13 +4847,16 @@ async function statsSheet(msg) {
   const t = r.tot, D = Object.entries(r.days), mx = Math.max(1, ...D.map(([, v]) => v.act));
   const tile = (n, l, sub) => `<div class="card" style="margin:0;padding:12px;text-align:center"><div style="font-size:26px;font-weight:800">${n}</div><div class="tiny">${l}</div>${sub ? `<div class="tiny mut">${sub}</div>` : ""}</div>`;
   const dd = d => { const [y, m, x] = d.split("-"); return `${+x}/${+m}`; };
-  $("#sheetBody").innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-      ${tile(t.devices, "เครื่องทั้งหมด", `ใหม่วันนี้ ${t.newToday} · 7 วัน ${t.new7}`)}${tile(t.installed, "ติดตั้งเป็นแอพ", `วันนี้ ${t.instToday} · 7 วัน ${t.inst7}`)}${tile(t.members, "อยู่ในชาเลนจ์", "")}
+  const tabs = [["kaowin", "🏃 KAOWIN"], ["sea", "🌊 Sea To University"]].map(([k, n]) => `<button type="button" class="seg-b${k === APP ? " on" : ""}" data-stapp="${k}" style="flex:1;border:0;border-radius:999px;padding:9px 6px;font:inherit;font-weight:700;cursor:pointer;${k === APP ? "background:#1f8a5b;color:#fff" : "background:transparent;color:inherit"}">${n}</button>`).join("");
+  $("#sheetBody").innerHTML = `<div style="display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(31,138,91,.1);margin-bottom:12px">${tabs}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      ${tile(t.devices, "เครื่องทั้งหมด", `ใหม่วันนี้ ${t.newToday} · 7 วัน ${t.new7}`)}${tile(t.installed, "ติดตั้งเป็นแอพ", `วันนี้ ${t.instToday} · 7 วัน ${t.inst7}`)}${t.members == null ? tile(t.inst7, "ติดตั้ง 7 วัน", "") : tile(t.members, "อยู่ในชาเลนจ์", "")}
       ${tile(t.dau, "ใช้งานวันนี้", "")}${tile(t.wau, "ใช้งาน 7 วัน", "")}${tile(t.mau, "ใช้งาน 30 วัน", "")}</div>
     <h3 style="margin:16px 0 6px">14 วันล่าสุด</h3>
     <div class="tiny mut" style="display:grid;grid-template-columns:44px 1fr 34px 34px 34px;gap:4px;align-items:center"><b>วันที่</b><b>ใช้งาน</b><b>ใหม่</b><b>ติดตั้ง</b><b></b>
       ${D.map(([d, v]) => `<span>${dd(d)}</span><span style="display:flex;align-items:center;gap:6px"><i style="display:block;height:10px;border-radius:5px;background:var(--brand,#1f8a5b);width:${Math.max(2, v.act / mx * 100)}%"></i>${v.act}</span><span>${v.nw || ""}</span><span>${v.inst || ""}</span><span></span>`).join("")}</div>
-    <p class="tiny mut" style="margin-top:12px">ระบบ: ${Object.entries(r.os).map(([k, n]) => `${{ ios: "iPhone/iPad", android: "Android", desktop: "คอม", other: "อื่น ๆ" }[k] || k} ${n}`).join(" · ")}<br>โหมด: ${Object.entries(r.mode).map(([k, n]) => `${k === "fit" ? "ฟิตที่บ้าน" : "วิ่ง"} ${n}`).join(" · ")}<br>นับเครื่องละครั้งต่อวันตอนเปิดแอพ (ต่อเน็ต) · เครื่องที่ใช้มาก่อนมีตัวนับ จะถูกนับย้อนไปวันที่เริ่มใช้จริงตอนเปิดแอพครั้งถัดไป (วันติดตั้งของคนกลุ่มนี้เป็นค่าประมาณ)</p>`;
+    <p class="tiny mut" style="margin-top:12px">ระบบ: ${Object.entries(r.os).map(([k, n]) => `${{ ios: "iPhone/iPad", android: "Android", desktop: "คอม", other: "อื่น ๆ" }[k] || k} ${n}`).join(" · ")}<br>${APP === "sea" ? "ระดับชั้น" : "โหมด"}: ${Object.entries(r.mode).map(([k, n]) => `${{ fit: "ฟิตที่บ้าน", run: "วิ่ง", lower: "ม.ต้น", upper: "ม.ปลาย" }[k] || "ยังไม่เลือก"} ${n}`).join(" · ")}<br>นับเครื่องละครั้งต่อวันตอนเปิดแอพ (ต่อเน็ต) · เครื่องที่ใช้มาก่อนมีตัวนับ จะถูกนับย้อนไปวันที่เริ่มใช้จริงตอนเปิดแอพครั้งถัดไป (วันติดตั้งของคนกลุ่มนี้เป็นค่าประมาณ)</p>`;
+  $("#sheetBody").querySelectorAll("[data-stapp]").forEach(b => b.addEventListener("click", () => { statsSheet.app = b.dataset.stapp; statsSheet(); }));
 }
 // ปุ่มสถิติลอยเหนือ "ส่งผลซ้อม" — โชว์เฉพาะเครื่องเจ้าของ (เปิดครั้งแรกด้วยการแตะเลขเวอร์ชัน 5 ครั้ง หรือลิงก์ #owner)
 const ownerOn = () => { try { return localStorage.getItem("kaowin.owner") === "1"; } catch (e) { return false; } };
