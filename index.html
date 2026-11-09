@@ -506,7 +506,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v56</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v57</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -3582,7 +3582,7 @@ function sessRow(s, isNext) {
   const meta = s.type === "gym" ? "" : [v.km ? fmtKm(v.km) + " กม." : "", v.pace ? v.pace + "/กม." : "", shoe ? shoeShort(shoe) : ""].filter(Boolean).join(" · ");
   return `<div class="sess ${isNext ? "next" : ""}" data-act="session" data-key="${s.key}">
     <div class="day"><b>${TH_DAY[s.day]}</b><span>${thDate(s.date)}</span></div>
-    <div><div class="sdesc"><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${esc(v.detail)}${v.painAdj ? '<span class="adj" style="color:var(--bad)">ปรับเพราะเจ็บ</span>' : v.adjusted ? '<span class="adj">ปรับตามผล</span>' : ""}${s.edited ? '<span class="adj">แก้เอง</span>' : ""}</div>
+    <div><div class="sdesc"><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${esc(v.detail)}${v.type !== "gym" ? ' <span style="opacity:.55;font-size:12px">ⓘ</span>' : ""}${v.painAdj ? '<span class="adj" style="color:var(--bad)">ปรับเพราะเจ็บ</span>' : v.adjusted ? '<span class="adj">ปรับตามผล</span>' : ""}${s.edited ? '<span class="adj">แก้เอง</span>' : ""}</div>
       ${meta ? `<div class="smeta">${esc(meta)}</div>` : ""}</div>
     <span class="st ${st}">${icon}</span>
   </div>`;
@@ -3683,7 +3683,7 @@ function renderHome() {
 function renderPlan() {
   const p = P();
   if (!W.length) return `<div class="card empty"><div class="mid">ยังไม่มีตาราง</div><p>เพิ่มรายการแข่งและตั้งวันซ้อมในแท็บ “ฉัน”</p><button class="btn" data-act="raceForm">＋ เพิ่มรายการแข่ง</button></div>`;
-  const cw = curWeek(); let lastRace = null, html = `<div class="row" style="align-items:flex-start"><div class="tiny mut">แตะการ์ดสัปดาห์เพื่อดูนัดซ้อมทั้งหมด · แตะนัดเพื่อส่งผลหรือแก้ไข</div><button class="btn ghost sm" data-act="toggleWeeks" style="flex:none">${planAllOpen ? "ย่อทั้งหมด" : "เปิดทั้งหมด"}</button></div>`;
+  const cw = curWeek(); let lastRace = null, html = `<div class="row" style="align-items:flex-start"><div class="tiny mut">แตะการ์ดสัปดาห์เพื่อดูนัดซ้อมทั้งหมด · แตะนัดเพื่อดูวิธีซ้อม ส่งผล หรือแก้ไข</div><button class="btn ghost sm" data-act="toggleWeeks" style="flex:none">${planAllOpen ? "ย่อทั้งหมด" : "เปิดทั้งหมด"}</button></div>`;
   W.forEach(w => {
     if (w.race !== lastRace) { lastRace = w.race; html += `<div class="group"><div><b>→ ${esc(w.race.name)}</b><div class="tiny">${thDateY(w.race.date)} · เป้า ${fmtTime(w.race.target)}${isTrail(w.race) && +w.race.dplus ? ` · D+ ${fmtVert(w.race.dplus)} ม.` : ""}</div></div><span class="chip pink">${esc(raceShort(w.race))}</span></div>`; }
     const runs = w.sessions.filter(s => RUN_TYPES.includes(s.type));
@@ -4008,6 +4008,68 @@ function renderShoes() {
 function openSheet(title, html, mount) { $("#sheetTitle").textContent = title; $("#sheetBody").innerHTML = html; $("#sheet").classList.remove("hidden"); $(".panel").scrollTop = 0; if (mount) mount($("#sheetBody")); }
 const closeSheet = () => $("#sheet").classList.add("hidden");
 
+
+function longExtra(d) {          // ส่วนพิเศษใน Long Run: ช่วงท้ายเร่ง / ท่อนเพซแข่ง
+  const o = [], mF = /ช่วงท้าย\s*([\d.–-]+)\s*กม\.\s*(Steady|@เพซแข่ง)/.exec(d), mS = /(\d+)\s*[×x]\s*([\d.]+)\s*กม\.\s*@เพซแข่ง/.exec(d);
+  if (mF) o.push(`ช่วงท้าย ${mF[1]} กม.: เร่งขึ้นเป็น${mF[2] === "Steady" ? "เพซ Steady (เหนื่อย 6/10 เร็วกว่า Easy ราว 20–30 วิ/กม.)" : "เพซแข่ง"} จนจบ — ฝึกวิ่งเร็วตอนขาล้า`);
+  if (mS) o.push(`ระหว่างทาง ทำ ${mS[1]} ท่อน × ${mS[2]} กม. ที่เพซแข่ง คั่นด้วยวิ่งเบา 1–2 กม.`);
+  if (/เติมน้ำ|เจล/.test(d)) o.push("ซ้อมเติมน้ำ/เจลแบบวันแข่ง: จิบน้ำทุก 15–20 นาที กินเจลทุก 30–45 นาที ให้ท้องคุ้น");
+  return o;
+}
+/* ---------- อธิบายนัดซ้อม: คืออะไร ทำไม ทำยังไง (สำหรับนักวิ่งที่ยังไม่คุ้นศัพท์) ---------- */
+function sessGuide(s, v) {
+  const p = P(), w = W[s.wi], R = (w && w.pc && w.pc.ranges) || {}, pc = k => R[k] ? rng(R[k]) + "/กม." : "";
+  const est = hrMaxEst(p), seen = Math.max(0, ...p.logs.map(x => +x.hrMax || 0)), mx = est ? Math.max(est, seen) : 0;
+  const hr = (a, b) => mx ? ` · หัวใจราว ${Math.round(mx * a)}–${Math.round(mx * b)} ครั้ง/นาที` : "";
+  const d = String(v.detail || ""), t = v.type, trail = !!s.trail || /เนิน|เทรล|hike/i.test(d);
+  const G = { icon: "📖", what: "", why: "", steps: [], feel: "", tips: [] };
+  const WU = `วอร์มอัพ: เดินเร็ว 3 นาที แล้ววิ่งเบามาก ๆ 10 นาที${pc("easy") ? ` (${pc("easy")} หรือช้ากว่า)` : ""}`;
+  const CD = "คูลดาวน์: วิ่งเบา/เดิน 10 นาที แล้วยืดเหยียดน่อง ต้นขา สะโพก";
+  const mD = /(\d+)\s*[×x]\s*([\d.]+)\s*(กม|ม)\./.exec(d), mT = /(\d+)\s*[×x]\s*(\d+)\s*(วิ|นาที)/.exec(d), mTempo = /Tempo\s*(\d+)\s*นาที/i.exec(d), mR = /\/\s*(\d+)\s*นาที/.exec(d);
+  if (t === "rest") Object.assign(G, { icon: "😴", what: "วันพัก — ไม่ต้องวิ่ง", why: "ร่างกายแข็งแรงขึ้นตอนพัก ไม่ใช่ตอนซ้อม กล้ามเนื้อ เอ็น และกระดูกได้ซ่อมตัว ลดโอกาสบาดเจ็บ",
+    steps: ["พักจริง ๆ หรือเดินเล่น/ยืดเหยียดเบา ๆ 10–20 นาทีก็ได้", "นอนให้พอ 7–9 ชั่วโมง ดื่มน้ำให้พอ"], feel: "สบาย ๆ ไม่ต้องรู้สึกผิดที่ไม่ได้วิ่ง", tips: ["ถ้าอยากขยับจริง ๆ ปั่นจักรยานเบา ๆ หรือว่ายน้ำ 20 นาทีได้"] });
+  else if (t === "race") Object.assign(G, { icon: "🏁", what: "วันแข่ง", why: "วันที่ซ้อมมาทั้งหมดเพื่อวันนี้",
+    steps: ["กินมื้อที่คุ้นเคย 2–3 ชม. ก่อนปล่อยตัว ห้ามลองของใหม่", WU.replace("10 นาที", "5–10 นาที"), `ออกตัวช้ากว่าเป้านิดหน่อยใน 1–2 กม.แรก${pc("race") ? ` แล้วค่อยเข้าเพซแข่ง ${pc("race")}` : ""}`, "ครึ่งหลังถ้ายังไหว ค่อยเร่ง"],
+    feel: "ช่วงแรกต้องรู้สึกว่า 'ช้าไปหรือเปล่า' — นั่นคือถูกแล้ว", tips: ["ใส่รองเท้า/ชุดที่เคยซ้อมมาแล้วเท่านั้น", "จุดน้ำ: จิบทุกจุด อย่าดื่มรวดเดียวเยอะ"] });
+  else if (t === "long") Object.assign(G, { icon: "🐢", what: "Long Run — วิ่งยาวช้า ๆ ระยะไกลที่สุดของสัปดาห์", why: "สร้างความอึด หัวใจและกล้ามเนื้อทนได้นานขึ้น ร่างกายเรียนรู้การใช้ไขมันเป็นพลังงาน เป็นหัวใจของการวิ่งระยะไกล",
+    steps: [`วิ่งต่อเนื่อง ${v.km ? fmtKm(v.km) + " กม." : "ตามระยะ"}${trail ? " คุมด้วยความเหนื่อย ขึ้นเนินชันให้เดินเร็วได้" : pc("long") ? ` เพซ ${pc("long")}` : ""}`, "ช่วงแรกช้า ๆ ไว้ก่อน 2–3 กม.แรกช้ากว่าเพซได้", ...longExtra(d), "ถ้าเกิน 75 นาที: พกน้ำ จิบทุก 15–20 นาที และฝึกกินเจล/ขนมทุก 30–45 นาที"],
+    feel: `เหนื่อยระดับ 4–5 จาก 10 ยังพูดเป็นประโยคได้${hr(.65, .78)}`, tips: ["ช้าไม่ใช่ปัญหา — ระยะสำคัญกว่าความเร็ว", "เดินพัก 1 นาทีได้ถ้าจำเป็น ไม่ถือว่าล้มเหลว", /เพซแข่ง/.test(d) ? "ช่วงที่ระบุเพซแข่ง: วิ่งที่เพซแข่งจริง ฝึกให้ขาจำความเร็ววันแข่งตอนล้า" : "ท้าย ๆ ถ้ายังสดค่อยเร่งเล็กน้อยได้"].filter(Boolean) });
+  else if (t === "easy") {
+    const rec = /Recovery/i.test(d), str = /Strides|\d+×100 ม\./i.exec(d);
+    Object.assign(G, { icon: rec ? "🛌" : "🙂", what: rec ? "Recovery — วิ่งฟื้นตัว เบาที่สุดของสัปดาห์" : "Easy — วิ่งเบา ๆ สบาย ๆ", why: rec ? "ให้เลือดไหลเวียน ช่วยขาหายล้าเร็วขึ้น โดยไม่เพิ่มความเหนื่อย" : "สร้างฐานความอึด เพิ่มหลอดเลือดฝอยและไมโทคอนเดรีย เป็นการซ้อมส่วนใหญ่ (~80%) ของนักวิ่งทุกระดับ",
+      steps: [`วิ่งต่อเนื่อง ${v.km ? fmtKm(v.km) + " กม." : "ตามระยะ"}${trail ? " บนทางเนิน คุมด้วยความเหนื่อย ขึ้นชันเดินได้" : pc(rec ? "recovery" : "easy") ? ` เพซ ${pc(rec ? "recovery" : "easy")}` : ""}`].concat(str ? [`จบแล้วทำ ${str[0]}: วิ่งเร่ง ${/100 ม/.test(str[0]) ? "100 ม." : "20 วิ"} ${/เพซแข่ง/.test(d) ? "ที่เพซแข่ง ให้ขาจำความเร็ว" : "แบบผ่อนคลาย (ประมาณ 85–90% ของสุดกำลัง)"} แล้วเดินพักให้หายเหนื่อยก่อนเที่ยวถัดไป`] : []),
+      feel: `เหนื่อยระดับ ${rec ? "2–3" : "3–4"} จาก 10 คุยได้สบาย ร้องเพลงได้เกือบทั้งท่อน${hr(rec ? .6 : .65, rec ? .7 : .75)}`,
+      tips: ["ถ้าคุยไม่ได้ = เร็วไป ช้าลงได้เลย ไม่ต้องห่วงเพซ", /ขาสด|ก่อนแข่ง/.test(d) ? "ใกล้วันแข่ง: วิ่งสั้น ๆ ให้ขาตื่น ไม่ต้องเพิ่มระยะ เก็บแรงไว้วันจริง" : "วันเบาต้องเบาจริง วันหนักถึงจะหนักได้", str ? "Strides ไม่ใช่วิ่งสุดแรง — เน้นท่าวิ่งสวย ก้าวเร็ว ตัวไม่เกร็ง" : ""].filter(Boolean) });
+  } else if (t === "quality") {
+    const pz = v.pace ? v.pace + "/กม." : "", main = [];
+    let what = "Quality — วันซ้อมคุณภาพ (วันหนักของสัปดาห์)", why = "ฝึกให้วิ่งเร็วขึ้นและทนความเร็วได้นานขึ้น", feel = "", tips = ["ต้องวอร์มอัพทุกครั้ง ข้ามไม่ได้", "ถ้ารู้สึกเจ็บแปลก ๆ (ไม่ใช่แค่เหนื่อย) ให้หยุด แล้วเปลี่ยนเป็นวิ่งเบา"];
+    if (/Fartlek/i.test(d)) { what = "Fartlek — วิ่งสลับเร็ว-ช้า แบบสนุก ๆ"; why = "เริ่มฝึกความเร็วแบบไม่กดดัน ร่างกายคุ้นกับการเปลี่ยนจังหวะ";
+      main.push(`${mT ? mT[1] + " รอบ: " : ""}วิ่งเร็ว ${mT ? mT[2] + " " + mT[3] : "1 นาที"}${pz && !trail ? ` (ราว ${pz})` : ""} แล้ววิ่งเบา/จ็อก ${mR ? mR[1] + " นาที" : "1 นาที"} สลับไปจนครบ`); feel = `ช่วงเร็ว เหนื่อย 7–8 จาก 10 พูดได้แค่คำสั้น ๆ · ช่วงเบา หายใจกลับมาเป็นปกติ`; }
+    else if (/Strides/i.test(d)) { what = "Strides — วิ่งเร่งสั้น ๆ"; why = "ฝึกท่าวิ่ง จังหวะก้าว และระบบประสาท-กล้ามเนื้อ โดยแทบไม่เพิ่มความเหนื่อย";
+      main.push(`${mT ? mT[1] + " เที่ยว" : "6 เที่ยว"}: เร่ง ${mT ? mT[2] + " " + mT[3] : "20 วิ"} แบบผ่อนคลาย เร็วประมาณ 85–90% แล้วเดินพักจนหายเหนื่อย (~60–90 วิ)`); feel = "เร็วแต่ไม่สุด ตัวไม่เกร็ง ไหล่-มือผ่อนคลาย"; }
+    else if (/เนิน|Hill|hike/i.test(d)) { what = "ซ้อมเนิน — ฝึกขึ้นเขา"; why = "ขาแข็งแรงขึ้นแบบเดียวกับเวทขา ความทนต่อเนิน และท่าวิ่งดีขึ้น บาดเจ็บน้อยกว่าวิ่งเร็วทางราบ";
+      main.push(`ตามโปรแกรม: ${d}`, "ขึ้นเนิน: ก้าวสั้นถี่ ตัวโน้มไปข้างหน้าจากข้อเท้า แกว่งแขนช่วย", "ลงเนิน: จ็อก/เดินช้า ๆ ถือเป็นช่วงพัก"); feel = "ช่วงขึ้น เหนื่อย 7–8 จาก 10 · ห้ามเค้นจนท่าเสีย"; }
+    else if (mTempo) { what = "Tempo — วิ่งเร็วต่อเนื่อง “หนักแต่คุมได้”"; why = "ยกเพดานความเหนื่อย (Threshold) ให้วิ่งเร็วได้นานขึ้นโดยไม่ล้า เป็นการซ้อมที่คุ้มที่สุดสำหรับ 10K–มาราธอน";
+      main.push(`วิ่งต่อเนื่อง ${mTempo[1]} นาที${pz ? ` เพซ ${pz}` : ""} สม่ำเสมอตลอด ไม่ออกตัวแรง`); feel = `เหนื่อย 7 จาก 10 พูดได้ทีละ 2–3 คำ${hr(.85, .9)}`; tips.unshift("ถ้าครึ่งหลังช้าลงเยอะ = ออกตัวเร็วไป ครั้งหน้าเริ่มช้าลงนิด"); }
+    else if (mD || mT) { const n = mD ? mD[1] : mT[1], len = mD ? mD[2] + " " + (mD[3] === "กม" ? "กม." : "ม.") : mT[2] + " " + mT[3], m = mD ? +mD[2] * (mD[3] === "กม" ? 1000 : 1) : 0;
+      const isRace = s.pace === "race";
+      what = `Interval — วิ่งเร็วเป็นเที่ยว ${n} เที่ยว × ${len}`; why = isRace ? "ซ้อมเพซแข่งเป็นท่อน ให้ร่างกายจำความเร็ววันแข่ง และมั่นใจว่าทำได้" : "เพิ่ม VO2max และความเร็ว ร่างกายส่งออกซิเจนได้ดีขึ้น";
+      main.push(`วิ่งเร็ว ${len}${pz ? ` เพซ ${pz}` : ""} ทำ ${n} เที่ยว`, `พักระหว่างเที่ยว: ${m && m <= 400 ? "เดิน/จ็อก 1–2 นาที" : m && m < 2000 ? "จ็อกเบา ๆ 2–3 นาที" : "จ็อกเบา ๆ 3 นาที"} (ไม่ยืนนิ่ง)`);
+      feel = isRace ? "เหนื่อยเท่าวันแข่ง แต่ทุกเที่ยวควรเพซเท่ากัน" : `เหนื่อย 8 จาก 10 พูดไม่ค่อยได้${hr(.88, .95)}`;
+      tips.unshift("ทุกเที่ยวควรเร็วเท่า ๆ กัน — ถ้าเที่ยวแรกเร็วสุดแล้วตกเยอะ แปลว่าเร็วไป", "ใช้ปุ่ม ▶ วิ่งสดตามนัดนี้ แอพจะนับเที่ยวและบอกพักให้"); }
+    else main.push(`ตามโปรแกรม: ${d}${pz ? ` เพซ ${pz}` : ""}`);
+    Object.assign(G, { icon: "⚡", what, why, steps: [WU, ...main, CD], feel: feel || "เหนื่อย 7–8 จาก 10 ในช่วงเร็ว", tips });
+  } else return "";
+  if (trail && t !== "rest" && t !== "race") G.tips.push("เทรล/เนิน: ดูความเหนื่อยแทนเพซ เพซบนเนินช้ากว่าทางราบเป็นเรื่องปกติ");
+  return `<div class="card" style="margin:0 0 14px;padding:14px;background:rgba(31,138,91,.07);border:1px solid rgba(31,138,91,.25)">
+    <div style="font-weight:800;font-size:15px;margin-bottom:6px">${G.icon} ${esc(G.what)}</div>
+    <div class="small" style="margin-bottom:8px"><b>ได้อะไร:</b> ${esc(G.why)}</div>
+    ${G.steps.length ? `<div class="small"><b>ทำยังไง:</b><ol style="margin:4px 0 8px;padding-left:20px">${G.steps.map(x => `<li style="margin:3px 0">${esc(x)}</li>`).join("")}</ol></div>` : ""}
+    ${G.feel ? `<div class="small" style="margin-bottom:6px"><b>ความเหนื่อยที่ถูกต้อง:</b> ${esc(G.feel)}</div>` : ""}
+    ${G.tips.length ? `<div class="tiny mut">${G.tips.map(x => "💡 " + esc(x)).join("<br>")}</div>` : ""}
+  </div>`;
+}
+
 function openSession(key) {
   const s = allSessions().find(x => x.key === key); if (!s) return;
   const v = view(s), sh = shoeById(s.shoe), logs = logsFor(s);
@@ -4018,6 +4080,7 @@ function openSession(key) {
       ${v.pace ? `<tr><td class="mut">เพซ</td><td class="num">${v.pace} /กม.</td></tr>` : ""}
       ${RUN_TYPES.includes(s.type) ? `<tr><td class="mut">รองเท้า</td><td class="num">${sh ? `<span style="display:inline-flex;align-items:center;gap:8px">${sh.photo ? `<img src="${sh.photo}" alt="" style="width:44px;height:33px;object-fit:cover;border-radius:7px">` : ""}${esc(shoeName(sh))}</span>` : "ยังไม่ได้เลือก"}</td></tr>` : ""}
     </table>
+    ${sessGuide(s, v)}
     ${s.type === "gym" && v.type === "gym" ? gymHtml(s, v.detail) : ""}
     ${logs.length ? `<div class="flabel">ผลที่ส่งแล้ว</div><div class="card" style="padding:4px 14px">${logs.map(l => `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow small">${fmtKm(+l.km)} กม. ${esc(l.time)} · RPE ${l.rpe}</div><span class="linkbtn">ดูวิเคราะห์ ›</span></div>`).join("")}</div>` : ""}
     <div class="btns">
