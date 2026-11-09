@@ -506,7 +506,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v57</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v58</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -2373,6 +2373,7 @@ function lvSave(F) {
     if (!l.note) l.note = c.type === "tempo" ? `Tempo ${lvDistS(st.reps[0].m)} ใน ${fmtTime(st.reps[0].sec)}` : `${c.by === "m" ? lvDistS(c.repM) : fmtTime(c.repSec)}×${st.reps.length}: ${st.reps.map(r => fmtTime(r.sec)).join(" · ")}`;
   }
   if (st.gaps.length) l.gpsGaps = st.gaps.length;
+  { const t0 = new Date(st.t0); l.startAt = String(t0.getHours()).padStart(2, "0") + ":" + String(t0.getMinutes()).padStart(2, "0"); }
   if (LV.wxNow) { const w = LV.wxNow; l.wx = { t: w.temp, feels: w.feels, hum: w.hum, pm: w.pm, code: w.code }; }
   if (st.pts.length > 1) { const k = Math.ceil(st.pts.length / 300); l.route = st.pts.filter((x, i) => i % k === 0 || i === st.pts.length - 1).map(x => [x[0], x[1]]); }
   try { localStorage.removeItem(LV_KEY); } catch (e) {}
@@ -2423,7 +2424,12 @@ function lvBind() {
 }
 
 /* ---------- รูปแชร์ผลวิ่ง: รูปนักวิ่ง + สถิติ (แบบนาฬิกา) หรือสติกเกอร์พื้นใส (เอาไปวางใน TikTok/IG/CapCut) ---------- */
-const SC = { img: null, t: "bottom", r: "45", id: null, route: true, bg: "photo", col: "w" };
+const SC = { img: null, t: "bottom", r: "45", id: null, route: true, bg: "photo", col: "w", shTime: false, shPlace: false };
+const scXtra = (l, timeOnly) => [SC.shTime && l.startAt ? `${l.startAt} น.` : "", !timeOnly && SC.shPlace && l.place ? `📍 ${l.place}` : ""].filter(Boolean).join(" · ");
+function scFit(g, text, maxW) {     // ข้อความยาวเกินพื้นที่ → ลดขนาดตัวอักษรลงให้พอดี
+  if (!(maxW > 0)) return; const w = g.measureText(text).width; if (w <= maxW) return;
+  g.font = g.font.replace(/(\d+(?:\.\d+)?)px/, (m, n) => Math.max(12, Math.floor(+n * maxW / w)) + "px");
+}
 const SC_G = [["คลาสสิก", [["bottom", "📊 สถิติล่าง"], ["center", "🎯 กลางรูป"], ["card", "🗂 การ์ด"], ["minimal", "✏️ มินิมอล"], ["big", "🔠 ตัวใหญ่"], ["strip", "➖ แถบ"], ["route", "🗺 เส้นทาง"], ["chart", "📈 กราฟเพซ"]]],
   ["วางซ้าย / ขวา", [["sideL", "◧ แถบข้างซ้าย"], ["sideR", "◨ แถบข้างขวา"], ["cornerL", "↖ มุมบนซ้าย"], ["cornerR", "↗ มุมบนขวา"], ["bottomR", "↘ สถิติล่างขวา"], ["minimalR", "✏️ มินิมอลขวา"]]],
   ["สร้างสรรค์", [["circle", "🥇 เหรียญ"], ["bib", "🎽 บิบวิ่ง"], ["plate", "🚗 ป้ายทะเบียน"], ["receipt", "🧾 ใบเสร็จ"], ["boarding", "✈️ ตั๋วเครื่องบิน"], ["magazine", "📰 ปกนิตยสาร"], ["neon", "💡 นีออน"], ["polaroid", "📷 โพลารอยด์"], ["game", "🎮 เลเวลอัป"], ["glitch", "📺 กลิตช์"],
@@ -2472,7 +2478,8 @@ function scVal(g, v, u, x, y, s, us, col, align = "left", fam = "Outfit") {
   if (u) { g.font = scF(600, us); g.fillText(u, sx + w + us * 0.25, y); }
   return w + uw;
 }
-function scLbl(g, t, x, y, s, col, align = "left", a = .82) { g.save(); g.globalAlpha *= a; g.font = scF(500, s); g.textAlign = align; g.fillStyle = col; g.fillText(t, x, y); g.restore(); }
+function scLbl(g, t, x, y, s, col, align = "left", a = .82) { g.save(); g.globalAlpha *= a; g.font = scF(500, s); g.textAlign = align; g.fillStyle = col;
+  const cw = g.canvas.width, m = 40; scFit(g, t, align === "left" ? cw - x - m : align === "right" ? x - m : Math.min(x, cw - x) * 2 - 2 * m); g.fillText(t, x, y); g.restore(); }
 function scAch(g, t, x, y, align = "left", s = 32) {
   if (!t) return; g.save(); scShadow(g, false); g.font = scF(700, s); const tw = g.measureText(t).width + s * 1.4, h = s * 1.8, sx = align === "center" ? x - tw / 2 : align === "right" ? x - tw : x;
   g.fillStyle = "#a3e635"; scRR(g, sx, y - h * .7, tw, h, h / 2); g.fill(); g.fillStyle = "#0b2a16"; g.textAlign = "left"; g.fillText(t, sx + s * .7, y + s * .05); g.restore();
@@ -2487,7 +2494,7 @@ function scDraw(cv, l) {
       g.save(); g.globalAlpha = .12; g.fillStyle = "#a3e635"; g.translate(W * .7, H * .25); g.rotate(-0.5); for (let i = 0; i < 3; i++) { scRR(g, -500, i * 170, 1100, 90, 45); g.fill(); } g.restore(); }
   }
   const C = SC_COL[SC.col] || "#fff", dark = SC.col === "k", sh = on => scShadow(g, on && !dark && (!clear || true), 14);
-  const st = scStats(l), km = scKm(l), d = l.date, head = `${TYPE_LABEL[l.type] || "วิ่ง"} · ${TH_DAY[dow(d)]} ${thDateY(d)}${isTM(l) ? " · ลู่วิ่ง" : ""}`;
+  const st = scStats(l), km = scKm(l), d = l.date, xt = scXtra(l), head = `${TYPE_LABEL[l.type] || "วิ่ง"} · ${TH_DAY[dow(d)]} ${thDateY(d)}${isTM(l) ? " · ลู่วิ่ง" : ""}${xt ? " · " + xt : ""}`;
   const ach = (l.ach || []).slice(0, 2).map(a => a.title).join(" · "), achT = ach ? "🏅 " + ach : "";
   const route = SC.route && l.route && l.route.length > 1 ? l.route : null;
   const sline = (sep = "   ·   ") => st.map(s => s[1] + (s[2] === "/กม." ? "/km" : s[2] ? " " + s[2] : "")).join(sep);
@@ -2582,7 +2589,7 @@ function scDraw(cv, l) {
     g.lineWidth = 3; scRR(g, px + 34, py + 34, pw - 68, ph - 68, 16); g.stroke();
     g.fillStyle = "#151515"; g.textAlign = "center";
     g.font = scF(800, 175); const top = "ก้าว " + km; let fs = 175; while (g.measureText(top).width > pw - 120) { fs -= 6; g.font = scF(800, fs); } g.fillText(top, W / 2, py + 245);
-    g.font = scF(700, 50); g.fillText(`${TH_DAY_FULL[dow(d)]} ${thDateY(d)}`, W / 2, py + 335);
+    g.font = scF(700, 50); { const tx = `${TH_DAY_FULL[dow(d)]} ${thDateY(d)}${xt ? " · " + xt : ""}`; scFit(g, tx, pw - 120); g.fillText(tx, W / 2, py + 335); }
     g.font = scF(700, 22, "Outfit"); g.textAlign = "right"; g.fillText("KAOWIN", px + pw - 52, py + ph - 48);
     sh(1); g.textAlign = "center"; g.fillStyle = C; g.font = scF(700, 44, "Outfit");
     g.fillText(st.map(s => s[1] + (s[2] === "/กม." ? "/km" : s[2] ? " " + s[2] : "")).join("   ·   "), W / 2, py + ph + 90);
@@ -2600,6 +2607,7 @@ function scDraw(cv, l) {
     g.fillStyle = ink; g.textAlign = "center"; g.font = scF(800, 46, mono); g.fillText("KAOWIN RUN CLUB", W / 2, y);
     y += 52; g.font = scF(600, 30); g.fillText("ใบเสร็จการวิ่ง · Every Step Wins.", W / 2, y);
     y += 44; g.font = scF(500, 26); g.fillText(`${TH_DAY_FULL[dow(d)]} ${thDateY(d)} · No. ${String(l.id).slice(-6)}`, W / 2, y);
+    if (xt) { y += 38; g.fillText(xt, W / 2, y); }
     const dash = yy => { g.save(); g.strokeStyle = "#999"; g.setLineDash([10, 8]); g.lineWidth = 3; g.beginPath(); g.moveTo(L, yy); g.lineTo(R, yy); g.stroke(); g.restore(); };
     y += 40; dash(y); y += 66;
     rows.forEach(([a, b]) => { g.textAlign = "left"; g.font = scF(600, 32); g.fillText(a, L, y); const aw = g.measureText(a).width; g.textAlign = "right"; g.font = scF(800, 34, mono); g.fillText(b, R, y); const bw = g.measureText(b).width;
@@ -2669,7 +2677,7 @@ function scDraw(cv, l) {
       if (route) scRoute(g, route, ix + 90, iy + 90, iw - 180, iw - 180, 12); else { g.fillStyle = "#c6f432"; g.font = scF(800, 200, "Outfit"); g.textAlign = "center"; g.fillText(km, 0, iy + iw / 2 + 70); } }
     g.restore();
     g.fillStyle = "#1d2a22"; g.textAlign = "center"; g.font = `italic ${scF(800, 84, "Outfit")}`; g.fillText(km + " km", 0, iy + iw + 110);
-    g.font = scF(600, 34); g.fillStyle = "#3b4b41"; g.fillText(`${st.slice(0, 2).map(s => s[1] + (s[2] === "/กม." ? "/km" : "")).join(" · ")} · ${thDate(d)}`, 0, iy + iw + 165);
+    g.font = scF(600, 34); g.fillStyle = "#3b4b41"; { const tx = `${st.slice(0, 2).map(s => s[1] + (s[2] === "/กม." ? "/km" : "")).join(" · ")} · ${thDate(d)}${xt ? " · " + xt : ""}`; scFit(g, tx, iw); g.fillText(tx, 0, iy + iw + 165); }
     g.restore();
     if (achT) scAch(g, achT, W / 2, cy - fh / 2 - 50, "center", 30);
     sh(1); scLogo(g, W / 2, H - 60, 40, "center", C);
@@ -2788,7 +2796,7 @@ function scDraw(cv, l) {
     if (st[0]) y += dm("TIME " + st[0][1], W / 2, y, 13, 9, "#ffd166") + 34;
     if (st[1]) dm("PACE " + st[1][1], W / 2, y, 13, 9, "#7cf29c");
     g.restore();
-    g.fillStyle = "#777"; g.font = scF(700, 24, "Outfit"); g.textAlign = "left"; g.fillText("KAOWIN ARENA", bx + 40, by + bh - 30); g.textAlign = "right"; g.fillText(thDateY(d), bx + bw - 40, by + bh - 30);
+    g.fillStyle = "#777"; g.font = scF(700, 24, "Outfit"); g.textAlign = "left"; g.fillText("KAOWIN ARENA", bx + 40, by + bh - 30); g.textAlign = "right"; g.fillText(thDateY(d) + (scXtra(l, true) ? " · " + scXtra(l, true) : ""), bx + bw - 40, by + bh - 30);
     if (achT) scAch(g, achT, W / 2, by - 40, "center", 30);
   } else if (t === "comic") {                                         // การ์ตูนตูม!
     if (!clear) { g.fillStyle = "rgba(255,214,10,.18)"; g.fillRect(0, 0, W, H); g.fillStyle = "rgba(0,0,0,.14)"; for (let y = 0; y < H; y += 22) for (let x = (y / 22) % 2 * 11; x < W; x += 22) { g.beginPath(); g.arc(x, y, 4, 0, 7); g.fill(); } }
@@ -2832,7 +2840,9 @@ function scDraw(cv, l) {
     g.fillStyle = "#fff"; g.textAlign = "center"; g.font = scF(800, 58); g.fillText(TH_MON_FULL[dt.getMonth()], W / 2, py + 110); g.font = scF(600, 28); g.fillText(String(dt.getFullYear() + 543), W / 2, py + 150);
     g.fillStyle = "#1d2a22"; g.font = scF(800, 300, "Outfit"); g.fillText(String(dt.getDate()), W / 2, py + 470);
     g.font = scF(700, 44); g.fillStyle = "#e5484d"; g.fillText("วัน" + TH_DAY_FULL[dow(d)], W / 2, py + 540);
-    g.fillStyle = "#1d2a22"; g.font = scF(800, 52); g.fillText(`วิ่ง ${km} กม. ✔`, W / 2, py + 625); g.font = scF(600, 30); g.fillStyle = "#4b5b51"; g.fillText(sline("  ·  "), W / 2, py + 680);
+    const yo = xt ? 30 : 0;
+    if (xt) { g.font = scF(600, 28); g.fillStyle = "#666"; scFit(g, xt, pw - 80); g.fillText(xt, W / 2, py + 585); }
+    g.fillStyle = "#1d2a22"; g.font = scF(800, 52); g.fillText(`วิ่ง ${km} กม. ✔`, W / 2, py + 625 + yo); g.font = scF(600, 30); g.fillStyle = "#4b5b51"; g.fillText(sline("  ·  "), W / 2, py + 680 + yo);
     if (achT) scAch(g, achT, W / 2, py - 90, "center", 30);
     sh(1); scLogo(g, W / 2, H - 60, 40, "center", C);
   } else if (t === "roadsign") {                                      // ป้ายทางหลวง
@@ -2908,6 +2918,12 @@ async function shareCard(id) {
     ${clear ? "" : `<div class="flabel">ขนาด</div>${seg("r", [["45", "โพสต์ 4:5"], ["916", "สตอรี่ / TikTok 9:16"]])}`}
     ${!toSec(l.time) ? `<div class="note warn" style="margin:0 0 10px">ผลนี้ยังไม่มี<b>เวลา</b> รูปเลยขึ้นแต่ระยะ — ใส่เวลารวมตรงนี้ได้เลย<div class="row" style="gap:8px;margin-top:8px"><input class="lv-in w" data-sctime placeholder="48:00" inputmode="decimal" style="flex:1"><button type="button" class="btn" data-sctimeok style="padding:8px 14px">ใส่เวลา</button></div></div>` : ""}
     ${l.route && l.route.length > 1 ? `<label class="inline"><input type="checkbox" data-scroute ${SC.route ? "checked" : ""}> แสดงเส้นทาง</label>` : ""}
+    <div class="flabel">ข้อมูลเพิ่มบนรูป (ติ๊กเพื่อใส่)</div>
+    <div class="row" style="gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap"><label class="inline" style="margin:0"><input type="checkbox" data-scxt ${SC.shTime ? "checked" : ""}> 🕔 เวลาที่วิ่ง</label>
+      <input type="time" class="lv-in" data-scxtv value="${esc(l.startAt || "")}" style="width:120px;margin-left:auto"></div>
+    <div class="row" style="gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap"><label class="inline" style="margin:0"><input type="checkbox" data-scxp ${SC.shPlace ? "checked" : ""}> 📍 เมือง (จาก GPS)</label>
+      <input class="lv-in" data-scxpv value="${esc(l.place || "")}" placeholder="ติ๊กแล้วหาให้ / พิมพ์เอง" maxlength="40" style="flex:1;min-width:140px"></div>
+    <div class="tiny mut" style="margin-bottom:10px">${l.route && l.route.length > 1 ? "เมืองหาจากจุดเริ่มวิ่งใน GPS" : "ผลนี้ไม่มี GPS — ใช้ตำแหน่งปัจจุบันของเครื่องแทน (แก้ชื่อเองได้)"}</div>
     <button type="button" class="btn block" data-scsave style="margin-top:6px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
     <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div></div>`, body => {
     const cv = body.querySelector("#scCv"), draw = () => { if (SC.bg !== "none") return scDraw(cv, l);
@@ -2936,6 +2952,21 @@ async function shareCard(id) {
       }
     });
     const rc = body.querySelector("[data-scroute]"); if (rc) rc.addEventListener("change", () => { SC.route = rc.checked; draw(); });
+    // เวลาที่วิ่ง / เมือง
+    const xt = body.querySelector("[data-scxt]"), xtv = body.querySelector("[data-scxtv]"), xp = body.querySelector("[data-scxp]"), xpv = body.querySelector("[data-scxpv]");
+    xt.addEventListener("change", () => { SC.shTime = xt.checked; if (xt.checked && !l.startAt) { toast("ใส่เวลาเริ่มวิ่งในช่องข้าง ๆ"); xtv.focus(); } draw(); });
+    xtv.addEventListener("change", () => { l.startAt = /^\d{2}:\d{2}$/.test(xtv.value) ? xtv.value : ""; save(); if (l.startAt) { SC.shTime = xt.checked = true; } draw(); });
+    xpv.addEventListener("change", () => { l.place = xpv.value.trim().slice(0, 40); save(); if (l.place) SC.shPlace = xp.checked = true; draw(); });
+    xp.addEventListener("change", async () => {
+      SC.shPlace = xp.checked; draw(); if (!xp.checked || l.place) return;
+      xpv.placeholder = "กำลังหาเมือง…";
+      const name = async (lat, lon) => { const n = await wxPlaceName(lat, lon); return n && n !== "ตำแหน่งของฉัน" ? n : ""; };
+      let nm = "";
+      if (l.route && l.route.length > 1) nm = await name(l.route[0][0], l.route[0][1]);
+      else if (navigator.geolocation) nm = await new Promise(ok => navigator.geolocation.getCurrentPosition(async pos => ok(await name(pos.coords.latitude, pos.coords.longitude)), () => ok(""), { timeout: 12000, maximumAge: 600000 }));
+      if (!document.body.contains(xpv)) return;
+      if (nm) { l.place = nm; save(); xpv.value = nm; draw(); } else { xpv.placeholder = "หาไม่เจอ — พิมพ์ชื่อเมืองเอง"; xpv.focus(); }
+    });
   });
 }
 
@@ -4280,6 +4311,10 @@ function parseRunText(texts) {
     const m = lines[i].match(ELV) || (lines[i + 1] || "").match(ELV) || (lines[i - 1] || "").match(ELV);
     if (m) { const v = parseInt(m[1].replace(/[,.]/g, "")); if (v > 0 && v < 15000) r.dplus = v; }
   }
+  {   // เวลาเริ่มวิ่ง: "4 พ.ย. @ 05:21" (Garmin) · "at 5:30 AM" (Strava อังกฤษ) · "5 พ.ย. 2568 เวลา 05:30"
+    const T = lines.join("\n"), m = /@\s*(\d{1,2})[:.](\d{2})(?!\d)/.exec(T) || /\bat\s+(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(T) || /(?:ม\.?ค|ก\.?พ|มี\.?ค|เม\.?ย|พ\.?ค|มิ\.?ย|ก\.?ค|ส\.?ค|ก\.?ย|ต\.?ค|พ\.?ย|ธ\.?ค)\.?[^\n]{0,12}?เวลา\s*(\d{1,2})[:.](\d{2})/.exec(T);
+    if (m) { let h = +m[1]; const ap = (m[3] || "").toUpperCase(); if (ap === "PM" && h < 12) h += 12; if (ap === "AM" && h === 12) h = 0; if (h < 24 && +m[2] < 60) r.startHM = String(h).padStart(2, "0") + ":" + m[2]; }
+  }
   return r;
 }
 // หลายรูปจากคนละกิจกรรม (เช่น วอร์มอัพ 1.10 กม. + วิ่งหลัก 7.54 กม.) → รวมเป็นผลเดียว
@@ -4298,6 +4333,7 @@ function parseRunMulti(texts) {
   if (acts.length === 1 && partial.length) { const a = acts[0]; Object.assign(all, { km: a.km, timeSec: a.sec, paceAvg: 0, fixed: undefined, timeEst: false, hrAvg: a.hr || all.hrAvg, hrMax: a.hrMax || all.hrMax }); return all; }
   if (acts.length < 2) return all;
   acts.sort((a, b) => (a.st || "").localeCompare(b.st || ""));
+  if (acts[0].st) all.startHM = acts[0].st;
   const hrA = acts.filter(a => a.hr), sec = acts.reduce((t, a) => t + a.sec, 0);
   Object.assign(all, { km: Math.round(acts.reduce((t, a) => t + a.km, 0) * 100) / 100, timeSec: sec, paceAvg: 0, multi: acts, fixed: undefined, timeEst: false,
     hrAvg: hrA.length ? Math.round(hrA.reduce((t, a) => t + a.hr * a.sec, 0) / hrA.reduce((t, a) => t + a.sec, 0)) : all.hrAvg,
@@ -4446,7 +4482,7 @@ function openLog(key) {
       if (hA >= 60 && hA <= 230) l.hrAvg = hA; if (hM >= 60 && hM <= 230) l.hrMax = hM;
       if (dp > 0 && dp < 20000) l.dplus = dp;
       if (F.env.value === "tm") { l.env = "tm"; const inc = parseFloat(String(F.incline.value).replace(",", ".")); if (inc >= 0 && inc <= 15) l.incline = inc; }
-      if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (l.type === "quality" && !l.segKm && l.laps) { const g = lapSeg(l); if (g) { l.segKm = g.km; l.segTime = fmtTime(g.sec); l.segAuto = true; } } if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.multi && Math.abs(km - ocr.km) < 0.02) l.multi = ocr.multi.map(x => [x.km, x.sec]); if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
+      if (ocr) { if (ocr.laps.length) l.laps = ocr.laps.map(x => [x.km, x.sec]); if (l.type === "quality" && !l.segKm && l.laps) { const g = lapSeg(l); if (g) { l.segKm = g.km; l.segTime = fmtTime(g.sec); l.segAuto = true; } } if (ocr.walkSec) l.walkSec = ocr.walkSec; if (ocr.startHM) l.startAt = ocr.startHM; if (ocr.multi && Math.abs(km - ocr.km) < 0.02) l.multi = ocr.multi.map(x => [x.km, x.sec]); if (ocr.movingSec) l.movingSec = ocr.movingSec; if (ocr.bestPace) l.bestPace = ocr.bestPace; l.src = "ภาพหน้าจอ"; }
       commitLog(p, l);
     });
   });
