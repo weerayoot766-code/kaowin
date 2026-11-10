@@ -523,7 +523,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v59</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v60</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -3026,11 +3026,14 @@ function wtHomeHtml(p) {
 function wtOpen() { const p = P(); if (!p.wt) return wtSetup(); if (wtDue(p)) return wtLog(); wtDash(); }
 
 function wtSetup() {
-  const p = P(), w = p.wt, S = wtStats(p), start = S ? S.s.kg : (+p.weightKg || ""), cm = w ? w.cm : (+p.heightCm || "");
+  const p = P(), w = p.wt, S = wtStats(p), start = S ? S.s.kg : (+p.weightKg || ""), cm = w ? w.cm : (+p.heightCm || ""), fu = (typeof firstUse === "function" && firstUse()) || TODAY;
   openSheet(w ? "⚙️ ตั้งค่าชาเลนจ์ลดน้ำหนัก" : "⚖️ เริ่มชาเลนจ์ลดน้ำหนัก", `<form id="wtF">
     ${w ? "" : `<p class="small mut" style="margin-top:0">ใส่น้ำหนักวันนี้เป็นจุดเริ่มต้น แล้วบันทึกต่อเรื่อย ๆ แอพจะทำกราฟ คำนวณ BMI และ % ที่ลดให้ · น้ำหนักเก็บในเครื่องนี้เท่านั้น</p>`}
+    ${w ? "" : `<label class="f">น้ำหนักเริ่มต้นวัดเมื่อ<input type="date" name="sd" value="${fu}" max="${TODAY}"></label>
+    <div class="tiny mut" style="margin:-6px 0 10px">${fu < TODAY ? `ตั้งไว้เป็นวันที่เริ่มใช้แอพ (${thDateY(fu)}) — ถ้าจำน้ำหนักตอนนั้นได้ ใส่ไว้ จะได้เห็นว่าลดมาเท่าไหร่ตั้งแต่เริ่ม` : "เคยชั่งไว้ก่อนหน้านี้? เปลี่ยนวันที่ย้อนหลังได้"}</div>`}
     <div class="row" style="gap:10px"><label class="f" style="flex:1">น้ำหนักเริ่มต้น (กก.)<input name="kg" inputmode="decimal" value="${start}" ${w ? "disabled" : "required"}></label>
       <label class="f" style="flex:1">ส่วนสูง (ซม.)<input name="cm" inputmode="numeric" value="${cm}" required></label></div>
+    ${w ? "" : `<label class="f" id="wtNowL" style="display:none">น้ำหนักวันนี้ (กก.) <span class="tiny mut">ไม่บังคับ</span><input name="now" inputmode="decimal" placeholder="ถ้าชั่งวันนี้แล้ว ใส่ได้เลย"></label>`}
     <div id="wtBmi" class="note" style="margin:0 0 10px"></div>
     <label class="f">เป้าหมาย (กก.)<input name="goal" inputmode="decimal" value="${w && w.goal ? w.goal : ""}" placeholder="เช่น 75"></label>
     <div class="row" style="gap:6px;flex-wrap:wrap;margin:-4px 0 6px" id="wtChips"></div>
@@ -3041,7 +3044,8 @@ function wtSetup() {
     ${w ? `<button type="button" class="linkbtn" data-wtreset style="display:block;margin:14px auto 0;color:#b33">เริ่มใหม่ (ลบน้ำหนักทั้งหมด)</button>` : ""}</form>`, body => {
     const F = body.querySelector("#wtF"), E = F.elements; let fq = w ? w.freq : "week";
     const calc = () => {
-      const kg = parseFloat(E.kg.value), c = parseFloat(E.cm.value), now = S ? S.n.kg : kg, b = bmiOf(now, c), min = 18.5 * Math.pow(c / 100, 2);
+      if (!w) body.querySelector("#wtNowL").style.display = E.sd.value && E.sd.value < TODAY ? "" : "none";
+      const kg = parseFloat(E.kg.value), c = parseFloat(E.cm.value), nw = !w && E.sd.value < TODAY ? parseFloat(E.now.value) : 0, now = S ? S.n.kg : nw > 25 ? nw : kg, b = bmiOf(now, c), min = 18.5 * Math.pow(c / 100, 2);
       body.querySelector("#wtBmi").innerHTML = b > 8 && b < 80 ? `BMI ${S ? "ตอนนี้" : ""} <b>${b.toFixed(1)}</b> · <b style="color:${bmiCat(b)[1]}">${bmiCat(b)[0]}</b> <span class="tiny mut">(เกณฑ์คนเอเชีย)</span>` : "ใส่น้ำหนักและส่วนสูงเพื่อดู BMI";
       const ch = kg > 30 && c > 100 ? [["−5%", kg * .95], ["−10%", kg * .9], ["BMI 24.9", 24.9 * Math.pow(c / 100, 2)], ["BMI 22.9", 22.9 * Math.pow(c / 100, 2)]].filter(([, v]) => v < now - .4 && v >= min) : [];
       body.querySelector("#wtChips").innerHTML = ch.map(([t, v]) => `<button type="button" class="chip wt-chip" data-g="${kg1(v)}">${t} · ${kg1(v)}</button>`).join("");
@@ -3054,9 +3058,11 @@ function wtSetup() {
     const rs = body.querySelector("[data-wtreset]"); if (rs) rs.addEventListener("click", () => { if (!confirm("ลบน้ำหนักที่บันทึกทั้งหมด แล้วเริ่มใหม่?")) return; delete p.wt; save(); render(); closeSheet(); toast("ลบแล้ว"); });
     F.addEventListener("submit", e => {
       e.preventDefault(); const kg = w ? S.s.kg : parseFloat(E.kg.value), c = parseFloat(E.cm.value), g = parseFloat(E.goal.value) || 0, min = 18.5 * Math.pow(c / 100, 2);
+      const sd = w ? "" : (E.sd.value && E.sd.value <= TODAY ? E.sd.value : TODAY), nw = !w && sd < TODAY ? Math.round(parseFloat(E.now.value) * 10) / 10 : 0;
+      if (nw && !(nw >= 25 && nw <= 300)) return toast("น้ำหนักวันนี้ดูแปลก ๆ ลองใหม่");
       if (!(kg >= 25 && kg <= 300)) return toast("น้ำหนักดูแปลก ๆ ลองใหม่"); if (!(c >= 100 && c <= 230)) return toast("ส่วนสูงดูแปลก ๆ ลองใหม่");
-      if (g && (g < min || g >= (S ? S.n.kg : kg))) return toast(g < min ? "เป้าต่ำกว่า BMI 18.5 ตั้งไม่ได้" : "เป้าต้องน้อยกว่าน้ำหนักตอนนี้");
-      if (w) Object.assign(w, { cm: c, goal: g, freq: fq }); else { p.wt = { cm: c, goal: g, freq: fq, logs: [{ d: TODAY, kg: Math.round(kg * 10) / 10 }] }; p.weightKg = Math.round(kg * 10) / 10; }
+      if (g && (g < min || g >= (S ? S.n.kg : nw || kg))) return toast(g < min ? "เป้าต่ำกว่า BMI 18.5 ตั้งไม่ได้" : "เป้าต้องน้อยกว่าน้ำหนักตอนนี้");
+      if (w) Object.assign(w, { cm: c, goal: g, freq: fq }); else { const L0 = [{ d: sd, kg: Math.round(kg * 10) / 10 }]; if (nw) L0.push({ d: TODAY, kg: nw }); p.wt = { cm: c, goal: g, freq: fq, logs: L0 }; p.weightKg = nw || L0[0].kg; }
       p.heightCm = c; save(); render(); track(w ? "wt-edit" : "wt-start"); toast(w ? "บันทึกแล้ว" : "เริ่มชาเลนจ์แล้ว 💪"); wtDash();
     });
   });
@@ -3067,6 +3073,7 @@ function wtLog(date) {
   const cur = ex ? ex.kg : (L.length ? L[L.length - 1].kg : +p.weightKg || 60);
   openSheet(ex ? "แก้น้ำหนัก" : "บันทึกน้ำหนัก", `<form id="wlF">
     <label class="f">วันที่<input type="date" name="d" value="${d0}" max="${TODAY}"></label>
+    ${ex ? "" : `<div class="tiny mut" style="margin:-6px 0 8px">ใส่ย้อนหลังได้ — ถ้าใส่วันก่อนวันเริ่ม จะกลายเป็นจุดเริ่มต้นใหม่ของกราฟ</div>`}
     <div class="row" style="justify-content:center;gap:14px;margin:6px 0">
       <button type="button" class="wt-step" data-st="-1" aria-label="ลด 0.1 กิโลกรัม">−</button>
       <label style="text-align:center"><input name="kg" inputmode="decimal" value="${kg1(cur)}" aria-label="น้ำหนัก (กก.)" class="wt-big"><div class="small mut" id="wlPrev"></div></label>
