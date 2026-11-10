@@ -526,7 +526,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v61</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v62</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -2951,7 +2951,7 @@ async function shareCard(id) {
     <div class="row" style="gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap"><label class="inline" style="margin:0"><input type="checkbox" data-scxp ${SC.shPlace ? "checked" : ""}> 📍 เมือง (จาก GPS)</label>
       <input class="lv-in" data-scxpv value="${esc(l.place || "")}" placeholder="ติ๊กแล้วหาให้ / พิมพ์เอง" maxlength="40" style="flex:1;min-width:140px"></div>
     <div class="tiny mut" style="margin-bottom:10px">${l.route && l.route.length > 1 ? "เมืองหาจากจุดเริ่มวิ่งใน GPS" : "ผลนี้ไม่มี GPS — ใช้ตำแหน่งปัจจุบันของเครื่องแทน (แก้ชื่อเองได้)"}</div>
-    <button type="button" class="btn block" data-scsave style="margin-top:6px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
+    <button type="button" class="btn block" data-scsave style="margin-top:6px">💾 บันทึกรูป</button>
     <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div></div>`, body => {
     const cv = body.querySelector("#scCv"), draw = () => { if (SC.bg !== "none") { scDraw(cv, l); return imgPrep(cv, "image/jpeg", 0.92); }
       const off = document.createElement("canvas"); scDraw(off, l); const t = scTrim(off); cv.width = t.width; cv.height = t.height; cv.getContext("2d").drawImage(t, 0, 0); imgPrep(cv, "image/png"); };
@@ -2997,7 +2997,7 @@ function imgPrep(cv, type, q) { cv._blob = null; const t = cv._tok = (cv._tok ||
 function imgSaveFallback(cv, name, type, q) {
   let url = ""; try { url = cv.toDataURL(type, q); } catch (e) {}
   const ov = document.createElement("div"); ov.className = "img-save";
-  ov.innerHTML = `<div class="img-save-in"><b>กดค้างที่รูป แล้วเลือก “บันทึกรูปภาพ” / “Save image”</b><img src="${url}" alt="รูปแชร์"><div class="row" style="gap:8px;justify-content:center"><a class="btn" download="${name}" href="${url}">ดาวน์โหลด</a><button type="button" class="btn ghost">ปิด</button></div></div>`;
+  ov.innerHTML = `<div class="img-save-in"><b style="font-size:17px">👇 กดค้างที่รูป แล้วเลือก “บันทึกรูปภาพ”</b><img src="${url}" alt="รูปแชร์"><button type="button" class="btn ghost">ปิด</button></div>`;
   ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("button")) ov.remove(); });
   document.body.appendChild(ov);
 }
@@ -3312,7 +3312,7 @@ function wtShare() {
     ${WTS.t === "glow" ? `<div class="flabel">โทนสี</div><div class="row" style="gap:10px;margin-bottom:10px">${WT_TONE.map(([bg, ink], i) => `<button type="button" data-tone="${i}" aria-label="โทนสี ${i + 1}" style="width:40px;height:40px;border-radius:20px;border:3px solid ${WTS.tone === i ? ink : "#fff"};background:linear-gradient(135deg,${bg} 50%,${ink} 50%);box-shadow:0 1px 4px rgba(0,0,0,.15);cursor:pointer"></button>`).join("")}</div>` : ""}
     ${photos ? `<div class="row" style="gap:8px;margin-bottom:10px">${photos === 2 ? `<button type="button" class="btn ghost" style="flex:1" data-ph="a">🖼 ${WTS.a ? "เปลี่ยน" : "เลือก"}รูปก่อน</button>` : ""}<button type="button" class="btn ghost" style="flex:1" data-ph="b">🖼 ${WTS.b ? "เปลี่ยน" : "เลือก"}รูป${photos === 2 ? "ตอนนี้" : ""}</button></div>` : ""}
     <label class="inline"><input type="checkbox" data-hide ${WTS.hide ? "checked" : ""}> ซ่อนน้ำหนักจริง (โชว์แค่ % และกิโลที่ลด)</label>
-    <button type="button" class="btn block" data-wsave style="margin-top:10px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
+    <button type="button" class="btn block" data-wsave style="margin-top:10px">💾 บันทึกรูป</button>
     <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div>`, body => {
     const cv = body.querySelector("#wtCv"), draw = () => { wtDraw(cv, wtStats(p), p); imgPrep(cv, "image/jpeg", .92); };
     try { Promise.all(["800 60px Outfit", "700 20px Outfit", "600 26px Mali", "300 60px Trirong", "italic 300 20px Trirong", "500 16px 'IBM Plex Sans Thai'", "600 16px 'IBM Plex Sans Thai'"].map(f => document.fonts.load(f, "0กabc"))).then(draw, draw); } catch (e) {}
