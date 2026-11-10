@@ -529,7 +529,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v64</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v65</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -754,7 +754,7 @@ function toSec(t) { if (!t) return 0; const p = String(t).replace(/\s/g, "").spl
 function fmtTime(s) { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return h ? `${h}:${pad(m)}:${pad(x)}` : `${m}:${pad(x)}`; }
 function fmtDur(s) { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.round(s % 3600 / 60); return h ? `${h} ชม. ${m} น.` : `${m} นาที`; }
 const fmtPace = s => { s = Math.round(s); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
-const rng = a => a ? fmtPace(a[0]) + "–" + fmtPace(a[1]) : "";
+const rng = a => a ? (Math.round(a[0]) === Math.round(a[1]) ? fmtPace(a[0]) : fmtPace(a[0]) + "–" + fmtPace(a[1])) : "";
 // อ่านเวลาที่ผู้ใช้พิมพ์แบบยืดหยุ่น: "1:50" (ชม.:นาที หรือ นาที:วินาที เลือกตามเพซที่สมเหตุสมผล), "1.50", "1 50", "110" (นาที), "1:49:59"
 const PACE_OK = s => s >= 150 && s <= 1200;                      // 2:30–20:00 นาที/กม.
 function normDur(str) { return String(str || "").trim().replace(/[.,;\s]+|ชม\.?|ชั่วโมง|h/gi, ":").replace(/[^0-9:]/g, "").replace(/:+/g, ":").replace(/^:|:$/g, ""); }
@@ -4562,16 +4562,26 @@ function editSession(key) {
     ["km", "reps", "dist", "sec", "rest", "min", "wu"].forEach(k => { if (F[k]) x[k] = k === "km" ? r05(parseFloat(F[k].value) || 0) : n(k); });
     return x;
   };
+  const myRange = str => {               // "4:30" หรือ "4:25-4:35"
+    const t = String(str || "").trim(); if (!t) return null;
+    const a = t.split(/\s*[-–~]\s*|\s+ถึง\s+/).map(parsePace).filter(x => x >= 120 && x <= 1200);
+    if (!a.length) return null;
+    return a.length > 1 ? [Math.min(a[0], a[1]), Math.max(a[0], a[1])] : [a[0], a[0]];
+  };
   const result = form => {
     const F = form.elements; o = read(form);
     if (o.k === "rest") return { type: "rest" };
-    if (o.k === "custom") return { type: F.type.value, km: o.km || 0, detail: F.detail.value.trim() || TYPE_LABEL[F.type.value], pace: F.pace.value, shoe: F.shoe.value };
-    const b = woBuild(o, s); return { ...b, pace: F.pace.value || b.pace, shoe: F.shoe.value, wo: o };
+    const my = myRange(F.myp.value), mp = my ? { range: my, myp: F.myp.value.trim() } : {};
+    if (o.k === "custom") return { type: F.type.value, km: o.km || 0, detail: F.detail.value.trim() || TYPE_LABEL[F.type.value], pace: F.pace.value, shoe: F.shoe.value, ...mp };
+    const b = woBuild(o, s), pk = F.pace.value || b.pace;
+    if (my) { const w = W[s.wi], R = (w && w.pc && w.pc.ranges) || {}, e = R.easy ? (R.easy[0] + R.easy[1]) / 2 : 420, q = R[pk] ? (R[pk][0] + R[pk][1]) / 2 : 0, m = (my[0] + my[1]) / 2;
+      if (q && o.k !== "easy" && o.k !== "recovery" && o.k !== "long" && o.k !== "strides" && o.k !== "progress") b.km = r05(Math.max(0.5, b.km + (b.km - 2 * (+o.wu || 0) * 60 / e) * (q / m - 1) * 0.8)); }
+    return { ...b, pace: pk, shoe: F.shoe.value, wo: o, ...mp };
   };
   const preview = form => {
     if (o.k === "rest") return `<b>วันพัก</b> · ร่างกายได้ซ่อมแซม`;
     const r = result(form);
-    return `<b>${esc(r.detail)}</b><br><span class="mut">ประมาณ ${fmtKm(r.km)} กม. · ${esc((PACE_KEYS.find(x => x[0] === r.pace) || ["", ""])[1])}</span>`;
+    return `<b>${esc(r.detail)}</b><br><span class="mut">ประมาณ ${fmtKm(r.km)} กม. · ${r.range ? `<b style="color:var(--pri-d)">เพซ ${rng(r.range)}/กม.</b> (ใส่เอง)` : esc((PACE_KEYS.find(x => x[0] === r.pace) || ["", ""])[1])}</span>`;
   };
   openSheet("แก้นัดซ้อม · " + thDate(s.date), `<form id="edForm">
     <div class="flabel">เลือกแบบการซ้อม</div>
@@ -4581,6 +4591,7 @@ function editSession(key) {
     <div class="grid2" id="woPS">
       <label class="f">เพซ<select name="pace">${PACE_KEYS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select></label>
       <label class="f">รองเท้า<select name="shoe"><option value="">—</option>${shoes.map(x => `<option value="${x.id}" ${s.shoe === x.id ? "selected" : ""}>${esc(shoeShort(x))}</option>`).join("")}</select></label>
+      <label class="f" style="grid-column:1/-1">หรือใส่เพซเอง (นาที/กม.)<input name="myp" inputmode="text" autocomplete="off" placeholder="เช่น 4:30 หรือ 4:25-4:35 · เว้นว่าง = ใช้เพซตามแผน" value="${esc(s.myp || "")}"></label>
     </div>
     <div class="wo-prev" id="woPrev"></div>
     <button class="btn block" type="submit">บันทึก</button>
