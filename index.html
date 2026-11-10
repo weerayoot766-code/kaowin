@@ -526,7 +526,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v62</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v63</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -2993,7 +2993,7 @@ async function shareCard(id) {
 
 
 /* ---- บันทึก/แชร์รูปจาก canvas: เตรียมไฟล์ไว้ก่อน (มือถือ iPhone/แท็บเล็ตต้องเรียกแชร์ทันทีที่กด) + สำรองแบบกดค้างเพื่อบันทึกรูป ---- */
-function imgPrep(cv, type, q) { cv._blob = null; const t = cv._tok = (cv._tok || 0) + 1; try { cv.toBlob(b => { if (cv._tok === t) cv._blob = b; }, type, q); } catch (e) {} }
+function imgPrep() {}
 function imgSaveFallback(cv, name, type, q) {
   let url = ""; try { url = cv.toDataURL(type, q); } catch (e) {}
   const ov = document.createElement("div"); ov.className = "img-save";
@@ -3001,19 +3001,18 @@ function imgSaveFallback(cv, name, type, q) {
   ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("button")) ov.remove(); });
   document.body.appendChild(ov);
 }
-async function imgShare(cv, name, type, q, tag) {
-  const go = async blob => {
-    if (!blob) return imgSaveFallback(cv, name, type, q);
-    const file = new File([blob], name, { type });
-    if (navigator.canShare && navigator.share) {
-      try { if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); track(tag); return; } }
-      catch (err) { if (err && err.name === "AbortError") return; }
-    }
-    // แชร์ไม่ได้ (เช่น แอพบนหน้าจอโฮมของ iPad/iPhone) → โชว์รูปให้กดค้างบันทึก
-    track(tag + "-fb"); imgSaveFallback(cv, name, type, q);
-  };
-  if (cv._blob) return go(cv._blob);
-  cv.toBlob(go, type, q);
+const iosDev = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+let imgSharing = false;
+function imgShare(cv, name, type, q, tag) {
+  // iPhone/iPad: ระบบแชร์ในแอพบนหน้าจอโฮมไม่เสถียร (รูปไม่ครบ/ค้าง) → เปิดรูปให้กดค้างบันทึก ซึ่งได้รูปครบแน่นอน
+  if (iosDev() || !navigator.share || !navigator.canShare || imgSharing) { track(tag + "-img"); return imgSaveFallback(cv, name, type, q); }
+  let url = ""; try { url = cv.toDataURL(type, q); } catch (e) { return imgSaveFallback(cv, name, type, q); }
+  const bin = atob(url.split(",")[1]), u8 = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u8[k] = bin.charCodeAt(k);   // ทำไฟล์จากภาพบนจอตอนกดเลย (ครบทุกชั้น)
+  const file = new File([u8], name, { type });
+  let ok = false; try { ok = navigator.canShare({ files: [file] }); } catch (e) {}
+  if (!ok) return imgSaveFallback(cv, name, type, q);
+  imgSharing = true; const done = () => { imgSharing = false; }; setTimeout(done, 20000);
+  navigator.share({ files: [file] }).then(() => { done(); track(tag); }).catch(err => { done(); if (!err || err.name !== "AbortError") imgSaveFallback(cv, name, type, q); });
 }
 /* ---------- ชาเลนจ์ลดน้ำหนัก: น้ำหนัก กราฟ BMI % ที่ลด + รูปแชร์ (ข้อมูลน้ำหนักเก็บในเครื่องเท่านั้น) ---------- */
 const WT_FREQ = { day: ["ทุกวัน", 1], week: ["ทุกสัปดาห์", 7], month: ["ทุกเดือน", 30] };
