@@ -10,7 +10,7 @@
 <title>KAOWIN</title>
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Mali:wght@500;600;700&family=Trirong:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#eef7ef; --card:#ffffff; --soft:#dcefdf; --soft2:#f5fbf5;
@@ -330,6 +330,23 @@ body.lv-on{overflow:hidden}
 .lv-spl b{text-align:right}
 .wx-card{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:linear-gradient(160deg,#eef8f1,#e3f1e8);border:1px solid #cfe5d6;border-radius:18px;padding:12px 14px;margin:0 0 12px;cursor:pointer}
 .wx-card.wx-empty{display:flex;align-items:center;gap:12px}
+.wt-card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--ink);background:linear-gradient(160deg,#fff0f5,#ffe2ec);border:1px solid #f5c6d6;border-radius:18px;padding:12px 14px;margin:0 0 12px;cursor:pointer}
+.wt-card .wt-ic{font-size:26px}.wt-card .wt-go{font-weight:700;color:#b0386a;white-space:nowrap}
+.wt-pill{display:inline-block;background:#d65f8a;color:#fff;border-radius:999px;padding:2px 10px;font-family:Outfit,sans-serif;font-weight:800;font-size:14px;vertical-align:3px}
+.wt-pill.big{font-size:20px;padding:4px 12px;background:#ffd1e1;color:#7a1f45}
+.wt-hero{background:linear-gradient(150deg,#b0386a,#d65f8a);color:#fff;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.wt-bar{height:10px;border-radius:5px;background:rgba(255,255,255,.25);overflow:hidden}.wt-bar i{display:block;height:100%;background:#ffd1e1;border-radius:5px}
+.wt-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+.wt-tiles>div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:1px}
+.wt-tiles small{font-size:11px;color:var(--mut)}.wt-tiles b{font-family:Outfit,sans-serif;font-size:20px}
+.wt-bmi{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-top:10px}.wt-bmi i{display:block}
+.wt-pin{position:absolute;top:0;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:10px solid var(--ink);transform:translateX(-7px)}
+.wt-row{display:flex;justify-content:space-between;width:100%;padding:11px 0;border:0;border-top:1px solid var(--line);background:none;font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.wt-row .dn{color:#23824a;font-weight:600}.wt-row .up{color:#b85c00;font-weight:600}
+.wt-step{width:58px;height:58px;border-radius:29px;border:1.5px solid var(--line);background:#fff;font-size:28px;color:#b0386a;cursor:pointer}
+.wt-big{width:170px;text-align:center;border:0;outline:0;font-family:Outfit,sans-serif;font-weight:800;font-size:56px;background:transparent;color:var(--ink)}
+.wt-chip{border:1.5px solid #f5c6d6;background:#fff;color:#7a1f45;padding:6px 12px;font-size:13px;cursor:pointer}
+
 .wx-card.lv1{background:linear-gradient(160deg,#fffbe8,#fff3c4);border-color:#f2df8f}
 .wx-card.lv2{background:linear-gradient(160deg,#fff3e6,#ffe0c2);border-color:#f5b77a}
 .wx-card.lv3{background:linear-gradient(160deg,#ffecec,#ffd3d3);border-color:#f19a9a}
@@ -506,7 +523,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v58</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v59</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -1671,7 +1688,8 @@ const CROOMS = [
   { k: "km100",    em: "🏃", name: "100 กม.", full: "100 กม. ในเดือนนี้", sub: "ระยะสะสม · เป้า 100 กม.", unit: "กม.", target: 100, g: "cx-g1" },
   { k: "runs12",   em: "📅", name: "วิ่ง 12 ครั้ง", full: "วิ่ง 12 ครั้งในเดือนนี้", sub: "ความสม่ำเสมอ · เป้า 12 ครั้ง", unit: "ครั้ง", target: 12, g: "cx-g2" },
   { k: "longest",  em: "🌅", name: "วิ่งไกลสุดครั้งเดียว", full: "วิ่งไกลสุดครั้งเดียว", sub: "ใครไกลสุดชนะ", unit: "กม.", target: 0, g: "cx-g3" },
-  { k: "vert2000", em: "⛰️", name: "ไต่สะสม 2,000 ม.", full: "ไต่สะสม 2,000 ม.", sub: "สายเทรล · เป้า 2,000 ม.", unit: "ม.", target: 2000, g: "cx-g4" }
+  { k: "vert2000", em: "⛰️", name: "ไต่สะสม 2,000 ม.", full: "ไต่สะสม 2,000 ม.", sub: "สายเทรล · เป้า 2,000 ม.", unit: "ม.", target: 2000, g: "cx-g4" },
+  { k: "wt4",      em: "⚖️", name: "ลดน้ำหนัก 4%", full: "ลดน้ำหนัก 4% ในเดือนนี้", sub: "โชว์แค่ % ไม่โชว์น้ำหนัก · นับได้ไม่เกิน 1%/สัปดาห์", unit: "%", target: 4, g: "cx-g2" }
 ];
 const curMonth = () => TODAY.slice(0, 7);
 const monthTH = m => TH_MON_FULL[+m.slice(5, 7) - 1];
@@ -1683,9 +1701,15 @@ function roomVal(p, room, exceptId) {
   if (k === "runs12") return L.filter(l => +l.km >= 1).length;
   if (k === "longest") return L.reduce((x, l) => Math.max(x, +l.km || 0), 0);
   if (k === "vert2000") return L.reduce((t, l) => t + (+l.dplus || 0), 0);
+  if (k === "wt4") {        // % ที่ลดในเดือน เทียบน้ำหนักก่อนเริ่มเดือน (หรือครั้งแรกในเดือน) · เพดาน 1% ต่อสัปดาห์ เพื่อไม่ให้ลดหักโหมแล้วได้เปรียบ
+    const W = wtLogs(p), inM = W.filter(x => x.d.slice(0, 7) === m); if (!inM.length) return 0;
+    const base = [...W].reverse().find(x => x.d < m + "-01") || inM[0], last = inM[inM.length - 1], pct = (base.kg - last.kg) / base.kg * 100;
+    const wks = Math.max(1, diffDays(base.d < m + "-01" ? m + "-01" : base.d, last.d) / 7);
+    return Math.max(0, Math.round(Math.min(pct, wks) * 10) / 10);
+  }
   return 0;
 }
-const fmtRoom = (room, v) => { const d = roomDef(room); return d && d.unit === "ครั้ง" ? String(v) : d && d.unit === "ม." ? fmtVert(v) : fmtKm(v); };
+const fmtRoom = (room, v) => { const d = roomDef(room); return d && d.unit === "%" ? (+v || 0).toFixed(1) : d && d.unit === "ครั้ง" ? String(v) : d && d.unit === "ม." ? fmtVert(v) : fmtKm(v); };
 const rnd = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("");
 function chIdent(p) { if (!p.chId) { p.chId = { uid: rnd(16), key: rnd(32) }; save(); } return p.chId; }
 const agCode = p => { const a = ageGroup(p, { km: 21, date: TODAY }); return a && a.g ? (a.g[1] === Infinity ? a.g[0] + "+" : a.g[0] === 0 ? String(a.g[1]) : a.g[0] + "-" + a.g[1]) : ""; };
@@ -2970,6 +2994,316 @@ async function shareCard(id) {
   });
 }
 
+/* ---------- ชาเลนจ์ลดน้ำหนัก: น้ำหนัก กราฟ BMI % ที่ลด + รูปแชร์ (ข้อมูลน้ำหนักเก็บในเครื่องเท่านั้น) ---------- */
+const WT_FREQ = { day: ["ทุกวัน", 1], week: ["ทุกสัปดาห์", 7], month: ["ทุกเดือน", 30] };
+const bmiOf = (kg, cm) => kg && cm ? kg / Math.pow(cm / 100, 2) : 0;
+const bmiCat = b => b < 18.5 ? ["ผอม", "#2f7fb5"] : b < 23 ? ["ปกติ", "#23824a"] : b < 25 ? ["ท้วม", "#8a6a00"] : b < 30 ? ["อ้วนระดับ 1", "#b85c00"] : ["อ้วนระดับ 2", "#c0392b"];
+const kg1 = v => (Math.round(v * 10) / 10).toFixed(1);
+const wtLogs = p => ((p.wt && p.wt.logs) || []).slice().sort((a, b) => a.d.localeCompare(b.d));
+function wtStats(p) {
+  const w = p.wt, L = wtLogs(p); if (!w || !L.length) return null;
+  const s = L[0], n = L[L.length - 1], lost = s.kg - n.kg, pct = lost / s.kg * 100, goal = +w.goal || 0;
+  const prog = goal && s.kg > goal ? Math.max(0, Math.min(100, lost / (s.kg - goal) * 100)) : 0, days = diffDays(s.d, n.d);
+  const perWk = days >= 7 ? lost / days * 7 : 0, eta = perWk > .05 && goal && n.kg > goal ? addDays(n.d, Math.round((n.kg - goal) / perWk * 7)) : "";
+  const prev = L.length > 1 ? L[L.length - 2] : null, wk = Math.floor(diffDays(s.d, TODAY) / 7) + 1;
+  return { s, n, prev, lost, pct, goal, prog, perWk, eta, L, wk, days, bmi0: bmiOf(s.kg, w.cm), bmi: bmiOf(n.kg, w.cm), done: goal && n.kg <= goal };
+}
+const wtDue = p => { const S = wtStats(p); if (!S) return false; const f = (WT_FREQ[p.wt.freq] || WT_FREQ.week)[1]; return diffDays(S.n.d, TODAY) >= f; };
+const sgn = v => (v > 0 ? "−" : v < 0 ? "+" : "±") + kg1(Math.abs(v));      // ลด = ลบ
+const sgnP = v => (v > 0 ? "−" : v < 0 ? "+" : "") + Math.abs(v).toFixed(1) + "%";
+function wtSpark(L, w = 90, h = 30) {
+  if (L.length < 2) return ""; const v = L.slice(-12).map(x => x.kg), mn = Math.min(...v), mx = Math.max(...v), r = mx - mn || 1;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${v.map((k, i) => `${(i / (v.length - 1) * (w - 6) + 3).toFixed(1)},${(3 + (mx - k) / r * (h - 6)).toFixed(1)}`).join(" ")}" fill="none" stroke="#d65f8a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function wtHomeHtml(p) {
+  const S = wtStats(p);
+  if (!S) return `<button class="wt-card wt-empty" data-act="wtOpen"><span class="wt-ic">⚖️</span><span style="flex:1;text-align:left"><b>ชาเลนจ์ลดน้ำหนัก</b><br><span class="tiny">บันทึกน้ำหนัก ดูกราฟ BMI และ % ที่ลด · ทำรูปแชร์สวย ๆ ได้</span></span><span class="wt-go">เริ่ม ›</span></button>`;
+  const due = wtDue(p);
+  return `<button class="wt-card" data-act="wtOpen"><span style="flex:1;text-align:left;min-width:0"><span class="tiny" style="color:#9a4a68;font-weight:600">⚖️ ชาเลนจ์ลดน้ำหนัก · สัปดาห์ที่ ${S.wk}</span><br>
+    <b style="font-family:Outfit,sans-serif;font-size:26px">${kg1(S.n.kg)}</b> <span class="small">กก.</span> <span class="wt-pill">${sgnP(S.pct)}</span>
+    ${due ? `<br><span class="tiny" style="color:#b0386a;font-weight:600">⏰ ถึงเวลาชั่งน้ำหนักแล้ว — แตะเพื่อบันทึก</span>` : S.goal ? `<br><span class="tiny mut">ถึงเป้า ${Math.round(S.prog)}% · เป้า ${kg1(S.goal)} กก.</span>` : ""}</span>${wtSpark(S.L)}</button>`;
+}
+function wtOpen() { const p = P(); if (!p.wt) return wtSetup(); if (wtDue(p)) return wtLog(); wtDash(); }
+
+function wtSetup() {
+  const p = P(), w = p.wt, S = wtStats(p), start = S ? S.s.kg : (+p.weightKg || ""), cm = w ? w.cm : (+p.heightCm || "");
+  openSheet(w ? "⚙️ ตั้งค่าชาเลนจ์ลดน้ำหนัก" : "⚖️ เริ่มชาเลนจ์ลดน้ำหนัก", `<form id="wtF">
+    ${w ? "" : `<p class="small mut" style="margin-top:0">ใส่น้ำหนักวันนี้เป็นจุดเริ่มต้น แล้วบันทึกต่อเรื่อย ๆ แอพจะทำกราฟ คำนวณ BMI และ % ที่ลดให้ · น้ำหนักเก็บในเครื่องนี้เท่านั้น</p>`}
+    <div class="row" style="gap:10px"><label class="f" style="flex:1">น้ำหนักเริ่มต้น (กก.)<input name="kg" inputmode="decimal" value="${start}" ${w ? "disabled" : "required"}></label>
+      <label class="f" style="flex:1">ส่วนสูง (ซม.)<input name="cm" inputmode="numeric" value="${cm}" required></label></div>
+    <div id="wtBmi" class="note" style="margin:0 0 10px"></div>
+    <label class="f">เป้าหมาย (กก.)<input name="goal" inputmode="decimal" value="${w && w.goal ? w.goal : ""}" placeholder="เช่น 75"></label>
+    <div class="row" style="gap:6px;flex-wrap:wrap;margin:-4px 0 6px" id="wtChips"></div>
+    <div class="tiny mut" id="wtEta" style="margin-bottom:10px"></div>
+    <div class="flabel">ให้แอพเตือนบันทึก</div>
+    <div class="seg" id="wtFq">${Object.entries(WT_FREQ).map(([k, [n]]) => `<button type="button" data-fq="${k}" class="${(w ? w.freq : "week") === k ? "on" : ""}"><span>${n}</span></button>`).join("")}</div>
+    <button class="btn block" type="submit" style="margin-top:12px">${w ? "บันทึก" : "เริ่มชาเลนจ์"}</button>
+    ${w ? `<button type="button" class="linkbtn" data-wtreset style="display:block;margin:14px auto 0;color:#b33">เริ่มใหม่ (ลบน้ำหนักทั้งหมด)</button>` : ""}</form>`, body => {
+    const F = body.querySelector("#wtF"), E = F.elements; let fq = w ? w.freq : "week";
+    const calc = () => {
+      const kg = parseFloat(E.kg.value), c = parseFloat(E.cm.value), now = S ? S.n.kg : kg, b = bmiOf(now, c), min = 18.5 * Math.pow(c / 100, 2);
+      body.querySelector("#wtBmi").innerHTML = b > 8 && b < 80 ? `BMI ${S ? "ตอนนี้" : ""} <b>${b.toFixed(1)}</b> · <b style="color:${bmiCat(b)[1]}">${bmiCat(b)[0]}</b> <span class="tiny mut">(เกณฑ์คนเอเชีย)</span>` : "ใส่น้ำหนักและส่วนสูงเพื่อดู BMI";
+      const ch = kg > 30 && c > 100 ? [["−5%", kg * .95], ["−10%", kg * .9], ["BMI 24.9", 24.9 * Math.pow(c / 100, 2)], ["BMI 22.9", 22.9 * Math.pow(c / 100, 2)]].filter(([, v]) => v < now - .4 && v >= min) : [];
+      body.querySelector("#wtChips").innerHTML = ch.map(([t, v]) => `<button type="button" class="chip wt-chip" data-g="${kg1(v)}">${t} · ${kg1(v)}</button>`).join("");
+      const g = parseFloat(E.goal.value), et = body.querySelector("#wtEta");
+      et.innerHTML = !g ? "" : g < min ? `<span style="color:#b33">⚠️ ต่ำกว่า BMI 18.5 (${kg1(min)} กก.) — ตั้งต่ำขนาดนี้ไม่ได้ เพื่อสุขภาพ</span>` : g >= now ? "เป้าต้องน้อยกว่าน้ำหนักตอนนี้" : `ลดอีก ${kg1(now - g)} กก. · ที่ความเร็วปลอดภัย 0.25–0.5 กก./สัปดาห์ ใช้เวลาราว <b>${Math.ceil((now - g) / .5)}–${Math.ceil((now - g) / .25)} สัปดาห์</b>`;
+    };
+    F.addEventListener("input", calc); calc();
+    body.querySelector("#wtChips").addEventListener("click", e => { const b = e.target.closest("[data-g]"); if (b) { E.goal.value = b.dataset.g; calc(); } });
+    body.querySelector("#wtFq").addEventListener("click", e => { const b = e.target.closest("[data-fq]"); if (!b) return; fq = b.dataset.fq; body.querySelectorAll("[data-fq]").forEach(x => x.classList.toggle("on", x === b)); });
+    const rs = body.querySelector("[data-wtreset]"); if (rs) rs.addEventListener("click", () => { if (!confirm("ลบน้ำหนักที่บันทึกทั้งหมด แล้วเริ่มใหม่?")) return; delete p.wt; save(); render(); closeSheet(); toast("ลบแล้ว"); });
+    F.addEventListener("submit", e => {
+      e.preventDefault(); const kg = w ? S.s.kg : parseFloat(E.kg.value), c = parseFloat(E.cm.value), g = parseFloat(E.goal.value) || 0, min = 18.5 * Math.pow(c / 100, 2);
+      if (!(kg >= 25 && kg <= 300)) return toast("น้ำหนักดูแปลก ๆ ลองใหม่"); if (!(c >= 100 && c <= 230)) return toast("ส่วนสูงดูแปลก ๆ ลองใหม่");
+      if (g && (g < min || g >= (S ? S.n.kg : kg))) return toast(g < min ? "เป้าต่ำกว่า BMI 18.5 ตั้งไม่ได้" : "เป้าต้องน้อยกว่าน้ำหนักตอนนี้");
+      if (w) Object.assign(w, { cm: c, goal: g, freq: fq }); else { p.wt = { cm: c, goal: g, freq: fq, logs: [{ d: TODAY, kg: Math.round(kg * 10) / 10 }] }; p.weightKg = Math.round(kg * 10) / 10; }
+      p.heightCm = c; save(); render(); track(w ? "wt-edit" : "wt-start"); toast(w ? "บันทึกแล้ว" : "เริ่มชาเลนจ์แล้ว 💪"); wtDash();
+    });
+  });
+}
+
+function wtLog(date) {
+  const p = P(), L = wtLogs(p), ex = date ? L.find(x => x.d === date) : null, d0 = date || TODAY, prevOf = d => [...L].reverse().find(x => x.d < d);
+  const cur = ex ? ex.kg : (L.length ? L[L.length - 1].kg : +p.weightKg || 60);
+  openSheet(ex ? "แก้น้ำหนัก" : "บันทึกน้ำหนัก", `<form id="wlF">
+    <label class="f">วันที่<input type="date" name="d" value="${d0}" max="${TODAY}"></label>
+    <div class="row" style="justify-content:center;gap:14px;margin:6px 0">
+      <button type="button" class="wt-step" data-st="-1" aria-label="ลด 0.1 กิโลกรัม">−</button>
+      <label style="text-align:center"><input name="kg" inputmode="decimal" value="${kg1(cur)}" aria-label="น้ำหนัก (กก.)" class="wt-big"><div class="small mut" id="wlPrev"></div></label>
+      <button type="button" class="wt-step" data-st="1" aria-label="เพิ่ม 0.1 กิโลกรัม">+</button></div>
+    <div class="wt-tiles" id="wlT"></div>
+    <details style="margin:10px 0"><summary class="small" style="cursor:pointer">เพิ่มเติม (ไม่บังคับ)</summary>
+      <label class="f" style="margin-top:8px">รอบเอว (ซม.)<input name="waist" inputmode="decimal" value="${ex && ex.waist ? ex.waist : ""}"></label></details>
+    <div class="tiny mut" style="margin-bottom:10px">ชั่งเวลาเดิมทุกครั้งแม่นที่สุด — แนะนำตอนเช้าหลังเข้าห้องน้ำ ก่อนกินข้าว · น้ำหนักแกว่งวันละ 0.5–1 กก. เป็นเรื่องปกติ</div>
+    <button class="btn block" type="submit">บันทึก</button>
+    ${ex && L.length > 1 ? `<button type="button" class="linkbtn" data-wldel style="display:block;margin:12px auto 0;color:#b33">ลบรายการนี้</button>` : ""}</form>`, body => {
+    const F = body.querySelector("#wlF"), E = F.elements, S0 = wtStats(p);
+    const upd = () => {
+      const kg = parseFloat(E.kg.value), pv = prevOf(E.d.value), s = S0 ? S0.s : null;
+      body.querySelector("#wlPrev").textContent = pv ? `กก. · ครั้งก่อน ${kg1(pv.kg)}` : "กก.";
+      if (!(kg > 0)) return; const b = bmiOf(kg, p.wt.cm);
+      body.querySelector("#wlT").innerHTML = `${pv ? `<div><small>เทียบครั้งก่อน</small><b>${sgn(pv.kg - kg)}</b></div>` : ""}${s && s.d < E.d.value ? `<div><small>ลดรวม</small><b>${sgnP((s.kg - kg) / s.kg * 100)}</b></div>` : ""}<div><small>BMI</small><b style="color:${bmiCat(b)[1]}">${b.toFixed(1)}</b></div>`;
+    };
+    F.addEventListener("input", upd); upd();
+    body.querySelectorAll("[data-st]").forEach(b => b.addEventListener("click", () => { const v = parseFloat(E.kg.value) || cur; E.kg.value = kg1(v + .1 * +b.dataset.st); upd(); }));
+    const dl = body.querySelector("[data-wldel]"); if (dl) dl.addEventListener("click", () => { p.wt.logs = p.wt.logs.filter(x => x.d !== date); save(); render(); wtDash(); });
+    F.addEventListener("submit", e => {
+      e.preventDefault(); const kg = Math.round(parseFloat(E.kg.value) * 10) / 10, d = E.d.value || TODAY, wa = parseFloat(E.waist.value) || 0;
+      if (!(kg >= 25 && kg <= 300)) return toast("น้ำหนักดูแปลก ๆ ลองใหม่"); if (d > TODAY) return toast("ใส่วันที่ในอนาคตไม่ได้");
+      const pv = prevOf(d); if (pv && Math.abs(pv.kg - kg) > 5 && diffDays(pv.d, d) < 14 && !confirm(`ต่างจากครั้งก่อน ${kg1(Math.abs(pv.kg - kg))} กก. — ใส่ถูกแน่นะ?`)) return;
+      p.wt.logs = p.wt.logs.filter(x => x.d !== d && x.d !== date); p.wt.logs.push(Object.assign({ d, kg }, wa ? { waist: wa } : {}));
+      const S = wtStats(p); p.weightKg = S.n.kg; save(); render(); track("wt-log");
+      if (S.goal && S.n.kg <= S.goal && !p.wt.goalAt) { p.wt.goalAt = TODAY; save(); toast("🎉 ถึงเป้าแล้ว! เก่งมาก"); } else toast("บันทึกแล้ว");
+      if (CH_API && joinedRooms(p, curMonth()).some(r => r.endsWith(":wt4"))) chSync(p);
+      wtDash();
+    });
+  });
+}
+
+const WTD = { range: "90" };
+function wtChart(S, range) {
+  const W = 340, H = 190, L = range === "all" ? S.L : S.L.filter(x => diffDays(x.d, TODAY) <= +range);
+  const P1 = L.length ? L : [S.n], ks = P1.map(x => x.kg).concat(S.goal ? [S.goal] : []), mn = Math.floor(Math.min(...ks) - .5), mx = Math.ceil(Math.max(...ks) + .5), r = mx - mn || 1;
+  const d0 = P1[0].d, span = Math.max(1, diffDays(d0, P1[P1.length - 1].d)), X = d => 34 + diffDays(d0, d) / span * (W - 44), Y = k => 10 + (mx - k) / r * (H - 34);
+  const step = r > 12 ? 4 : r > 6 ? 2 : 1, grid = []; for (let k = Math.ceil(mn / step) * step; k <= mx; k += step) grid.push(k);
+  const pts = P1.map(x => `${X(x.d).toFixed(1)},${Y(x.kg).toFixed(1)}`);
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}" role="img" aria-label="กราฟน้ำหนัก ${kg1(P1[0].kg)} ถึง ${kg1(S.n.kg)} กิโลกรัม">
+    ${grid.map(k => `<line x1="34" x2="${W - 6}" y1="${Y(k)}" y2="${Y(k)}" stroke="#eadfe4"/><text x="0" y="${Y(k) + 4}" font-size="11" fill="#7d6a72" font-family="Outfit">${k}</text>`).join("")}
+    ${S.goal ? `<line x1="34" x2="${W - 6}" y1="${Y(S.goal)}" y2="${Y(S.goal)}" stroke="#e5484d" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${W - 6}" y="${Y(S.goal) - 5}" text-anchor="end" font-size="11" fill="#c0392b">เป้า ${kg1(S.goal)}</text>` : ""}
+    ${pts.length > 1 ? `<path d="M${pts.join(" L")} L${X(P1[P1.length - 1].d)},${H - 22} L${X(d0)},${H - 22} Z" fill="#d65f8a" fill-opacity=".12"/><polyline points="${pts.join(" ")}" fill="none" stroke="#d65f8a" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` : ""}
+    ${P1.length <= 40 ? P1.map(x => `<circle cx="${X(x.d)}" cy="${Y(x.kg)}" r="3.5" fill="#fff" stroke="#d65f8a" stroke-width="2"/>`).join("") : ""}
+    <circle cx="${X(S.n.d)}" cy="${Y(S.n.kg)}" r="6" fill="#ffd1e1" stroke="#9a2f5a" stroke-width="2"/>
+    <text x="34" y="${H - 6}" font-size="11" fill="#7d6a72">${thDate(d0)}</text><text x="${W - 6}" y="${H - 6}" font-size="11" fill="#7d6a72" text-anchor="end">${thDate(P1[P1.length - 1].d)}</text></svg>`;
+}
+function wtDash() {
+  const p = P(), S = wtStats(p); if (!S) return wtSetup();
+  const c = bmiCat(S.bmi), pos = Math.max(0, Math.min(100, (S.bmi - 15) / 20 * 100)), fast = S.days >= 14 && S.perWk > 1;
+  const toNext = S.bmi >= 25 ? [24.9, "ท้วม"] : S.bmi >= 23 ? [22.9, "ปกติ"] : null, need = toNext ? S.n.kg - toNext[0] * Math.pow(p.wt.cm / 100, 2) : 0;
+  const hist = S.L.slice().reverse().slice(0, 12);
+  openSheet("⚖️ ชาเลนจ์ลดน้ำหนัก", `<div class="wt-hero"><div class="row" style="justify-content:space-between"><span class="tiny" style="opacity:.85">สัปดาห์ที่ ${S.wk} · เริ่ม ${thDate(S.s.d)}</span><button class="linkbtn" data-wset style="color:#fff">ตั้งค่า</button></div>
+      <div class="row" style="align-items:flex-end;gap:10px"><div><div class="tiny" style="opacity:.8">ตอนนี้</div><b style="font-family:Outfit,sans-serif;font-size:48px;line-height:1">${kg1(S.n.kg)}</b> กก.</div>
+        <div style="margin-left:auto;text-align:right"><span class="wt-pill big">${sgnP(S.pct)}</span><div class="small" style="margin-top:4px">${S.lost >= 0 ? "ลดไป" : "เพิ่มขึ้น"} ${kg1(Math.abs(S.lost))} กก.</div></div></div>
+      ${S.goal ? `<div class="wt-bar"><i style="width:${S.prog}%"></i></div><div class="row tiny" style="justify-content:space-between;opacity:.85"><span>เริ่ม ${kg1(S.s.kg)}</span><span>${S.done ? "🎉 ถึงเป้าแล้ว" : `ไปแล้ว ${Math.round(S.prog)}%`}</span><span>เป้า ${kg1(S.goal)}</span></div>` : ""}</div>
+    ${fast ? `<div class="note warn" style="margin:10px 0">⚠️ ช่วงนี้ลดเร็วกว่า 1 กก./สัปดาห์ — ลดเร็วเกินเสี่ยงเสียกล้ามเนื้อและโยโย่ ลองกินให้พอ โปรตีนพอ แล้วค่อย ๆ ไปนะ</div>` : ""}
+    ${S.bmi && S.bmi < 18.5 ? `<div class="note warn" style="margin:10px 0">BMI ต่ำกว่า 18.5 แล้ว — ไม่ควรลดต่อ ถ้ากังวลเรื่องน้ำหนัก ลองคุยกับแพทย์หรือนักโภชนาการ</div>` : ""}
+    <div class="card" style="padding:12px;margin:12px 0"><div class="row" style="justify-content:space-between;margin-bottom:6px"><b>กราฟน้ำหนัก</b>
+      <div class="seg sm" id="wtRg">${[["30", "30 วัน"], ["90", "3 เดือน"], ["all", "ทั้งหมด"]].map(([k, n]) => `<button type="button" data-rg="${k}" class="${WTD.range === k ? "on" : ""}"><span>${n}</span></button>`).join("")}</div></div>
+      <div id="wtCh">${wtChart(S, WTD.range)}</div></div>
+    <div class="wt-tiles"><div><small>ลดเฉลี่ย</small><b>${S.days >= 7 ? kg1(S.perWk) : "—"}</b><small>กก./สัปดาห์</small></div><div><small>ถึงเป้าประมาณ</small><b>${S.done ? "ถึงแล้ว" : S.eta ? thDate(S.eta) : "—"}</b><small>${S.eta && !S.done ? "ถ้าลดเท่านี้ต่อ" : ""}</small></div><div><small>บันทึกแล้ว</small><b>${S.L.length}</b><small>ครั้ง</small></div></div>
+    <div class="card" style="padding:12px;margin:12px 0"><div class="row" style="justify-content:space-between"><b>BMI</b><span class="small mut">เริ่ม ${S.bmi0.toFixed(1)} → <b style="font-family:Outfit;font-size:20px;color:${c[1]}">${S.bmi.toFixed(1)}</b></span></div>
+      <div class="wt-bmi"><i style="flex:3.5;background:#8cc8ea"></i><i style="flex:4.4;background:#4cbf7a"></i><i style="flex:2;background:#f2c94c"></i><i style="flex:5;background:#f2994a"></i><i style="flex:5;background:#e5484d"></i></div>
+      <div style="position:relative;height:12px"><span class="wt-pin" style="left:${pos}%"></span></div>
+      <div class="row tiny mut" style="justify-content:space-between"><span>ผอม</span><span>ปกติ 18.5</span><span>ท้วม 23</span><span>อ้วน 25</span><span>30</span></div>
+      <div class="small" style="margin-top:6px"><b style="color:${c[1]}">${c[0]}</b> (เกณฑ์คนเอเชีย)${toNext && need > 0 ? ` · ลดอีก <b>${kg1(need)} กก.</b> จะเข้าช่วง "${toNext[1]}"` : ""}</div></div>
+    <div class="card" style="padding:4px 12px;margin:12px 0"><div class="row" style="justify-content:space-between;padding:8px 0"><b>ประวัติ</b><span class="tiny mut">แตะเพื่อแก้</span></div>
+      ${hist.map((x, i) => { const pv = S.L[S.L.length - 2 - i]; return `<button class="wt-row" data-wed="${x.d}"><span>${TH_DAY[dow(x.d)]} ${thDate(x.d)}</span><span><b style="font-family:Outfit">${kg1(x.kg)}</b> กก. ${pv ? `<span class="${pv.kg >= x.kg ? "dn" : "up"}">${sgn(pv.kg - x.kg)}</span>` : `<span class="tiny mut">เริ่ม</span>`}</span></button>`; }).join("")}</div>
+    ${CH_API ? `<button class="btn ghost block" data-wroom style="margin-bottom:8px">🏆 ชาเลนจ์กลุ่ม "ลด 4% เดือนนี้" — ตารางโชว์แค่ % ไม่โชว์น้ำหนัก</button>` : ""}
+    <div class="row" style="gap:8px"><button class="btn" style="flex:1" data-wlog>+ บันทึกน้ำหนัก</button><button class="btn" style="flex:1;background:#d65f8a" data-wsh>📸 ทำรูปแชร์</button></div>`, body => {
+    body.querySelector("#wtRg").addEventListener("click", e => { const b = e.target.closest("[data-rg]"); if (!b) return; WTD.range = b.dataset.rg; body.querySelectorAll("[data-rg]").forEach(x => x.classList.toggle("on", x === b)); body.querySelector("#wtCh").innerHTML = wtChart(wtStats(p), WTD.range); });
+    body.addEventListener("click", e => {
+      const t = e.target.closest("[data-wed],[data-wlog],[data-wsh],[data-wset],[data-wroom]"); if (!t) return;
+      if (t.dataset.wed) wtLog(t.dataset.wed); else if (t.hasAttribute("data-wlog")) wtLog(); else if (t.hasAttribute("data-wsh")) wtShare(); else if (t.hasAttribute("data-wset")) wtSetup();
+      else { const room = curMonth() + ":wt4"; (p.chJoined || {})[room] ? chBoardSheet(room) : chJoinSheet(room); }
+    });
+  });
+}
+
+/* ---- รูปแชร์น้ำหนัก (วาดด้วย canvas ในเครื่อง) ---- */
+const WTS = { t: "glow", tone: 0, hide: false, a: null, b: null };
+const WT_T = [["glow", "💗 Glow Up"], ["journal", "📔 สมุดบันทึก"], ["minimal", "🤍 มินิมอลครีม"], ["ring", "💜 วงแหวน (สตอรี่)"], ["month", "🍑 ปฏิทิน"], ["before", "🌿 ก่อน→ตอนนี้"], ["chart", "📈 กราฟ"], ["story", "📱 สตอรี่"]];
+const WT_TONE = [["#ffe4ec", "#d65f8a"], ["#fff1e6", "#e07a5f"], ["#efe7ff", "#8b6fd6"], ["#e6f6f1", "#2f9e7a"]];
+const TH_MON_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+function wtTx(g, t, x, y, o = {}) {
+  g.save(); g.font = `${o.it ? "italic " : ""}${o.w || 500} ${o.s || 16}px ${o.f || '"IBM Plex Sans Thai"'}, sans-serif`; g.fillStyle = o.c || "#000"; g.textAlign = o.a || "left"; g.textBaseline = o.b || "alphabetic";
+  if (o.ls) try { g.letterSpacing = o.ls + "px"; } catch (e) {}
+  if (o.max) { const w = g.measureText(t).width; if (w > o.max) g.font = g.font.replace(/(\d+(?:\.\d+)?)px/, (m, n) => (+n * o.max / w).toFixed(1) + "px"); }
+  g.fillText(t, x, y); const w = g.measureText(t).width; g.restore(); return w;
+}
+function wtPh(g, im, x, y, w, h, r, ph, col = "#c48aa0", bg = "#fff") {
+  g.save(); scRR(g, x, y, w, h, r); g.clip();
+  if (im) { const s = Math.max(w / im.width, h / im.height), sw = w / s, sh = h / s; g.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, x, y, w, h); }
+  else { g.fillStyle = bg; g.fillRect(x, y, w, h); wtTx(g, ph, x + w / 2, y + h / 2 + 5, { s: 12, c: col, a: "center" }); }
+  g.restore();
+}
+function wtSparkle(g, x, y, s, c) { g.save(); g.fillStyle = c; g.beginPath(); g.moveTo(x, y - s); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; g.quadraticCurveTo(x, y, x + Math.cos(a + Math.PI / 2) * s, y + Math.sin(a + Math.PI / 2) * s); } g.fill(); g.restore(); }
+function wtHeart(g, x, y, s, c) { g.save(); g.translate(x, y); g.scale(s / 24, s / 24); g.fillStyle = c; g.fill(new Path2D("M12 21s-8-5.2-10-10.1C.6 7.2 3 3 6.8 3c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3C21 3 23.4 7.2 22 10.9 20 15.8 12 21 12 21z")); g.restore(); }
+function wtLine(g, S, x, y, w, h, col, fill, lw = 3) {
+  const L = S.L, ks = L.map(v => v.kg).concat(S.goal ? [S.goal] : []), mn = Math.min(...ks) - .3, mx = Math.max(...ks) + .3, sp = Math.max(1, diffDays(L[0].d, S.n.d));
+  const X = d => x + diffDays(L[0].d, d) / sp * w, Y = k => y + (mx - k) / (mx - mn) * h;
+  if (S.goal) { g.save(); g.strokeStyle = "#e5484d"; g.lineWidth = 1.5; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(x - 6, Y(S.goal)); g.lineTo(x + w + 6, Y(S.goal)); g.stroke(); g.restore(); wtTx(g, `เป้า ${kg1(S.goal)} กก.`, x + w + 6, Y(S.goal) - 6, { s: 12, c: "#c0392b", a: "right" }); }
+  if (L.length > 1) {
+    g.beginPath(); L.forEach((v, i) => i ? g.lineTo(X(v.d), Y(v.kg)) : g.moveTo(X(v.d), Y(v.kg))); g.lineTo(X(S.n.d), y + h + 20); g.lineTo(x, y + h + 20); g.closePath(); g.fillStyle = fill; g.fill();
+    g.beginPath(); L.forEach((v, i) => i ? g.lineTo(X(v.d), Y(v.kg)) : g.moveTo(X(v.d), Y(v.kg))); g.strokeStyle = col; g.lineWidth = lw; g.lineJoin = g.lineCap = "round"; g.stroke();
+  }
+  return { X, Y };
+}
+function wtDraw(cv, S, p) {
+  const t = WTS.t, story = t === "ring" || t === "story", DW = story ? 304 : 432, DH = 540, SCL = 1080 / DW;
+  cv.width = 1080; cv.height = story ? 1920 : 1350; const g = cv.getContext("2d"); g.setTransform(SCL, 0, 0, SCL, 0, 0); g.clearRect(0, 0, DW, DH);
+  const H = WTS.hide, pct = sgnP(S.pct), lost = `${S.lost >= 0 ? "ลดไป" : "เพิ่มขึ้น"} ${kg1(Math.abs(S.lost))} กก.`, wk = `${S.wk} สัปดาห์`, bmi = H ? "" : `BMI ${S.bmi.toFixed(1)}`;
+  const A = WTS.a, B = WTS.b, kA = H ? "ก่อน" : `ก่อน · ${kg1(S.s.kg)}`, kB = H ? "ตอนนี้" : `ตอนนี้ · ${kg1(S.n.kg)}`, range = `${thDate(S.s.d)} – ${thDateY(S.n.d)}`;
+  const OUT = '"Outfit"', MALI = '"Mali"', SER = '"Trirong"';
+  if (t === "glow") {
+    const [bg, ink] = WT_TONE[WTS.tone] || WT_TONE[0]; g.fillStyle = bg; g.fillRect(0, 0, DW, DH);
+    wtSparkle(g, 42, 52, 12, ink + "88"); wtSparkle(g, 390, 128, 8, "#fff"); wtSparkle(g, 380, 470, 9, ink + "66");
+    wtTx(g, "my glow up", 216, 66, { f: MALI, w: 600, s: 30, c: ink, a: "center" });
+    [[110, A, kA], [322, B, kB]].forEach(([cx, im, lb]) => { g.save(); g.shadowColor = "rgba(214,95,138,.25)"; g.shadowBlur = 18; g.shadowOffsetY = 6; g.fillStyle = "#fff"; g.beginPath(); g.arc(cx, 168, 79, 0, 7); g.fill(); g.restore(); wtPh(g, im, cx - 74, 94, 148, 148, 74, lb.split(" ")[0] === "ก่อน" ? "[รูปก่อน]" : "[รูปตอนนี้]"); wtTx(g, lb, cx, 274, { s: 13, c: "#5a2a3c", a: "center", w: 600 }); });
+    wtHeart(g, 199, 154, 34, ink);
+    wtTx(g, pct, 216, 360, { f: OUT, w: 800, s: 84, c: ink, a: "center", max: 380 });
+    const pill = `${lost} ใน ${wk}${bmi ? " · " + bmi : ""}`; g.font = '600 14px "IBM Plex Sans Thai"'; const pw = Math.min(390, g.measureText(pill).width + 34);
+    g.fillStyle = "#fff"; scRR(g, 216 - pw / 2, 384, pw, 34, 17); g.fill(); wtTx(g, pill, 216, 406, { s: 14, w: 600, c: "#5a2a3c", a: "center", max: pw - 20 });
+    wtTx(g, "ค่อย ๆ เป็นเวอร์ชันที่ดีขึ้นทุกวัน · KAOWIN", 216, 516, { s: 12, c: "#9a6278", a: "center" });
+  } else if (t === "journal") {
+    g.fillStyle = "#f3e9dc"; g.fillRect(0, 0, DW, DH);
+    g.save(); g.shadowColor = "rgba(90,60,40,.15)"; g.shadowBlur = 22; g.shadowOffsetY = 8; g.fillStyle = "#fffaf2"; scRR(g, 22, 22, 388, 496, 6); g.fill(); g.restore();
+    g.strokeStyle = "#ecdcc8"; g.lineWidth = 1; for (let y = 54; y < 512; y += 32) { g.beginPath(); g.moveTo(24, y); g.lineTo(408, y); g.stroke(); }
+    g.strokeStyle = "#f0b7b7"; g.lineWidth = 2; g.beginPath(); g.moveTo(42, 22); g.lineTo(42, 518); g.stroke();
+    wtTx(g, "weight diary", 56, 72, { f: MALI, w: 700, s: 26, c: "#c2607a" }); wtTx(g, thDateY(S.n.d), 396, 70, { f: MALI, s: 13, c: "#4a3b33", a: "right" });
+    wtTx(g, `สัปดาห์ที่ ${S.wk} แล้วนะ เก่งมากตัวเอง`, 56, 112, { f: MALI, s: 16, c: "#4a3b33" });
+    [[64, 136, -4, A, kA, "rgba(247,168,196,.75)"], [226, 136, 3, B, kB, "rgba(186,220,206,.85)"]].forEach(([x, y, r, im, lb, tape]) => {
+      g.save(); g.translate(x + 73, y + 93); g.rotate(r * Math.PI / 180); g.shadowColor = "rgba(0,0,0,.14)"; g.shadowBlur = 10; g.shadowOffsetY = 4; g.fillStyle = "#fff"; g.fillRect(-73, -93, 146, 186); g.shadowColor = "transparent";
+      wtPh(g, im, -65, -85, 130, 150, 0, lb.startsWith("ก่อน") ? "[รูปก่อน]" : "[รูปตอนนี้]", "#9a8676", "#efe4d6"); wtTx(g, lb, 0, 84, { f: MALI, s: 13, c: "#4a3b33", a: "center" });
+      g.fillStyle = tape; g.rotate((r > 0 ? -7 : 7) * Math.PI / 180); g.fillRect(-35, -103, 70, 20); g.restore();
+    });
+    const pw = wtTx(g, pct, 56, 400, { f: OUT, w: 800, s: 58, c: "#c2607a" });
+    g.save(); g.translate(56 + pw + 70, 384); g.rotate(-6 * Math.PI / 180); g.strokeStyle = "#c2607a"; g.lineWidth = 2; g.beginPath(); g.ellipse(0, 0, 62, 22, 0, 0, 7); g.stroke(); wtTx(g, (S.lost >= 0 ? "−" : "+") + kg1(Math.abs(S.lost)) + " กก.", 0, 6, { f: MALI, s: 15, c: "#c2607a", a: "center" }); g.restore();
+    wtTx(g, H ? `${wk} แล้ว · ${lost}` : `BMI ${S.bmi0.toFixed(1)} → ${S.bmi.toFixed(1)}${S.goal && !S.done ? ` · อีก ${kg1(S.n.kg - S.goal)} กก. ถึงเป้า` : S.done ? " · ถึงเป้าแล้ว!" : ""}`, 56, 446, { f: MALI, s: 15, c: "#4a3b33", max: 340 });
+    wtTx(g, "ก้าวเล็ก ๆ ก็พาไปถึงได้ · KAOWIN", 56, 478, { f: MALI, s: 13, c: "#8a7466" });
+  } else if (t === "minimal") {
+    g.fillStyle = "#f5efe6"; g.fillRect(0, 0, DW, DH);
+    wtTx(g, `WEEK ${String(S.wk).padStart(2, "0")}`, 32, 46, { s: 11, c: "#8c7d70", ls: 2 }); wtTx(g, "KAOWIN", 400, 46, { s: 11, c: "#8c7d70", a: "right", ls: 2 });
+    g.save(); g.beginPath(); g.moveTo(32, 272); g.lineTo(32, 182); g.arc(216, 182, 184, Math.PI, 0); g.lineTo(400, 272); g.closePath(); g.clip(); wtPh(g, B || A, 32, 62, 368, 210, 0, "[รูปตอนนี้]", "#9a8b7d", "#e8ddcf"); g.restore();
+    const nw = wtTx(g, pct.replace("%", ""), 32, 356, { f: SER, w: 300, s: 76, c: "#3d3530" }); wtTx(g, "%", 38 + nw, 356, { f: SER, w: 300, s: 30, it: 1, c: "#3d3530" });
+    wtTx(g, H ? lost : `${kg1(S.s.kg)} → ${kg1(S.n.kg)} กก.`, 400, 330, { s: 13, c: "#6e6158", a: "right" }); if (bmi) wtTx(g, bmi, 400, 351, { s: 13, c: "#6e6158", a: "right" });
+    g.fillStyle = "#cbbcab"; g.fillRect(32, 380, 368, 1);
+    wtTx(g, "slow progress is still progress.", 32, 414, { f: SER, w: 300, s: 19, it: 1, c: "#6e6158" });
+    const d2 = d => d.slice(8, 10) + "." + d.slice(5, 7); wtTx(g, `${d2(S.s.d)} — ${d2(S.n.d)}.${S.n.d.slice(0, 4)}`, 32, 506, { s: 11, c: "#8c7d70", ls: 1.5 });
+  } else if (t === "ring") {
+    const gr = g.createLinearGradient(0, 0, 0, DH); gr.addColorStop(0, "#efe7ff"); gr.addColorStop(1, "#ffe9f2"); g.fillStyle = gr; g.fillRect(0, 0, DW, DH);
+    const pr = S.goal ? S.prog : Math.min(100, Math.max(0, S.pct * 10)), ph = S.done ? "goal reached!" : pr < 25 ? "just getting started" : pr < 45 ? "keep going" : pr < 60 ? "almost halfway" : pr < 85 ? "more than halfway" : "almost there";
+    wtTx(g, ph, 152, 64, { f: MALI, w: 600, s: 24, c: "#7b5fc7", a: "center", max: 270 });
+    g.lineCap = "round"; g.lineWidth = 18; g.strokeStyle = "#fff"; g.beginPath(); g.arc(152, 196, 95, 0, 7); g.stroke();
+    g.strokeStyle = "#9b7fe6"; g.beginPath(); g.arc(152, 196, 95, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pr / 100); g.stroke();
+    g.fillStyle = "#f7a8c4"; g.beginPath(); g.arc(152, 101, 6, 0, 7); g.fill();
+    wtTx(g, pct, 152, 206, { f: OUT, w: 800, s: 50, c: "#3f2e63", a: "center", max: 170 }); wtTx(g, lost, 152, 232, { s: 13, c: "#6d5a96", a: "center" });
+    const tl = H ? [["สัปดาห์", String(S.wk)], ["ถึงเป้า", S.goal ? Math.round(S.prog) + "%" : "—"], ["บันทึก", S.L.length + " ครั้ง"]] : [["ตอนนี้", kg1(S.n.kg)], ["เป้า", S.goal ? kg1(S.goal) : "—"], ["BMI", S.bmi.toFixed(1)]];
+    tl.forEach(([l, v], i) => { const x = 22 + i * 90; g.fillStyle = "rgba(255,255,255,.75)"; scRR(g, x, 318, 80, 56, 16); g.fill(); wtTx(g, l, x + 40, 338, { s: 11, c: "#6d5a96", a: "center" }); wtTx(g, v, x + 40, 362, { f: OUT, w: 700, s: 19, c: "#3f2e63", a: "center", max: 72 }); });
+    wtTx(g, S.goal ? (S.done ? "ถึงเป้าแล้ว เก่งมาก!" : `${Math.round(pr)}% ของทางแล้ว`) : wk + " ที่ไม่ยอมแพ้", 152, 414, { s: 14, c: "#3f2e63", a: "center" }); wtTx(g, "อีกนิดเดียว ไปด้วยกัน", 152, 436, { s: 14, c: "#3f2e63", a: "center" });
+    wtTx(g, "KAOWIN", 152, 512, { f: OUT, w: 800, s: 14, c: "#7b5fc7", a: "center", ls: .5 });
+  } else if (t === "month") {
+    g.fillStyle = "#fff1e6"; g.fillRect(0, 0, DW, DH);
+    const m = S.n.d.slice(0, 7), [yy, mm] = m.split("-").map(Number), nd = new Date(yy, mm, 0).getDate(), first = new Date(yy, mm - 1, 1).getDay(), inM = S.L.filter(x => x.d.startsWith(m)), map = Object.fromEntries(inM.map(x => [+x.d.slice(8), x.kg]));
+    const lastD = m === TODAY.slice(0, 7) ? +TODAY.slice(8) : nd;
+    wtTx(g, TH_MON_EN[mm - 1], 26, 56, { f: MALI, w: 600, s: 26, c: "#e07a5f" }); wtTx(g, `บันทึก ${inM.length} วัน`, 406, 54, { s: 13, c: "#5b3a2e", a: "right" });
+    ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].forEach((d, i) => wtTx(g, d, 26 + i * 55 + 24.5, 92, { s: 11, c: "#a07a68", a: "center" }));
+    const rows = Math.ceil((first + nd) / 7), ch = Math.min(46, (300 - (rows - 1) * 6) / rows);
+    for (let d = 1; d <= nd; d++) { const k = first + d - 1, x = 26 + (k % 7) * 55, y = 104 + Math.floor(k / 7) * (ch + 6), on = map[d] !== undefined, today = d === +S.n.d.slice(8);
+      g.fillStyle = today ? "#e07a5f" : on ? "#ffd3bf" : d > lastD ? "rgba(255,255,255,.55)" : "#fff"; scRR(g, x, y, 49, ch, 12); g.fill();
+      wtTx(g, String(d), x + 24.5, y + (on ? ch / 2 : ch / 2 + 5), { f: OUT, w: 700, s: 13, c: today ? "#fff" : "#5b3a2e", a: "center" });
+      if (on) wtTx(g, H ? "✓" : kg1(map[d]), x + 24.5, y + ch / 2 + 15, { f: OUT, w: 500, s: 9, c: today ? "#fff" : "#5b3a2e", a: "center" }); }
+    const bm = [...S.L].reverse().find(x => x.d < m + "-01") || inM[0], dm = bm ? bm.kg - S.n.kg : 0;
+    g.fillStyle = "#fff"; scRR(g, 26, 446, 380, 66, 18); g.fill();
+    const w1 = wtTx(g, (dm >= 0 ? "−" : "+") + kg1(Math.abs(dm)), 42, 492, { f: OUT, w: 800, s: 38, c: "#e07a5f" });
+    wtTx(g, "กก. เดือนนี้", 54 + w1, 474, { s: 13, c: "#5b3a2e" }); wtTx(g, `รวมตั้งแต่เริ่ม ${pct}${bmi ? " · " + bmi : ""}`, 54 + w1, 494, { s: 12, c: "#a07a68", max: 330 - w1 - 60 });
+    wtTx(g, "KAOWIN", 394, 486, { f: OUT, w: 800, s: 13, c: "#e07a5f", a: "right" });
+  } else if (t === "before" || t === "chart") {
+    const dark = t === "before", fg = dark ? "#fff" : "#12241a", sub = dark ? "rgba(255,255,255,.72)" : "#5b7366";
+    g.fillStyle = dark ? "#0b3d24" : "#f7faf4"; g.fillRect(0, 0, DW, DH);
+    wtTx(g, "KAOWIN", 26, 46, { f: OUT, w: 800, s: 18, c: dark ? "#fff" : "#0b3d24", ls: .5 }); wtTx(g, `${wk} · ${range}`, 406, 45, { s: 12, c: sub, a: "right", max: 260 });
+    if (dark) {
+      [[26, A, kA, 0], [220, B, kB, 1]].forEach(([x, im, lb, now]) => { g.fillStyle = "rgba(255,255,255,.10)"; scRR(g, x, 66, 186, 196, 18); g.fill(); wtPh(g, im, x, 66, 186, 196, 18, now ? "[รูปตอนนี้]" : "[รูปก่อน]", "rgba(255,255,255,.7)", "rgba(255,255,255,.10)");
+        g.font = '600 13px "IBM Plex Sans Thai"'; const w = g.measureText(lb + " กก.").width + 24; g.fillStyle = now ? "#c6f432" : "rgba(0,0,0,.5)"; scRR(g, x + 93 - w / 2, 226, w, 26, 13); g.fill(); wtTx(g, H ? lb : lb + " กก.", x + 93, 244, { s: 13, w: 600, c: now ? "#0b3d24" : "#fff", a: "center" }); });
+      const pw = wtTx(g, pct, 26, 360, { f: OUT, w: 800, s: 88, c: "#c6f432", max: 280 }); wtTx(g, S.lost >= 0 ? "ลดไป" : "เพิ่มขึ้น", 40 + pw, 330, { s: 15, c: "#fff" }); wtTx(g, kg1(Math.abs(S.lost)) + " กก.", 40 + pw, 356, { f: OUT, w: 700, s: 22, c: "#fff" });
+    } else {
+      wtTx(g, `${wk} ${S.lost >= 0 ? "ลดไป" : "เพิ่มขึ้น"}`, 26, 92, { s: 15, c: "#3b5446" });
+      const w1 = wtTx(g, (S.lost >= 0 ? "−" : "+") + kg1(Math.abs(S.lost)), 26, 150, { f: OUT, w: 800, s: 60, c: "#1f8a5b" }); const w2 = wtTx(g, " กก.", 26 + w1, 150, { f: OUT, w: 800, s: 24, c: "#1f8a5b" }); wtTx(g, ` (${pct})`, 26 + w1 + w2, 150, { f: OUT, w: 800, s: 28, c: "#0b3d24" });
+      if (S.L.length > 1) { const { X, Y } = wtLine(g, S, 36, 190, 350, 170, "#1f8a5b", "rgba(31,138,91,.14)", 4);
+        g.fillStyle = "#c6f432"; g.strokeStyle = "#0b3d24"; g.lineWidth = 3; g.beginPath(); g.arc(X(S.n.d), Y(S.n.kg), 8, 0, 7); g.fill(); g.stroke();
+        if (!H) { wtTx(g, kg1(S.s.kg), X(S.s.d) + 10, Y(S.s.kg) - 10, { f: OUT, w: 700, s: 16, c: "#12241a" }); wtTx(g, kg1(S.n.kg), X(S.n.d) - 4, Y(S.n.kg) + 28, { f: OUT, w: 700, s: 16, c: "#12241a", a: "right" }); } }
+    }
+    const tiles = [H ? ["ถึงเป้า", S.goal ? Math.round(S.prog) + "%" : "—"] : ["BMI", dark ? `${S.bmi0.toFixed(1)} → ${S.bmi.toFixed(1)}` : S.bmi.toFixed(1)], ["เฉลี่ย/สัปดาห์", S.days >= 7 ? sgn(S.perWk) : "—"], H ? ["บันทึก", S.L.length + " ครั้ง"] : ["ถึงเป้า", S.goal ? Math.round(S.prog) + "%" : "—"]];
+    tiles.forEach(([l, v], i) => { const x = 26 + i * 128; g.fillStyle = dark ? "rgba(255,255,255,.10)" : "#fff"; scRR(g, x, 412, 120, 60, 14); g.fill(); wtTx(g, l, x + 10, 432, { s: 11, c: sub }); wtTx(g, v, x + 10, 458, { f: OUT, w: 700, s: 18, c: fg, max: 100 }); });
+    wtTx(g, "ก้าววิน · Every Step Wins.", 216, 516, { s: 12, c: sub, a: "center" });
+  } else {   // story
+    if (B || A) wtPh(g, B || A, 0, 0, DW, 340, 0, ""); else { const gr = g.createLinearGradient(0, 0, 0, 340); gr.addColorStop(0, "#3a4a40"); gr.addColorStop(1, "#56695d"); g.fillStyle = gr; g.fillRect(0, 0, DW, 340); wtTx(g, "[รูปนักวิ่ง]", 152, 180, { s: 12, c: "rgba(255,255,255,.6)", a: "center" }); }
+    g.fillStyle = "#0b3d24"; scRR(g, 0, 318, DW, 260, 22); g.fill();
+    wtTx(g, `ชาเลนจ์ลดน้ำหนัก · สัปดาห์ที่ ${S.wk}`, 18, 348, { s: 12, w: 600, c: "#c6f432" });
+    const pw = wtTx(g, pct, 18, 408, { f: OUT, w: 800, s: 58, c: "#c6f432", max: 190 }); wtTx(g, (S.lost >= 0 ? "−" : "+") + kg1(Math.abs(S.lost)) + " กก.", 28 + pw, 404, { s: 14, c: "#fff" });
+    if (!H) { wtTx(g, `${kg1(S.s.kg)} → ${kg1(S.n.kg)} กก.`, 18, 442, { f: OUT, w: 700, s: 18, c: "#fff" }); wtTx(g, bmi, 286, 441, { s: 13, c: "rgba(255,255,255,.8)", a: "right" }); }
+    g.fillStyle = "rgba(255,255,255,.15)"; scRR(g, 18, 460, 268, 8, 4); g.fill(); g.fillStyle = "#c6f432"; scRR(g, 18, 460, Math.max(8, 268 * (S.goal ? S.prog : 0) / 100), 8, 4); g.fill();
+    wtTx(g, S.goal ? `${Math.round(S.prog)}% ของเป้า${H ? "" : " " + kg1(S.goal) + " กก."}` : wk, 18, 488, { s: 11, c: "rgba(255,255,255,.75)" }); wtTx(g, "KAOWIN", 286, 488, { f: OUT, w: 800, s: 11, c: "#fff", a: "right" });
+  }
+}
+function wtShare() {
+  const p = P(), S = wtStats(p); if (!S) return;
+  const pick = k => { const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.style.cssText = "position:fixed;left:-9999px;opacity:0"; document.body.appendChild(inp);
+    inp.onchange = () => { const f = inp.files[0]; inp.remove(); if (!f) return; const im = new Image(); im.onload = () => { WTS[k] = im; wtShare(); }; im.onerror = () => toast("เปิดรูปนี้ไม่ได้ ลองรูปอื่น"); im.src = URL.createObjectURL(f); }; inp.click(); };
+  const photos = { glow: 2, journal: 2, before: 2, minimal: 1, story: 1 }[WTS.t] || 0;
+  openSheet("📸 รูปแชร์น้ำหนัก", `<div class="sc-wrap"><canvas id="wtCv"></canvas></div>
+    <div class="flabel">แบบ (${WT_T.length} แบบ)</div><div class="sc-tpl">${WT_T.map(([k, n]) => `<button type="button" data-wt="${k}" class="${WTS.t === k ? "on" : ""}">${n}</button>`).join("")}</div>
+    ${WTS.t === "glow" ? `<div class="flabel">โทนสี</div><div class="row" style="gap:10px;margin-bottom:10px">${WT_TONE.map(([bg, ink], i) => `<button type="button" data-tone="${i}" aria-label="โทนสี ${i + 1}" style="width:40px;height:40px;border-radius:20px;border:3px solid ${WTS.tone === i ? ink : "#fff"};background:linear-gradient(135deg,${bg} 50%,${ink} 50%);box-shadow:0 1px 4px rgba(0,0,0,.15);cursor:pointer"></button>`).join("")}</div>` : ""}
+    ${photos ? `<div class="row" style="gap:8px;margin-bottom:10px">${photos === 2 ? `<button type="button" class="btn ghost" style="flex:1" data-ph="a">🖼 ${WTS.a ? "เปลี่ยน" : "เลือก"}รูปก่อน</button>` : ""}<button type="button" class="btn ghost" style="flex:1" data-ph="b">🖼 ${WTS.b ? "เปลี่ยน" : "เลือก"}รูป${photos === 2 ? "ตอนนี้" : ""}</button></div>` : ""}
+    <label class="inline"><input type="checkbox" data-hide ${WTS.hide ? "checked" : ""}> ซ่อนน้ำหนักจริง (โชว์แค่ % และกิโลที่ลด)</label>
+    <button type="button" class="btn block" data-wsave style="margin-top:10px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
+    <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div>`, body => {
+    const cv = body.querySelector("#wtCv"), draw = () => wtDraw(cv, wtStats(p), p);
+    try { Promise.all(["800 60px Outfit", "700 20px Outfit", "600 26px Mali", "300 60px Trirong", "italic 300 20px Trirong", "500 16px 'IBM Plex Sans Thai'", "600 16px 'IBM Plex Sans Thai'"].map(f => document.fonts.load(f, "0กabc"))).then(draw, draw); } catch (e) {}
+    draw();
+    body.addEventListener("click", e => {
+      const b = e.target.closest("[data-wt],[data-tone],[data-ph],[data-wsave]"); if (!b) return;
+      if (b.dataset.wt) { WTS.t = b.dataset.wt; const y = $(".panel").scrollTop; wtShare(); $(".panel").scrollTop = y; return; }
+      if (b.dataset.tone) { WTS.tone = +b.dataset.tone; const y = $(".panel").scrollTop; wtShare(); $(".panel").scrollTop = y; return; }
+      if (b.dataset.ph) return pick(b.dataset.ph);
+      cv.toBlob(async blob => {
+        if (!blob) return toast("ทำรูปไม่สำเร็จ"); const name = `KAOWIN-weight-${TODAY}.jpg`, file = new File([blob], name, { type: "image/jpeg" });
+        try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); track("wt-share"); return; } } catch (err) { if (err && err.name === "AbortError") return; }
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast("บันทึกรูปแล้ว"); track("wt-share");
+      }, "image/jpeg", .92);
+    });
+    body.querySelector("[data-hide]").addEventListener("change", e => { WTS.hide = e.target.checked; draw(); });
+  });
+}
+
 /* ---------- อากาศที่จะวิ่ง: อุณหภูมิ รู้สึกเหมือน PM2.5 UV ฝน + คำเตือน (Open-Meteo ฟรี ไม่ต้องสมัคร) ---------- */
 const WX_API = "https://api.open-meteo.com/v1/forecast", AQ_API = "https://air-quality-api.open-meteo.com/v1/air-quality";
 let wxBusy = false;
@@ -3229,7 +3563,7 @@ function renderFitHome(p) {
   const t = fitToday(p), C = FIT_CAT[t.cat], list = fitBuild(t.cat, t.lv, t.mins), done = fitLogs(p).some(l => l.date === TODAY);
   const ws = mondayOf(TODAY), wk = [0, 1, 2, 3, 4, 5, 6].map(i => addDays(ws, i)), wd = new Set(fitLogs(p).filter(l => l.date >= ws).map(l => l.date)), st = fitStreak(p);
   const recent = fitLogs(p).sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 3);
-  return `${fitSegHtml(p)}${tipBarHtml(p)}${wxHomeHtml(p)}
+  return `${fitSegHtml(p)}${tipBarHtml(p)}${wxHomeHtml(p)}${wtHomeHtml(p)}
     <div class="fit-hero" style="background:${C.g}" data-act="fitProg" data-id="${t.cat}"><div style="flex:1"><div class="tiny" style="opacity:.9">${done ? "✓ วันนี้ทำแล้ว — เพิ่มอีกได้" : "แผนวันนี้ · " + TH_DAY_FULL[dow(TODAY)]}</div><b>${C.ic} ${C.n}</b><small>${Math.round(fitTime(list) / 60)} นาที · ${FIT_LV[t.lv].n} · ~${fitKcal(list, fitKg(p))} kcal</small></div><span class="fit-go">▶ เริ่ม</span></div>
     <div class="fit-wk"><div class="row" style="justify-content:space-between"><b>สัปดาห์นี้ ${wd.size}/${(FIT_WEEK[p.fitGoal || "belly"] || []).filter(x => x !== "stretch").length} วัน</b><span class="small">${st ? `🔥 ${st} วันติดกัน` : "เริ่มสะสมวันแรกเลย!"}</span></div>
       <div class="fit-days">${wk.map((d, i) => `<div class="${wd.has(d) ? "d" : ""} ${d === TODAY ? "t" : ""}"><span>${TH_DAY[i]}</span>${wd.has(d) ? "✓" : FIT_CAT[(FIT_WEEK[p.fitGoal || "belly"] || FIT_WEEK.full)[i]].ic}</div>`).join("")}</div></div>
@@ -3685,7 +4019,7 @@ function renderHome() {
   const weekKm = w ? w.sessions.filter(s => RUN_TYPES.includes(s.type)).reduce((t, s) => t + (view(s).km || 0), 0) : 0;
   const weekGot = w ? sumKm(runLogs(p), w.start, w.end) : 0;
   const vertGot = w ? runLogs(p).filter(l => l.date >= w.start && l.date <= w.end).reduce((t, l) => t + (+l.dplus || 0), 0) : 0;
-  return installBanner() + fitSegHtml(p) + tipBarHtml(p) + wxHomeHtml(p) + chHomeHtml(p) + `
+  return installBanner() + fitSegHtml(p) + tipBarHtml(p) + wxHomeHtml(p) + wtHomeHtml(p) + chHomeHtml(p) + `
   <div class="card hero">
     <div class="row"><span><span class="chip pink">${esc(raceShort(nr))}</span> <span class="chip">${PRIO[prioOf(p, nr)].icon} ${PRIO[prioOf(p, nr)].label}</span>${agChip(p, nr) ? ` <span class="chip ag">🏅 ${esc(agChip(p, nr))}</span>` : ""}</span><span class="tiny mut">${thDateY(nr.date)}</span></div>
     <div style="font-weight:600;margin-top:8px">${esc(nr.name)}</div>
@@ -4735,6 +5069,7 @@ document.addEventListener("click", e => {
   if (act === "gymPlay") { closeSheet(); gymPlay(el.dataset.key); }
   if (act === "welcomeFit") fitWelcome();
   if (act === "wxOpen") wxSheet();
+  if (act === "wtOpen") wtOpen();
   if (act === "shareCard") shareCard(id);
   if (act === "live") { closeSheet(); openLive(el.dataset.key); }
   if (act === "lvResume" && LV.st) { closeSheet(); lvOpen(); lvGps(true); LV.st.segAt = LV.now(); lvWake(); lvLoop(true); lvSay("วิ่งต่อ", true); lvRunUI(); }
