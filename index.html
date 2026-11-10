@@ -330,6 +330,9 @@ body.lv-on{overflow:hidden}
 .lv-spl b{text-align:right}
 .wx-card{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:linear-gradient(160deg,#eef8f1,#e3f1e8);border:1px solid #cfe5d6;border-radius:18px;padding:12px 14px;margin:0 0 12px;cursor:pointer}
 .wx-card.wx-empty{display:flex;align-items:center;gap:12px}
+.img-save{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px}
+.img-save-in{background:#fff;border-radius:18px;padding:14px;max-width:520px;width:100%;max-height:92vh;display:flex;flex-direction:column;gap:10px;text-align:center}
+.img-save-in img{max-width:100%;max-height:68vh;object-fit:contain;border-radius:10px;-webkit-touch-callout:default;user-select:auto}
 .wt-card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--ink);background:linear-gradient(160deg,#fff0f5,#ffe2ec);border:1px solid #f5c6d6;border-radius:18px;padding:12px 14px;margin:0 0 12px;cursor:pointer}
 .wt-card .wt-ic{font-size:26px}.wt-card .wt-go{font-weight:700;color:#b0386a;white-space:nowrap}
 .wt-pill{display:inline-block;background:#d65f8a;color:#fff;border-radius:999px;padding:2px 10px;font-family:Outfit,sans-serif;font-weight:800;font-size:14px;vertical-align:3px}
@@ -523,7 +526,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v60</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v61</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -2950,8 +2953,8 @@ async function shareCard(id) {
     <div class="tiny mut" style="margin-bottom:10px">${l.route && l.route.length > 1 ? "เมืองหาจากจุดเริ่มวิ่งใน GPS" : "ผลนี้ไม่มี GPS — ใช้ตำแหน่งปัจจุบันของเครื่องแทน (แก้ชื่อเองได้)"}</div>
     <button type="button" class="btn block" data-scsave style="margin-top:6px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
     <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div></div>`, body => {
-    const cv = body.querySelector("#scCv"), draw = () => { if (SC.bg !== "none") return scDraw(cv, l);
-      const off = document.createElement("canvas"); scDraw(off, l); const t = scTrim(off); cv.width = t.width; cv.height = t.height; cv.getContext("2d").drawImage(t, 0, 0); };
+    const cv = body.querySelector("#scCv"), draw = () => { if (SC.bg !== "none") { scDraw(cv, l); return imgPrep(cv, "image/jpeg", 0.92); }
+      const off = document.createElement("canvas"); scDraw(off, l); const t = scTrim(off); cv.width = t.width; cv.height = t.height; cv.getContext("2d").drawImage(t, 0, 0); imgPrep(cv, "image/png"); };
     try { Promise.all(["800 100px Outfit", "700 60px Outfit", "600 30px 'IBM Plex Sans Thai'", "500 30px 'IBM Plex Sans Thai'", "800 30px 'IBM Plex Sans Thai'"].map(f => document.fonts.load(f, "0กม"))).then(draw, draw); } catch (e) {}
     draw(); if (scLogoImg && !scLogoImg.complete) scLogoImg.onload = draw;
     body.querySelector("#scBox").addEventListener("click", e => {
@@ -2966,13 +2969,7 @@ async function shareCard(id) {
       }
       if (b.hasAttribute("data-scsave")) {
         const png = SC.bg === "none", out = cv;
-        out.toBlob(async blob => {
-          if (!blob) return toast("ทำรูปไม่สำเร็จ");
-          const name = `KAOWIN-${l.date}-${scKm(l)}km${png ? "-sticker.png" : ".jpg"}`, file = new File([blob], name, { type: png ? "image/png" : "image/jpeg" });
-          try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); track("share-card"); return; } } catch (err) { if (err && err.name === "AbortError") return; }
-          const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-          toast("บันทึกรูปแล้ว"); track("share-card");
-        }, png ? "image/png" : "image/jpeg", 0.92);
+        imgShare(out, `KAOWIN-${l.date}-${scKm(l)}km${png ? "-sticker.png" : ".jpg"}`, png ? "image/png" : "image/jpeg", 0.92, "share-card");
       }
     });
     const rc = body.querySelector("[data-scroute]"); if (rc) rc.addEventListener("change", () => { SC.route = rc.checked; draw(); });
@@ -2994,6 +2991,30 @@ async function shareCard(id) {
   });
 }
 
+
+/* ---- บันทึก/แชร์รูปจาก canvas: เตรียมไฟล์ไว้ก่อน (มือถือ iPhone/แท็บเล็ตต้องเรียกแชร์ทันทีที่กด) + สำรองแบบกดค้างเพื่อบันทึกรูป ---- */
+function imgPrep(cv, type, q) { cv._blob = null; const t = cv._tok = (cv._tok || 0) + 1; try { cv.toBlob(b => { if (cv._tok === t) cv._blob = b; }, type, q); } catch (e) {} }
+function imgSaveFallback(cv, name, type, q) {
+  let url = ""; try { url = cv.toDataURL(type, q); } catch (e) {}
+  const ov = document.createElement("div"); ov.className = "img-save";
+  ov.innerHTML = `<div class="img-save-in"><b>กดค้างที่รูป แล้วเลือก “บันทึกรูปภาพ” / “Save image”</b><img src="${url}" alt="รูปแชร์"><div class="row" style="gap:8px;justify-content:center"><a class="btn" download="${name}" href="${url}">ดาวน์โหลด</a><button type="button" class="btn ghost">ปิด</button></div></div>`;
+  ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("button")) ov.remove(); });
+  document.body.appendChild(ov);
+}
+async function imgShare(cv, name, type, q, tag) {
+  const go = async blob => {
+    if (!blob) return imgSaveFallback(cv, name, type, q);
+    const file = new File([blob], name, { type });
+    if (navigator.canShare && navigator.share) {
+      try { if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); track(tag); return; } }
+      catch (err) { if (err && err.name === "AbortError") return; }
+    }
+    // แชร์ไม่ได้ (เช่น แอพบนหน้าจอโฮมของ iPad/iPhone) → โชว์รูปให้กดค้างบันทึก
+    track(tag + "-fb"); imgSaveFallback(cv, name, type, q);
+  };
+  if (cv._blob) return go(cv._blob);
+  cv.toBlob(go, type, q);
+}
 /* ---------- ชาเลนจ์ลดน้ำหนัก: น้ำหนัก กราฟ BMI % ที่ลด + รูปแชร์ (ข้อมูลน้ำหนักเก็บในเครื่องเท่านั้น) ---------- */
 const WT_FREQ = { day: ["ทุกวัน", 1], week: ["ทุกสัปดาห์", 7], month: ["ทุกเดือน", 30] };
 const bmiOf = (kg, cm) => kg && cm ? kg / Math.pow(cm / 100, 2) : 0;
@@ -3293,7 +3314,7 @@ function wtShare() {
     <label class="inline"><input type="checkbox" data-hide ${WTS.hide ? "checked" : ""}> ซ่อนน้ำหนักจริง (โชว์แค่ % และกิโลที่ลด)</label>
     <button type="button" class="btn block" data-wsave style="margin-top:10px">${navigator.share ? "แชร์ / บันทึกรูป" : "บันทึกรูป"}</button>
     <div class="tiny mut" style="text-align:center;margin-top:8px">รูปทำในเครื่องคุณ ไม่ได้ส่งขึ้นที่ไหน</div>`, body => {
-    const cv = body.querySelector("#wtCv"), draw = () => wtDraw(cv, wtStats(p), p);
+    const cv = body.querySelector("#wtCv"), draw = () => { wtDraw(cv, wtStats(p), p); imgPrep(cv, "image/jpeg", .92); };
     try { Promise.all(["800 60px Outfit", "700 20px Outfit", "600 26px Mali", "300 60px Trirong", "italic 300 20px Trirong", "500 16px 'IBM Plex Sans Thai'", "600 16px 'IBM Plex Sans Thai'"].map(f => document.fonts.load(f, "0กabc"))).then(draw, draw); } catch (e) {}
     draw();
     body.addEventListener("click", e => {
@@ -3301,11 +3322,7 @@ function wtShare() {
       if (b.dataset.wt) { WTS.t = b.dataset.wt; const y = $(".panel").scrollTop; wtShare(); $(".panel").scrollTop = y; return; }
       if (b.dataset.tone) { WTS.tone = +b.dataset.tone; const y = $(".panel").scrollTop; wtShare(); $(".panel").scrollTop = y; return; }
       if (b.dataset.ph) return pick(b.dataset.ph);
-      cv.toBlob(async blob => {
-        if (!blob) return toast("ทำรูปไม่สำเร็จ"); const name = `KAOWIN-weight-${TODAY}.jpg`, file = new File([blob], name, { type: "image/jpeg" });
-        try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file] }); track("wt-share"); return; } } catch (err) { if (err && err.name === "AbortError") return; }
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast("บันทึกรูปแล้ว"); track("wt-share");
-      }, "image/jpeg", .92);
+      imgShare(cv, `KAOWIN-weight-${TODAY}.jpg`, "image/jpeg", .92, "wt-share");
     });
     body.querySelector("[data-hide]").addEventListener("change", e => { WTS.hide = e.target.checked; draw(); });
   });
