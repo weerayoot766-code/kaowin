@@ -80,7 +80,8 @@ h3{font-size:15px;margin:0 0 8px}
 .day{text-align:center;line-height:1.15}
 .day b{display:block;font-size:15px} .day span{font-size:11px;color:var(--mut)}
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:6px;color:#fff;margin-right:6px;vertical-align:1px}
-.t-easy{background:var(--c-easy)} .t-long{background:var(--c-long)} .t-quality{background:var(--c-quality)} .t-race{background:var(--c-race)} .t-gym{background:var(--c-gym)} .t-rest{background:var(--c-rest)}
+.t-easy{background:var(--c-easy)} .t-long{background:var(--c-long)} .t-quality{background:var(--c-quality)} .t-race{background:var(--c-race)} .t-gym{background:var(--c-gym)} .t-rest{background:var(--c-rest)} .t-fit{background:#ff6b8b}
+.sess.add{grid-template-columns:44px 1fr;padding:6px 0;opacity:.75}.sess.add .addb{border:1.5px dashed var(--line);border-radius:10px;padding:6px 10px;font-size:13px;color:var(--mut);font-weight:600}
 .gym-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 12px}
 .gym-sum div{background:var(--soft2);border-radius:14px;padding:10px;text-align:center}.gym-sum b{display:block;font-size:22px;color:var(--ink)}.gym-sum span{font-size:12px;color:var(--mut)}
 .gym-step{background:#fff8ea;border:1px solid #f0dcae;border-radius:14px;padding:10px 12px;font-size:13.5px;margin:10px 0}
@@ -529,7 +530,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v65</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v66</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -1040,7 +1041,7 @@ function generate(p) {
     });
     wk.sessions.forEach(s => {
       s.wi = i; s.day = dow(s.date); s.key = (s.type === "gym" ? "g-" : "r-") + s.date;
-      if (!s.shoe) s.shoe = pickShoe(p, s, phase);
+      if (!s.shoe && s.type !== "fit") s.shoe = pickShoe(p, s, phase);
     });
     wk.sessions.sort((a, b) => a.date.localeCompare(b.date) || (a.type === "gym" ? -1 : 1));
     if (trail || wk.sessions.some(s => s.dplus)) wk.vert = Math.round(wk.sessions.reduce((t, s) => t + (s.type === "race" ? 0 : +s.dplus || 0), 0) / 50) * 50;
@@ -3750,9 +3751,9 @@ function fxInfo(seg) {
   const m = FIT_MOVES[seg.id]; return { n: m.n, c: m.c };
 }
 const fxStyle = seg => { if (!seg) return "calm"; if (seg.gx) return "groove"; const k = FIT_MOVES[seg.id].k; return k === "st" ? "calm" : k === "lo" || k === "hi" ? "dance" : "groove"; };
-function fitPlay(cat, lv, mins) {
+function fitPlay(cat, lv, mins, key) {
   const C = FIT_CAT[cat];
-  fxStart(fitBuild(cat, lv, mins), { kind: "fit", cat, lv, mins, title: `${C.ic} ${C.n} · ${FIT_LV[lv].n}`, name: C.n, grad: C.g, bpm: FIT_LV[lv].bpm });
+  fxStart(fitBuild(cat, lv, mins), { kind: "fit", cat, lv, mins, key: key || null, title: `${C.ic} ${C.n} · ${FIT_LV[lv].n}`, name: C.n, grad: C.g, bpm: FIT_LV[lv].bpm });
 }
 // เวทขาจากตารางวิ่ง → ช่วงวอร์มอัพ + ทุกเซต (มีพัก) + คูลดาวน์
 function gymBuild(k, lvl) {
@@ -3884,7 +3885,7 @@ function fitSave(rpe, note) {
     const l = { id: Date.now(), date: d > TODAY ? TODAY : d, sessionKey: r.key, type: "gym", km: 0, time: fmtTime(r.sec), rpe, pain: false, shoe: "", note: note || `ทำตามคลิป ${r.sets.length} เซต`, src: "ทำตามคลิป" };
     track("gym-save"); fitClose(); commitLog(p, l); return;
   }
-  const l = { id: Date.now(), date: TODAY, sessionKey: null, type: "fit", km: 0, time: fmtTime(r.sec), rpe, pain: false, shoe: "", note, src: "ฟิตที่บ้าน", fit: { cat: r.cat, lv: r.lv, mins: r.mins, kcal: r.kcal, moves: r.moves, partial: r.partial } };
+  const l = { id: Date.now(), date: TODAY, sessionKey: r.key && r.key.endsWith(TODAY) ? r.key : null, type: "fit", km: 0, time: fmtTime(r.sec), rpe, pain: false, shoe: "", note, src: "ฟิตที่บ้าน", fit: { cat: r.cat, lv: r.lv, mins: r.mins, kcal: r.kcal, moves: r.moves, partial: r.partial } };
   p.logs.push(l); save(); track("fit-save"); fitClose(); render(); fitResult(l);
 }
 function fitResult(l) {
@@ -3979,13 +3980,27 @@ function render() {
 function sessRow(s, isNext) {
   const v = view(s), st = status(s), shoe = shoeById(s.shoe);
   const icon = { done: "✓", missed: "!", today: "●", todo: "", rest: "" }[st];
-  const meta = s.type === "gym" ? "" : [v.km ? fmtKm(v.km) + " กม." : "", v.pace ? v.pace + "/กม." : "", shoe ? shoeShort(shoe) : ""].filter(Boolean).join(" · ");
+  const meta = s.type === "gym" ? "" : s.type === "fit" ? fitMeta(s) : [v.km ? fmtKm(v.km) + " กม." : "", v.pace ? v.pace + "/กม." : "", shoe ? shoeShort(shoe) : ""].filter(Boolean).join(" · ");
   return `<div class="sess ${isNext ? "next" : ""}" data-act="session" data-key="${s.key}">
     <div class="day"><b>${TH_DAY[s.day]}</b><span>${thDate(s.date)}</span></div>
-    <div><div class="sdesc"><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${esc(v.detail)}${v.type !== "gym" ? ' <span style="opacity:.55;font-size:12px">ⓘ</span>' : ""}${v.painAdj ? '<span class="adj" style="color:var(--bad)">ปรับเพราะเจ็บ</span>' : v.adjusted ? '<span class="adj">ปรับตามผล</span>' : ""}${s.edited ? '<span class="adj">แก้เอง</span>' : ""}</div>
+    <div><div class="sdesc"><span class="tag t-${v.type}">${TYPE_LABEL[v.type]}</span>${esc(v.detail)}${v.type !== "gym" && v.type !== "fit" ? ' <span style="opacity:.55;font-size:12px">ⓘ</span>' : ""}${v.painAdj ? '<span class="adj" style="color:var(--bad)">ปรับเพราะเจ็บ</span>' : v.adjusted ? '<span class="adj">ปรับตามผล</span>' : ""}${s.edited ? '<span class="adj">แก้เอง</span>' : ""}</div>
       ${meta ? `<div class="smeta">${esc(meta)}</div>` : ""}</div>
     <span class="st ${st}">${icon}</span>
   </div>`;
+}
+function fitMeta(s) {
+  if (!FIT_CAT[s.cat] || !FIT_LV[s.lv]) return "";
+  const L = fitBuild(s.cat, +s.lv, +s.mins || 20); return `${Math.round(fitTime(L) / 60)} นาที · ~${fitKcal(L, fitKg(P()))} kcal`;
+}
+// แถวในสัปดาห์ + ช่อง "＋ เพิ่มนัด" ในวันที่ว่าง (ตั้งแต่วันนี้ไป)
+function weekRows(w, nextKey) {
+  const rows = w.sessions.map(s => ({ d: s.date, h: sessRow(s, nextKey && s.key === nextKey) }));
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(w.start, i); if (d > w.end || d < TODAY) continue;
+    if (w.sessions.some(s => s.date === d && s.type !== "gym")) continue;
+    rows.push({ d, add: 1, h: `<div class="sess add" data-act="addDay" data-date="${d}"><div class="day"><b>${TH_DAY[dow(d)]}</b><span>${thDate(d)}</span></div><div><span class="addb">＋ เพิ่มนัด (วิ่ง / แอโรบิก)</span></div></div>` });
+  }
+  return rows.sort((a, b) => a.d.localeCompare(b.d) || (a.add || 0) - (b.add || 0)).map(r => r.h).join("");
 }
 const noteHtml = a => a.notes.map(x => `<div class="note ${x.lvl === "ok" ? "" : x.lvl}">${esc(x.t)}${x.act ? `<div class="row" style="justify-content:flex-start;gap:8px;margin-top:8px"><button class="btn sm" data-act="applyTarget" data-id="${x.act.race}" data-t="${x.act.target}" data-key="${x.act.key}">ขยับเป้าเป็น ${fmtTime(x.act.target)}</button><button class="btn line sm" data-act="dismissSuggest" data-id="${x.act.key}">ไม่ตอนนี้</button></div>` : ""}</div>`).join("");
 const curWeek = () => W.find(w => w.start <= TODAY && TODAY <= w.end) || (W.length && TODAY < W[0].start ? W[0] : null);
@@ -4075,7 +4090,7 @@ function renderHome() {
     <div class="row"><h3 style="margin:0">สัปดาห์นี้ · ${PHASE_TH[w.phase]}</h3><span><span class="chip">${fmtKm(weekGot)} / ${fmtKm(weekKm)} กม.</span>${w.vert ? ` <span class="chip brown">⛰️ ${fmtVert(vertGot)} / ${fmtVert(w.vert)} ม.</span>` : ""}</span></div>
     <div class="bar"><i style="width:${weekKm ? Math.min(100, weekGot / weekKm * 100) : 0}%"></i></div>
     ${noteHtml(A[wi])}
-    <div style="margin-top:8px">${w.sessions.map(s => sessRow(s, next && s.key === next.key)).join("")}</div>
+    <div style="margin-top:8px">${weekRows(w, next && next.key)}</div>
   </div>` : ""}
   ${others.length ? `<div class="card"><h3>รายการแข่งอื่น ๆ</h3>${others.map(r => `<div class="item" data-act="raceForm" data-id="${r.id}"><span class="chip pink">${esc(raceShort(r))}</span><div class="grow"><b>${PRIO[prioOf(p, r)].icon} ${esc(r.name)}</b> <span class="tiny mut">${PRIO[prioOf(p, r)].label}</span><div class="tiny mut">${thDateY(r.date)} · เป้า ${fmtTime(r.target)} · ${esc(targetSub(r))}${agChip(p, r) ? " · 🏅 " + esc(agChip(p, r)) : ""}</div></div></div>`).join("")}</div>` : ""}`;
 }
@@ -4093,7 +4108,7 @@ function renderPlan() {
     html += `<details class="week" ${planAllOpen || (cw && w.i === cw.i) ? "open" : ""}>
       <summary><div><span class="wk">สัปดาห์ ${w.n}</span> <span class="small mut">${thDate(w.start)}–${thDate(w.end)}</span><div style="margin-top:2px"><span class="chip ${w.phase === "race" ? "pink" : w.phase === "recovery" || w.phase === "taper" ? "gray" : ""}">${PHASE_TH[w.phase]}</span>${w.deload ? ' <span class="chip gray">ลดโหลด</span>' : ""}${cw && w.i === cw.i ? ' <span class="chip">ตอนนี้</span>' : ""}${adj ? ' <span class="chip warn">ปรับตามผล</span>' : ""}</div><div class="wprev">${prev}</div></div>
       <div class="small mut" style="text-align:right;white-space:nowrap">${fmtKm(km)} กม.<span class="chev">▾</span>${w.vert ? `<br>⛰️ ${fmtVert(w.vert)} ม.` : ""}<br>${w.end < TODAY || done ? done + "/" + runs.length : ""}</div></summary>
-      <div class="wbody">${noteHtml(A[w.i])}${w.sessions.map(s => sessRow(s)).join("")}</div></details>`;
+      <div class="wbody">${noteHtml(A[w.i])}${weekRows(w)}</div></details>`;
   });
   const nr = mainRace(p);
   if (nr) {
@@ -4480,17 +4495,29 @@ function openSession(key) {
       ${v.pace ? `<tr><td class="mut">เพซ</td><td class="num">${v.pace} /กม.</td></tr>` : ""}
       ${RUN_TYPES.includes(s.type) ? `<tr><td class="mut">รองเท้า</td><td class="num">${sh ? `<span style="display:inline-flex;align-items:center;gap:8px">${sh.photo ? `<img src="${sh.photo}" alt="" style="width:44px;height:33px;object-fit:cover;border-radius:7px">` : ""}${esc(shoeName(sh))}</span>` : "ยังไม่ได้เลือก"}</td></tr>` : ""}
     </table>
-    ${sessGuide(s, v)}
+    ${s.type === "fit" ? fitSessHtml(s) : sessGuide(s, v)}
     ${s.type === "gym" && v.type === "gym" ? gymHtml(s, v.detail) : ""}
-    ${logs.length ? `<div class="flabel">ผลที่ส่งแล้ว</div><div class="card" style="padding:4px 14px">${logs.map(l => `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow small">${fmtKm(+l.km)} กม. ${esc(l.time)} · RPE ${l.rpe}</div><span class="linkbtn">ดูวิเคราะห์ ›</span></div>`).join("")}</div>` : ""}
+    ${logs.length ? `<div class="flabel">ผลที่ส่งแล้ว</div><div class="card" style="padding:4px 14px">${logs.map(l => `<div class="item" data-act="analysis" data-id="${l.id}"><div class="grow small">${l.type === "fit" ? `💃 ${esc(l.time)} · ${(l.fit && l.fit.kcal) || 0} kcal` : `${fmtKm(+l.km)} กม. ${esc(l.time)}`} · RPE ${l.rpe}</div><span class="linkbtn">ดูวิเคราะห์ ›</span></div>`).join("")}</div>` : ""}
     <div class="btns">
       ${s.date === TODAY && RUN_TYPES.includes(v.type) && v.type !== "race" ? `<button class="btn" style="background:#14231a;color:#d9f99d" data-act="live" data-key="${s.key}">▶ วิ่งสดตามนัดนี้</button>` : ""}
-      ${s.type !== "rest" ? `<button class="btn" data-act="openLog" data-key="${s.key}">ส่งผลซ้อม</button>` : ""}
+      ${s.type === "fit" && FIT_CAT[s.cat] ? `<button class="btn" style="background:linear-gradient(135deg,#ff6b8b,#ff9a5a);color:#fff" data-act="fitGo" data-key="${s.key}">▶ เริ่มเลย (ทำตามท่า)</button>` : ""}
+      ${s.type !== "rest" && s.type !== "fit" ? `<button class="btn" data-act="openLog" data-key="${s.key}">ส่งผลซ้อม</button>` : ""}
       ${s.type !== "gym" ? `<button class="btn ghost" data-act="editSession" data-key="${s.key}">แก้นัดนี้</button>` : ""}
-      ${s.edited ? `<button class="btn line" data-act="resetSession" data-date="${s.date}">คืนค่าตามแผนเดิม</button>` : ""}
+      ${s.edited ? `<button class="btn line" data-act="resetSession" data-date="${s.date}">${s.type === "fit" ? "ลบนัดนี้ / คืนค่าตามแผนเดิม" : "คืนค่าตามแผนเดิม"}</button>` : ""}
     </div>`);
 }
 
+function fitSessHtml(s) {
+  const C = FIT_CAT[s.cat], L = FIT_LV[s.lv]; if (!C || !L) return "";
+  const list = fitBuild(s.cat, +s.lv, +s.mins || 20), mv = [...new Set(list.filter(x => x.ph === "main").map(x => x.id))];
+  return `<div class="fit-stats"><div><b>${Math.round(fitTime(list) / 60)}</b><span>นาที</span></div><div><b>~${fitKcal(list, fitKg(P()))}</b><span>kcal (ประมาณ)</span></div><div><b>${mv.length}</b><span>ท่า</span></div></div>
+    <div class="small mut" style="margin:6px 0 8px">${C.sub} · ระดับ${L.n} · กดเริ่มแล้วทำตามท่าในจอ มีเพลงและเสียงนับให้ จบแล้วบันทึกเวลา + แคลอรี่อัตโนมัติ</div>
+    <div class="card" style="padding:4px 12px;margin-bottom:10px">${mv.map(id => `<div class="fit-it"><div class="th">${fitThumb(id, 40)}</div><b style="font-size:14px">${FIT_MOVES[id].n}</b></div>`).join("")}</div>`;
+}
+function fitGo(key) {
+  const s = allSessions().find(x => x.key === key); if (!s || !FIT_CAT[s.cat]) return;
+  closeSheet(); fitPlay(s.cat, +s.lv || 1, +s.mins || 20, s.date === TODAY ? s.key : null);
+}
 // ---- ตัวสร้างโปรแกรมซ้อมเอง (แก้นัดนี้) ----
 const WO = {
   easy: { lab: "Easy", t: "easy", pace: "easy", f: ["km"], d: "วิ่งเบา คุยได้" },
@@ -4503,13 +4530,16 @@ const WO = {
   intT: { lab: "Interval เวลา", t: "quality", pace: "p5", f: ["reps", "sec", "rest", "wu"], d: "เช่น 8×1 นาที เร็ว / พักเบา" },
   fartlek: { lab: "Fartlek", t: "quality", pace: "p10", f: ["reps", "sec", "rest", "wu"], d: "สลับเร็ว-เบา ตามความรู้สึก" },
   hill: { lab: "วิ่งขึ้นเนิน", t: "quality", pace: "p5", f: ["reps", "sec", "rest", "wu"], d: "ขึ้นเนินแรง ๆ แล้วเดินลงพัก" },
+  fit: { lab: "💃 แอโรบิก/ฟิตที่บ้าน", t: "fit", f: ["cat", "lv", "mins"], d: "ทำตามท่าในแอพ มีเพลง+เสียงนับ จบแล้วได้เวลาและแคลอรี่" },
   custom: { lab: "กำหนดเอง", t: "", pace: "", f: ["type", "km", "detail"], d: "พิมพ์รายละเอียดเอง" },
   rest: { lab: "พัก", t: "rest", f: [], d: "วันพัก ไม่วิ่ง" }
 };
 const WO_DEF = { easy: { km: 6 }, recovery: { km: 4 }, long: { km: 14 }, strides: { km: 6, reps: 6 }, progress: { km: 8 }, tempo: { min: 20, wu: 10 },
-  intD: { reps: 6, dist: 400, rest: 90, wu: 10 }, intT: { reps: 8, sec: 60, rest: 60, wu: 10 }, fartlek: { reps: 10, sec: 60, rest: 60, wu: 10 }, hill: { reps: 8, sec: 45, rest: 90, wu: 10 } };
+  intD: { reps: 6, dist: 400, rest: 90, wu: 10 }, intT: { reps: 8, sec: 60, rest: 60, wu: 10 }, fartlek: { reps: 10, sec: 60, rest: 60, wu: 10 }, hill: { reps: 8, sec: 45, rest: 90, wu: 10 }, fit: { cat: "aerobic", lv: 3, mins: 20 } };
 const woT = s => s >= 60 && s % 60 === 0 ? s / 60 + " นาที" : s >= 60 ? (s / 60).toFixed(1).replace(/\.0$/, "") + " นาที" : s + " วิ";
 function woGuess(s) {                      // เดาแบบจากนัดเดิม
+  if (s.type === "fit") return { k: "fit", cat: s.cat || "aerobic", lv: +s.lv || 2, mins: +s.mins || 20 };
+  if (!s.type) return { k: "easy", km: 5 };
   if (s.wo && s.wo.k) return { ...s.wo };
   const d = String(s.detail || ""), m = x => +x;
   if (s.type === "rest") return { k: "rest" };
@@ -4540,8 +4570,10 @@ function woBuild(o, s) {                   // แปลงเป็นนัด�
     km = extra + o.reps * o.sec / q + (o.reps - 1) * o.rest / e * (o.k === "hill" ? 0.3 : 0.6); }
   return { type: P0.t, km: r05(km), detail, pace: P0.pace };
 }
-function editSession(key) {
-  const s = allSessions().find(x => x.key === key); if (!s) return;
+function editSession(key, newDate) {
+  let s = allSessions().find(x => x.key === key);
+  if (!s && newDate) { const w = W.find(x => x.start <= newDate && newDate <= x.end); if (!w) return; s = { key, date: newDate, type: "", km: 0, detail: "", pace: "", wi: w.i, day: dow(newDate), isNew: true }; }
+  if (!s) return;
   const p = P(), shoes = p.shoes.filter(x => !x.retired || x.id === s.shoe);
   let o = woGuess(s);
   const opt = (arr, cur, lab) => arr.map(v => `<option value="${v}" ${+cur === v ? "selected" : ""}>${lab(v)}</option>`).join("");
@@ -4554,12 +4586,16 @@ function editSession(key) {
     if (has("sec")) F.push(`<label class="f">เร็วเที่ยวละ<select name="sec">${opt([10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 300, 360, 480, 600], o.sec, woT)}</select></label>`);
     if (has("rest")) F.push(`<label class="f">พักระหว่างเที่ยว<select name="rest">${opt([15, 30, 45, 60, 90, 120, 150, 180, 240, 300], o.rest, woT)}</select></label>`);
     if (has("min")) F.push(`<label class="f">Tempo (นาที)<input name="min" type="number" min="5" max="90" inputmode="numeric" value="${o.min || 20}"></label>`);
+    if (has("cat")) F.push(`<label class="f" style="grid-column:1/-1">แบบ<select name="cat">${Object.entries(FIT_CAT).map(([k, c]) => `<option value="${k}" ${o.cat === k ? "selected" : ""}>${c.ic} ${c.n}</option>`).join("")}</select></label>`);
+    if (has("lv")) F.push(`<label class="f">ความหนัก<select name="lv">${opt([1, 2, 3], o.lv, v => FIT_LV[v].n)}</select></label>`);
+    if (has("mins")) F.push(`<label class="f">เวลา<select name="mins">${opt([10, 15, 20, 30, 45, 60], o.mins, v => v + " นาที")}</select></label>`);
     if (has("wu")) F.push(`<label class="f">วอร์ม/คูลดาวน์<select name="wu">${opt([0, 5, 10, 15, 20], o.wu, v => v ? v + " นาที" : "ไม่มี")}</select></label>`);
     return `<div class="grid2">${F.join("")}</div>${has("detail") ? `<label class="f">รายละเอียด<input name="detail" value="${esc(s.detail || "")}"></label>` : ""}`;
   };
   const read = form => {
     const F = form.elements, n = k => F[k] ? +F[k].value || 0 : undefined, x = { k: o.k };
-    ["km", "reps", "dist", "sec", "rest", "min", "wu"].forEach(k => { if (F[k]) x[k] = k === "km" ? r05(parseFloat(F[k].value) || 0) : n(k); });
+    if (F.cat) x.cat = F.cat.value;
+    ["km", "reps", "dist", "sec", "rest", "min", "wu", "lv", "mins"].forEach(k => { if (F[k]) x[k] = k === "km" ? r05(parseFloat(F[k].value) || 0) : n(k); });
     return x;
   };
   const myRange = str => {               // "4:30" หรือ "4:25-4:35"
@@ -4571,6 +4607,7 @@ function editSession(key) {
   const result = form => {
     const F = form.elements; o = read(form);
     if (o.k === "rest") return { type: "rest" };
+    if (o.k === "fit") { const C = FIT_CAT[o.cat] || FIT_CAT.aerobic; return { type: "fit", cat: o.cat, lv: o.lv || 2, mins: o.mins || 20, detail: `${C.ic} ${C.n} · ${FIT_LV[o.lv || 2].n} · ${o.mins || 20} นาที` }; }
     const my = myRange(F.myp.value), mp = my ? { range: my, myp: F.myp.value.trim() } : {};
     if (o.k === "custom") return { type: F.type.value, km: o.km || 0, detail: F.detail.value.trim() || TYPE_LABEL[F.type.value], pace: F.pace.value, shoe: F.shoe.value, ...mp };
     const b = woBuild(o, s), pk = F.pace.value || b.pace;
@@ -4580,10 +4617,11 @@ function editSession(key) {
   };
   const preview = form => {
     if (o.k === "rest") return `<b>วันพัก</b> · ร่างกายได้ซ่อมแซม`;
+    if (o.k === "fit") { const r = result(form); return `<b>${esc(r.detail)}</b><br><span class="mut">${fitMeta(r)}</span>`; }
     const r = result(form);
     return `<b>${esc(r.detail)}</b><br><span class="mut">ประมาณ ${fmtKm(r.km)} กม. · ${r.range ? `<b style="color:var(--pri-d)">เพซ ${rng(r.range)}/กม.</b> (ใส่เอง)` : esc((PACE_KEYS.find(x => x[0] === r.pace) || ["", ""])[1])}</span>`;
   };
-  openSheet("แก้นัดซ้อม · " + thDate(s.date), `<form id="edForm">
+  openSheet((s.isNew ? "เพิ่มนัด · " : "แก้นัดซ้อม · ") + thDate(s.date), `<form id="edForm">
     <div class="flabel">เลือกแบบการซ้อม</div>
     <div class="chips wo-chips">${Object.entries(WO).map(([k, v]) => `<label><input type="radio" name="wk" value="${k}" ${o.k === k ? "checked" : ""}><span>${v.lab}</span></label>`).join("")}</div>
     <div class="hint" id="woDesc">${WO[o.k].d}</div>
@@ -4599,7 +4637,9 @@ function editSession(key) {
     const form = body.querySelector("#edForm"), $ = id => body.querySelector(id);
     const setPace = () => { const pk = o.k === "custom" ? s.pace : WO[o.k].pace; if (pk) form.elements.pace.value = pk; };
     const sync = () => {
-      const rest = o.k === "rest"; $("#woPS").style.display = rest ? "none" : ""; $("#woGo").style.display = rest ? "none" : "";
+      const rest = o.k === "rest", fit = o.k === "fit"; $("#woPS").style.display = rest || fit ? "none" : ""; $("#woGo").style.display = rest ? "none" : "";
+      $("#woGo").textContent = fit ? "▶ บันทึกแล้วเริ่มทำตามท่าเลย" : "▶ บันทึกแล้วเริ่มวิ่งตามโปรแกรมนี้";
+      $("#woGo").style.background = fit ? "linear-gradient(135deg,#ff6b8b,#ff9a5a)" : ""; $("#woGo").style.color = fit ? "#fff" : "";
       $("#woPrev").innerHTML = preview(form);
     };
     if (s.pace && (s.wo || o.k === "custom")) form.elements.pace.value = s.pace; else setPace();
@@ -4613,8 +4653,8 @@ function editSession(key) {
     });
     form.addEventListener("input", sync);
     const commit = () => { p.overrides[s.date] = result(form); save(); };
-    form.addEventListener("submit", e => { e.preventDefault(); commit(); closeSheet(); render(); toast("แก้นัดแล้ว"); });
-    $("#woGo").addEventListener("click", () => { commit(); closeSheet(); render(); openLive(s.key); });
+    form.addEventListener("submit", e => { e.preventDefault(); commit(); closeSheet(); render(); toast(s.isNew ? "เพิ่มนัดแล้ว" : "แก้นัดแล้ว"); });
+    $("#woGo").addEventListener("click", () => { commit(); closeSheet(); render(); if (o.k === "fit") fitGo(s.key); else openLive(s.key); });
     sync();
   });
 }
@@ -5226,6 +5266,8 @@ document.addEventListener("click", e => {
     if (all) toast("ครบทุกเซตแล้ว เก่งมาก! 💪 กด “ส่งผลซ้อม” เพื่อบันทึก"); return; }
   if (act === "analysis") showAnalysis(id);
   if (act === "editSession") editSession(el.dataset.key);
+  if (act === "addDay") editSession("r-" + el.dataset.date, el.dataset.date);
+  if (act === "fitGo") fitGo(el.dataset.key);
   if (act === "resetSession") { delete p.overrides[el.dataset.date]; save(); closeSheet(); render(); }
   if (act === "meTab") { meTab = el.dataset.v; render(); }
   if (act === "shoeForm") shoeForm(id);
