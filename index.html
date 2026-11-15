@@ -549,7 +549,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v67</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v68</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -1392,7 +1392,9 @@ function lapStats(l) {
   }
   const fade = (p2 - p1) / p1;
   const base = laps.slice(0, Math.min(5, Math.ceil(laps.length / 3))).reduce((t, x) => t + x.pace, 0) / Math.min(5, Math.ceil(laps.length / 3));
-  let dropAt = 0; for (let i = 2; i < laps.length - 1; i++) { if ((laps[i].pace + laps[i + 1].pace) / 2 > base * 1.07) { dropAt = laps[i].n; break; } }
+  let dropAt = 0; for (let i = 2; i < laps.length - 1; i++) {        // จุดที่เริ่มช้าลงแบบต่อเนื่อง (ไม่ใช่แค่รอบเดียว)
+    const rest = laps.slice(i), m = rest.reduce((t, l) => t + l.pace, 0) / rest.length;
+    if ((laps[i].pace + laps[i + 1].pace) / 2 > base * 1.03 && m > base * 1.03) { dropAt = laps[i].n; break; } }
   const fast = laps.reduce((m, x) => x.pace < m.pace ? x : m), slow = laps.reduce((m, x) => x.pace > m.pace ? x : m);
   const avg = laps.reduce((t, x) => t + x.sec, 0) / tot;
   return { laps, p1, p2, fade, dropAt, fast, slow, avg, base, partial };
@@ -4939,9 +4941,9 @@ function parseRunText(texts) {
     for (let i = 0; i < lines.length && !r.km; i++) if (/ระยะทาง|ระยะรวม|distance/i.test(lines[i])) for (const j of [i, i - 1, i + 1]) { const m = (lines[j] || "").replace(/ระยะทาง|ระยะรวม|distance/ig, " ").match(NUM); if (m) { const v = parseFloat(m[1].replace(",", ".")); if (v > 0.2 && v <= 300) { r.km = v; break; } } }
   }
   // เวลา
-  r.timeSec = byLabel(/เวลารวม|เวลาที่ผ่านไป|เวลาทั้งหมด|total time|^time\b|elapsed/i, true);
+  r.timeSec = byLabel(/เ?วลารวม|เวลาที่ผ่านไป|เวลาทั้งหมด|total time|^time\b|elapsed/i, true);
   if (!r.timeSec) { const cnt = {}; lines.forEach(s => { const v = t3(s); if (v) cnt[v] = (cnt[v] || 0) + 1; }); const best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]; if (best) r.timeSec = +best[0]; }
-  r.movingSec = byLabel(/เวลา(?:ที่)?เคลื่อน(?:ไหว|ที่)|moving time/i, true);
+  r.movingSec = byLabel(/วลา(?:ที่)?เคลื่อน(?:ไหว|ที่)|moving time/i, true);
   if (!r.timeSec && r.movingSec) r.timeSec = r.movingSec;            // Strava แสดงแค่เวลาเคลื่อนที่
   r.walkSec = byLabel(/เวลาเดิน|walk(ing)? time/i, true);
   // หัวใจ
@@ -4952,10 +4954,13 @@ function parseRunText(texts) {
   lines.forEach((s, i) => { if (/ดีที่สุด|best pace/i.test(s)) { const all = (s.match(/\d{1,2}:\d{2}\s*\/km/g) || []).concat(i && /ดีที่สุด/.test(s) && !/\d:\d{2}/.test(s) ? (lines[i - 1].match(/\d{1,2}:\d{2}\s*\/km/g) || []).slice(-1) : []); if (all.length && !r.bestPace) r.bestPace = tAny(all[all.length - 1]); } });
   // รอบ (lap)
   const seen = {};
-  lines.forEach(s => {
-    const m = s.match(/^(\d{1,2})\s+(\d{1,2}:\d{2}(?:[.,]\d)?|\d:\d{3})\s+(\d{1,2}[.,]\d{2})\s+(\d{1,2}):(\d{2})$/);
-    if (!m) return; const n = +m[1], d = parseFloat(m[3].replace(",", ".")), pace = +m[4] * 60 + +m[5];
-    if (d > 0 && d <= 10 && PACE_OK(pace) && !seen[n]) { seen[n] = 1; r.laps.push({ n, km: d, sec: Math.round(pace * d) }); }
+  const s56 = x => x >= 60 && x < 70 ? x - 10 : x;            // OCR อ่าน 5 เป็น 6 (เช่น 5:62.9 → 5:52.9)
+  lines.forEach(s0 => {
+    const s = s0.trim().replace(/^[าไlI|!J](?=\d?\s)/, "1");    // "า1" = รอบ 11
+    const m = s.match(/^(\d{1,2})\s+(\d{1,2}):(\d{2})(?:[.,](\d))?\s+(\d{1,2}[.,]\d{2})\s+(\d{1,2}):(\d{2})$/);
+    if (!m) return; const n = +m[1], d = parseFloat(m[5].replace(",", ".")), pace = +m[6] * 60 + s56(+m[7]);
+    const t = +m[2] * 60 + s56(+m[3]) + (m[4] ? +m[4] / 10 : 0);
+    if (d > 0 && d <= 10 && PACE_OK(pace) && !seen[n]) { seen[n] = 1; r.laps.push({ n, km: d, sec: Math.abs(t - pace * d) <= 1.5 * d + 2 ? Math.round(t) : Math.round(pace * d) }); }
   });
   r.laps.sort((a, b) => a.n - b.n);
   // วันที่
@@ -4999,6 +5004,7 @@ function parseRunText(texts) {
       const best = [...cand].filter(v => v > 0.2).sort((a, b) => near(a) - near(b))[0];
       const old = r.km;
       r.km = best && near(best) <= 0.02 ? best : Math.round(want * 100) / 100;
+      if (!(best && near(best) <= 0.02)) r.kmCalc = true;      // ระยะนี้คำนวณจากเวลา÷เพซ ไม่ได้อ่านจากรูป
       if (old && Math.abs(old - r.km) > 0.05) r.fixed = `ปรับระยะจาก ${old} เป็น ${r.km} กม. ให้ตรงกับเวลาและเพซเฉลี่ย ${fmtPace(r.paceAvg)}`;
     }
   }
@@ -5014,7 +5020,7 @@ function parseRunText(texts) {
     if (m) { const v = parseInt(m[1].replace(/[,.]/g, "")); if (v > 0 && v < 15000) r.dplus = v; }
   }
   {   // เวลาเริ่มวิ่ง: "4 พ.ย. @ 05:21" (Garmin) · "at 5:30 AM" (Strava อังกฤษ) · "5 พ.ย. 2568 เวลา 05:30"
-    const T = lines.join("\n"), m = /@\s*(\d{1,2})[:.](\d{2})(?!\d)/.exec(T) || /\bat\s+(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(T) || /(?:ม\.?ค|ก\.?พ|มี\.?ค|เม\.?ย|พ\.?ค|มิ\.?ย|ก\.?ค|ส\.?ค|ก\.?ย|ต\.?ค|พ\.?ย|ธ\.?ค)\.?[^\n]{0,12}?เวลา\s*(\d{1,2})[:.](\d{2})/.exec(T);
+    const T = lines.join("\n"), m = /@\s*(\d{1,2})[:.](\d{2})(?!\d)(?!\s*\/)(?!\s*(?:km|กม|min))/i.exec(T) || /\bat\s+(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(T) || /(?:ม\.?ค|ก\.?พ|มี\.?ค|เม\.?ย|พ\.?ค|มิ\.?ย|ก\.?ค|ส\.?ค|ก\.?ย|ต\.?ค|พ\.?ย|ธ\.?ค)\.?[^\n]{0,12}?เวลา\s*(\d{1,2})[:.](\d{2})/.exec(T);
     if (m) { let h = +m[1]; const ap = (m[3] || "").toUpperCase(); if (ap === "PM" && h < 12) h += 12; if (ap === "AM" && h === 12) h = 0; if (h < 24 && +m[2] < 60) r.startHM = String(h).padStart(2, "0") + ":" + m[2]; }
   }
   return r;
@@ -5026,11 +5032,17 @@ function parseRunMulti(texts) {
   texts.forEach((t, ix) => {
     const r = parseRunText([t]), st = (String(t).match(/@\s*(\d{1,2})[:.](\d{2})/) || []).slice(1).map(x => x.padStart(2, "0")).join(":");
     if (r.laps.length >= 2) return;
+    if (r.kmCalc) { if (r.timeSec) partial.push({ ix: ix + 1, km: 0, sec: r.timeSec, calc: true }); return; }   // หน้าสถิติ (ไม่มีระยะ) ไม่นับเป็นอีกกิจกรรม
     if (!r.km !== !r.timeSec) { partial.push({ ix: ix + 1, km: r.km || 0, sec: r.timeSec || 0 }); return; }
     if (!r.km || r.timeEst) return;
-    if (acts.some(a => Math.abs(a.km - r.km) < .02 && Math.abs(a.sec - r.timeSec) < 5)) return;
+    // กิจกรรมเดียวกันคนละหน้า (ภาพรวม/สถิติ/รอบ) → ระยะต่างไม่เกิน 2% และเวลาต่างไม่เกิน 2% = ซ้ำ
+    const dup = acts.find(a => Math.abs(a.km - r.km) <= Math.max(.02, a.km * .02) && Math.abs(a.sec - r.timeSec) <= Math.max(5, a.sec * .02));
+    if (dup) { if (!dup.hr && r.hrAvg) dup.hr = r.hrAvg; if (!dup.hrMax && r.hrMax) dup.hrMax = r.hrMax; return; }
     acts.push({ km: r.km, sec: r.timeSec, hr: r.hrAvg || 0, hrMax: r.hrMax || 0, dplus: r.dplus || 0, st });
   });
+  // รูปที่อ่านได้แค่เวลา (หน้าสถิติ/กราฟของกิจกรรมเดียวกัน) ไม่ต้องเตือน ถ้าเวลาไม่เกินกิจกรรมหลัก
+  if (acts.length) { const mx = Math.max(...acts.map(a => a.sec)); for (let i = partial.length - 1; i >= 0; i--) if (!partial[i].km && partial[i].sec <= mx + 90) partial.splice(i, 1); }
+  else if (partial.some(q => q.calc)) partial.splice(0, partial.length, ...partial.filter(q => !q.calc));
   if (partial.length && acts.length) all.partial = partial;
   if (acts.length === 1 && partial.length) { const a = acts[0]; Object.assign(all, { km: a.km, timeSec: a.sec, paceAvg: 0, fixed: undefined, timeEst: false, hrAvg: a.hr || all.hrAvg, hrMax: a.hrMax || all.hrMax }); return all; }
   if (acts.length < 2) return all;
