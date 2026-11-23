@@ -549,7 +549,7 @@ input.ocr-filled{border-color:#7cc590!important;background:#eaf8ee!important}
 <footer class="foot"><div class="foot-in">
   <a class="line-btn" href="https://line.me/ti/p/~Prungyapharmacy" target="_blank" rel="noopener"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1 0-2-.1-2.9-.4L5 20.5l1.2-3.6C4.2 15.5 3 13.6 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>ติดต่อแอดมินทาง LINE</a>
   <span class="line-id">LINE ID: Prungyapharmacy</span>
-  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v69</span></span>
+  <b>© 2026 ก้าววิน · Every Step Wins.</b><span>ปรุงยาเภสัช สงวนลิขสิทธิ์ · <span id="appVer">v70</span></span>
 </div></footer>
 
 <div class="fabs" id="fab"><button class="fab-st" id="fabStats" hidden>📊 สถิติผู้ใช้</button><button class="btn fab-live" data-act="live">▶ กดเพื่อเริ่มวิ่ง</button><button class="btn fab" data-act="openLog">＋ ส่งผลซ้อม</button></div>
@@ -4934,11 +4934,11 @@ function parseRunText(texts) {
     for (const j of [i - 1, i + 1]) { const ts = lines[j] ? timesIn(lines[j], any) : []; if (ts.length) return ts[Math.min(col, ts.length - 1)]; }
   } return 0; };
   // ระยะ
-  const kms = []; lines.forEach(s => { const re = /(\d{1,3}[.,]\d{1,2})\s*(?:กม\.?|km\b)(?!\s*\/\s*h)/gi; let m; while ((m = re.exec(s))) { const v = parseFloat(m[1].replace(",", ".")); if (v > 0.2 && v <= 300) kms.push(v); } });
+  const kms = []; lines.forEach(s => { const re = /(\d{1,3}[.,]\d{1,2})\s*(?:กม\.?|km\b)(?![.\s]*\/\s*(?:h|ชม|hr))/gi; let m; while ((m = re.exec(s))) { const v = parseFloat(m[1].replace(",", ".")); if (v > 0.2 && v <= 300) kms.push(v); } });
   if (kms.length) r.km = Math.max(...kms);
   if (!r.km) {                                   // หน่วยเพี้ยน (เช่น "7.54ไกม." "1.10 ns.") → ใช้ตัวเลขที่อยู่ติดป้าย "ระยะทาง"
     const NUM = /(?<![\d:.,])(\d{1,3}[.,]\d{1,2})(?![\d:])/;
-    for (let i = 0; i < lines.length && !r.km; i++) if (/ระยะทาง|ระยะรวม|distance/i.test(lines[i])) for (const j of [i, i - 1, i + 1]) { const m = (lines[j] || "").replace(/ระยะทาง|ระยะรวม|distance/ig, " ").match(NUM); if (m) { const v = parseFloat(m[1].replace(",", ".")); if (v > 0.2 && v <= 300) { r.km = v; break; } } }
+    for (let i = 0; i < lines.length && !r.km; i++) if (/ระ[ยข]ะทาง|ระยะรวม|distance/i.test(lines[i])) for (const j of [i, i - 1, i + 1]) { const m = (lines[j] || "").replace(/ระ[ยข]ะทาง|ระยะรวม|distance/ig, " ").match(NUM); if (m) { const v = parseFloat(m[1].replace(",", ".")); if (v > 0.2 && v <= 300) { r.km = v; break; } } }
   }
   // เวลา
   r.timeSec = byLabel(/เ?วลารวม|เวลาที่ผ่านไป|เวลาทั้งหมด|total time|^time\b|elapsed/i, true);
